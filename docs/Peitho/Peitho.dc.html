@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0c0e12}
+@keyframes ph{from{left:0}to{left:100%}}
+@keyframes blink{0%,100%{opacity:.45}50%{opacity:1}}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.13);border-radius:6px}
+::-webkit-scrollbar-track{background:transparent}
+</style>
+</helmet>
+
+<div data-screen-label="Peitho" style="min-height:100vh;background:radial-gradient(140% 100% at 50% 0%,#11151b 0%,#0a0c10 60%);font-family:-apple-system,system-ui,'Helvetica Neue',Arial,sans-serif;color:#e9eaee;padding:24px">
+  <div style="max-width:1500px;margin:0 auto;display:flex;flex-direction:column;gap:14px">
+
+    <!-- ============ HEADER ============ -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#6f93b8,#cf9d5c);display:flex;align-items:center;justify-content:center"><div style="width:13px;height:13px;border:2px solid #0c0e12;border-radius:3px;transform:rotate(45deg)"></div></div>
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <span style="font-weight:600;letter-spacing:.22em;font-size:15px">PEITHO</span>
+          <span style="font-size:9px;letter-spacing:.2em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">8-BAR SANDBOX · 4/4</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="display:flex;align-items:center;gap:6px;padding:5px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:9px">
+          <div onClick="{{ toggleLoop }}" style="{{ loopStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
+          <div onClick="{{ togglePlay }}" style="{{ playBtnStyle }}">
+            <sc-if value="{{ playing }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></sc-if>
+            <sc-if value="{{ paused }}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg></sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ GLOBAL PARAMS ============ -->
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 18px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
+      <div onClick="{{ toggleTonality }}" style="display:flex;align-items:center;gap:7px;cursor:pointer"><div style="{{ tonalityChevron }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div><span style="font-size:9px;letter-spacing:.18em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">TONALITY</span></div>
+      <sc-if value="{{ collapseTonality }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#8a8f99;font-family:ui-monospace,Menlo,monospace;letter-spacing:.02em">{{ tonalitySummary }}</span></sc-if>
+      <sc-if value="{{ showTonality }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="position:relative">
+        <div onClick="{{ toggleKey }}" style="display:flex;align-items:center;gap:9px;padding:9px 13px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer"><span style="font-size:8px;letter-spacing:.14em;color:#8a8f99;font-family:ui-monospace,Menlo,monospace">KEY</span><span style="font-size:13px;font-weight:500;min-width:20px">{{ key }}</span><span style="font-size:9px;color:#8a8f99">▾</span></div>
+        <sc-if value="{{ open_key }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:100%;left:0;margin-top:6px;min-width:120%;background:#21262f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px;box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:60;max-height:280px;overflow-y:auto"><sc-for list="{{ keyItems }}" as="it" hint-placeholder-count="6"><div onClick="{{ it.pick }}" style="{{ it.style }}">{{ it.label }}</div></sc-for></div></sc-if>
+      </div>
+      <div style="position:relative">
+        <div onClick="{{ toggleScale }}" style="display:flex;align-items:center;gap:9px;padding:9px 13px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer"><span style="font-size:8px;letter-spacing:.14em;color:#8a8f99;font-family:ui-monospace,Menlo,monospace">SCALE</span><span style="font-size:13px;font-weight:500">{{ scale }}</span><span style="font-size:9px;color:#8a8f99;margin-left:2px">▾</span></div>
+        <sc-if value="{{ open_scale }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:100%;left:0;margin-top:6px;min-width:100%;background:#21262f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px;box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:60"><sc-for list="{{ scaleItems }}" as="it" hint-placeholder-count="4"><div onClick="{{ it.pick }}" style="{{ it.style }}">{{ it.label }}</div></sc-for></div></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:7px 14px 7px 13px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:8px;min-width:190px">
+        <span style="font-size:8px;letter-spacing:.14em;color:#8a8f99;font-family:ui-monospace,Menlo,monospace">TEMPO</span>
+        <div onPointerDown="{{ startTempo }}" style="position:relative;flex:1;height:16px;cursor:pointer;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:3px;background:rgba(255,255,255,.09)"></div><div style="{{ tempoFill }}"></div><div style="{{ tempoHandle }}"></div></div>
+        <span style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;min-width:30px;text-align:right">{{ tempo }}</span>
+      </div>
+      <div style="width:1px;height:28px;background:rgba(255,255,255,.09)"></div>
+      <span style="font-size:9px;letter-spacing:.18em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">DIRECTION</span>
+      <div style="position:relative">
+        <div onClick="{{ toggleType }}" style="display:flex;align-items:center;gap:9px;padding:9px 13px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer"><span style="font-size:8px;letter-spacing:.14em;color:#8a8f99;font-family:ui-monospace,Menlo,monospace">TYPE</span><span style="font-size:13px;font-weight:500">{{ type }}</span><span style="font-size:9px;color:#8a8f99;margin-left:2px">▾</span></div>
+        <sc-if value="{{ open_type }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:100%;left:0;margin-top:6px;min-width:100%;background:#21262f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px;box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:60"><sc-for list="{{ typeItems }}" as="it" hint-placeholder-count="5"><div onClick="{{ it.pick }}" style="{{ it.style }}">{{ it.label }}</div></sc-for></div></sc-if>
+      </div>
+      <div style="position:relative">
+        <div onClick="{{ toggleSegment }}" style="display:flex;align-items:center;gap:9px;padding:9px 13px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer"><span style="font-size:8px;letter-spacing:.14em;color:#8a8f99;font-family:ui-monospace,Menlo,monospace">SEGMENT</span><span style="font-size:13px;font-weight:500">{{ segment }}</span><span style="font-size:9px;color:#8a8f99;margin-left:2px">▾</span></div>
+        <sc-if value="{{ open_segment }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:100%;left:0;margin-top:6px;min-width:100%;background:#21262f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px;box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:60"><sc-for list="{{ segItems }}" as="it" hint-placeholder-count="6"><div onClick="{{ it.pick }}" style="{{ it.style }}">{{ it.label }}</div></sc-for></div></sc-if>
+      </div>
+      <div style="position:relative">
+        <div onClick="{{ toggleOption }}" style="display:flex;align-items:center;gap:9px;padding:9px 13px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer"><span style="font-size:8px;letter-spacing:.14em;color:#8a8f99;font-family:ui-monospace,Menlo,monospace">OPTION</span><span style="font-size:13px;font-weight:500">{{ option }}</span><span style="font-size:9px;color:#8a8f99;margin-left:2px">▾</span></div>
+        <sc-if value="{{ open_option }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:100%;right:0;margin-top:6px;min-width:180px;background:#21262f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px;box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:60"><sc-for list="{{ optItems }}" as="it" hint-placeholder-count="5"><div onClick="{{ it.pick }}" style="{{ it.style }}">{{ it.label }}</div></sc-for></div></sc-if>
+      </div>
+      </div></sc-if>
+    </div>
+
+    <!-- ============ CHORD PROGRESSION ============ -->
+    <div style="padding:14px 18px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+        <div style="display:flex;align-items:center;gap:12px"><div onClick="{{ toggleChords }}" style="{{ chordsChevron }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div><span onClick="{{ toggleChords }}" style="font-size:12px;font-weight:600;letter-spacing:.02em;cursor:pointer">Chord Progression</span><span style="font-size:9px;letter-spacing:.14em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">{{ chordCount }} CHORDS · 8 BARS</span><div style="display:flex;align-items:center;gap:10px;color:#6b7280"><span style="display:flex;align-items:center;gap:4px;font-size:9px;letter-spacing:.1em;font-family:ui-monospace,Menlo,monospace"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>SPLIT</span><span style="display:flex;align-items:center;gap:4px;font-size:9px;letter-spacing:.1em;font-family:ui-monospace,Menlo,monospace"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-4 6 4 6"/><path d="M15 6l4 6-4 6"/></svg>MERGE</span></div></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div onClick="{{ regenAllChords }}" style="display:flex;align-items:center;gap:6px;padding:7px 11px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:7px;cursor:pointer;color:#cfd3da;font-size:11px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg>Regenerate</div>
+          <div onClick="{{ midiChords }}" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:7px;cursor:pointer;color:#cfd3da" title="Export chord MIDI"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+          <div onClick="{{ clearAll }}" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:7px;cursor:pointer;color:#9aa0aa" title="Delete all"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></div>
+        </div>
+      </div>
+      <sc-if value="{{ collapseChords }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#8a8f99;font-family:ui-monospace,Menlo,monospace;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ chordSummary }}</div></sc-if>
+      <sc-if value="{{ showChords }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;gap:4px;margin-bottom:5px;padding-left:1px">
+        <span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace">1</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace">2</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace">3</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace">4</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace">5</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace">6</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace">7</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace">8</span>
+      </div>
+      <div style="display:flex;gap:4px;height:62px">
+        <sc-for list="{{ chordCells }}" as="c" hint-placeholder-count="10">
+          <div style="{{ c.style }}">
+            <div onClick="{{ c.openMenu }}" style="display:flex;align-items:center;gap:4px;cursor:pointer"><span style="font-size:12.5px;color:#e9eaee;font-weight:500">{{ c.name }}</span><span style="font-size:8px;color:#6b7280">▾</span></div>
+            <span style="position:absolute;bottom:5px;left:7px;font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace">{{ c.lenLabel }}</span>
+            <div style="position:absolute;bottom:5px;right:6px;display:flex;align-items:center;gap:4px">
+              <sc-if value="{{ c.canSplit }}" hint-placeholder-val="{{ false }}"><div onClick="{{ c.splitFn }}" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:rgba(111,147,184,.16);color:#9fc0e0;cursor:pointer" style-hover="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:rgba(111,147,184,.42);color:#fff;cursor:pointer" title="Split chord"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></div></sc-if>
+              <div onClick="{{ c.regen }}" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.07);color:#9aa0aa;cursor:pointer" style-hover="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.16);color:#fff;cursor:pointer" title="Regenerate chord"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
+            </div>
+            <sc-if value="{{ c.canMerge }}" hint-placeholder-val="{{ false }}"><div onClick="{{ c.mergeFn }}" style="position:absolute;top:50%;right:-10px;transform:translateY(-50%);z-index:6;width:18px;height:18px;border-radius:50%;background:#262c36;border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#aeb3bd" title="Merge identical chords"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-4 6 4 6"/><path d="M15 6l4 6-4 6"/></svg></div></sc-if>
+            <sc-if value="{{ c.menuOpen }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:7px;min-width:104px;max-height:236px;overflow-y:auto;background:#21262f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px;box-shadow:0 18px 44px rgba(0,0,0,.55);z-index:60"><sc-for list="{{ c.pool }}" as="p" hint-placeholder-count="6"><div onClick="{{ p.pick }}" style="{{ p.style }}">{{ p.label }}</div></sc-for></div></sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showBass }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:9px;padding-top:11px;border-top:1px solid rgba(255,255,255,.06)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:8px;height:8px;border-radius:2px;background:#5f86ab;box-shadow:0 0 6px #5f86ab"></div><span style="font-size:9px;letter-spacing:.16em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">BASS LINE · ROOT NOTES</span></div>
+          <div style="display:flex;gap:4px;height:34px">
+            <sc-for list="{{ bassCells }}" as="b" hint-placeholder-count="10">
+              <div style="{{ b.style }}"><span style="font-size:11.5px;font-weight:600;color:#bcd0e3;font-family:ui-monospace,Menlo,monospace;letter-spacing:.02em">{{ b.name }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      </sc-if>
+    </div>
+
+    <!-- ============ MAIN GRID ============ -->
+    <div style="display:flex;gap:14px;align-items:stretch">
+
+      <!-- LEFT: pipeline + macros -->
+      <sc-if value="{{ collapsedLeft }}" hint-placeholder-val="{{ false }}"><div onClick="{{ toggleLeft }}" style="width:30px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:12px 0;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px;cursor:pointer"><div style="color:#8a8f99"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div><span style="writing-mode:vertical-rl;font-size:9px;letter-spacing:.18em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">CONTROLS</span></div></sc-if>
+      <sc-if value="{{ showLeft }}" hint-placeholder-val="{{ true }}">
+      <div style="width:330px;flex:none;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">CONTROLS</span><div onClick="{{ toggleLeft }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#8a8f99;font-size:10px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>COLLAPSE</div></div>
+        <div style="padding:14px 16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">ENGINE MODEL</span><span style="font-size:8.5px;letter-spacing:.08em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">PICK ONE</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div onClick="{{ setArray }}" style="{{ engineArrayStyle }}">
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12.5px;font-weight:600;color:#e9eaee">Peitho-Array</span><span style="font-size:9.5px;color:#7d828c">Algorithmic engine</span></div>
+              <sc-if value="{{ engineArraySelected }}" hint-placeholder-val="{{ true }}"><div style="{{ engineCheckStyle }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></sc-if>
+            </div>
+            <div style="{{ enginePulseStyle }}">
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12.5px;font-weight:600;color:#cfd3da">Peitho-Pulse</span><span style="font-size:9.5px;color:#7d828c">LM-based engine</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:7.5px;letter-spacing:.08em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace;background:rgba(255,255,255,.07);padding:3px 6px;border-radius:4px">COMING SOON</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7d828c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:15px 16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
+          <div style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace;margin-bottom:12px">GENERATION PIPELINE</div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;align-items:center;gap:11px;padding:11px;background:#1a1e25;border:1px solid rgba(255,255,255,.06);border-radius:9px">
+              <div style="width:24px;height:24px;flex:none;border-radius:7px;background:#6f93b8;color:#0c0e12;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</div>
+              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">Generate Chords</div><div style="font-size:9.5px;color:#5f646e">harmonic skeleton</div></div>
+              <div onClick="{{ genChords }}" style="{{ step1GenStyle }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
+              <div onClick="{{ toggleLockChords }}" style="{{ lockChordsStyle }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;padding:11px;background:#1a1e25;border:1px solid rgba(255,255,255,.06);border-radius:9px">
+              <div style="width:24px;height:24px;flex:none;border-radius:7px;background:#82b48f;color:#0c0e12;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</div>
+              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">Layer Melodies</div><div style="font-size:9.5px;color:#5f646e">{{ step2Hint }}</div></div>
+              <div onClick="{{ genMel }}" style="{{ step2GenStyle }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
+              <div onClick="{{ toggleLockMel }}" style="{{ lockMelStyle }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;padding:11px;background:#1a1e25;border:1px solid rgba(255,255,255,.06);border-radius:9px">
+              <div style="width:24px;height:24px;flex:none;border-radius:7px;background:#cf9d5c;color:#0c0e12;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">3</div>
+              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">Counter-Melodies</div><div style="font-size:9.5px;color:#5f646e">{{ step3Hint }}</div></div>
+              <div onClick="{{ genCtr }}" style="{{ step3GenStyle }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px;flex:1">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">MACRO SHAPING</span><div onClick="{{ resetMacros }}" style="font-size:10px;color:#8a8f99;cursor:pointer;font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em" title="Reset to suggested">RESET</div></div>
+          <div style="font-size:9px;color:#5f646e;font-family:ui-monospace,Menlo,monospace;letter-spacing:.03em;margin-bottom:15px">{{ macroSeed }}</div>
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="font-size:10px;letter-spacing:.1em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace">NOTE DENSITY</span><span style="font-size:10px;color:#e9eaee;font-family:ui-monospace,Menlo,monospace">{{ densityStr }}</span></div><div onPointerDown="{{ startDensity }}" style="position:relative;height:16px;cursor:pointer;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:3px;background:rgba(255,255,255,.08)"></div><div style="{{ densityFill }}"></div><div style="{{ densityHandle }}"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="font-size:10px;letter-spacing:.1em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace">NOTE SPLIT</span><span style="font-size:10px;color:#e9eaee;font-family:ui-monospace,Menlo,monospace">{{ splitStr }}</span></div><div onPointerDown="{{ startSplit }}" style="position:relative;height:16px;cursor:pointer;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:3px;background:rgba(255,255,255,.08)"></div><div style="{{ splitFill }}"></div><div style="{{ splitHandle }}"></div></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span style="font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace">CHORDS</span><span style="font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace">MELODY</span></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="font-size:10px;letter-spacing:.1em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace">SYNCOPATION</span><span style="font-size:10px;color:#e9eaee;font-family:ui-monospace,Menlo,monospace">{{ syncStr }}</span></div><div onPointerDown="{{ startSync }}" style="position:relative;height:16px;cursor:pointer;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:3px;background:rgba(255,255,255,.08)"></div><div style="{{ syncFill }}"></div><div style="{{ syncHandle }}"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="font-size:10px;letter-spacing:.1em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace">RHYTHM COMPLEXITY</span><span style="font-size:10px;color:#e9eaee;font-family:ui-monospace,Menlo,monospace">{{ rhythmStr }}</span></div><div onPointerDown="{{ startRhythm }}" style="position:relative;height:16px;cursor:pointer;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:3px;background:rgba(255,255,255,.08)"></div><div style="{{ rhythmFill }}"></div><div style="{{ rhythmHandle }}"></div></div></div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- RIGHT: centerpiece -->
+      <div style="flex:1;min-width:0;padding:15px 16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="display:flex;padding:4px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:9px;gap:3px">
+            <div onClick="{{ setGrid }}" style="{{ viewGridStyle }}">MIDI Matrix</div>
+            <div onClick="{{ setWave }}" style="{{ viewWaveStyle }}">Waveform</div>
+            </div>
+            <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:center;gap:9px"><div style="display:flex;align-items:center;gap:4px"><span style="font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace">H</span><div onClick="{{ zoomOutFn }}" style="{{ zoomOutStyle }}" title="Zoom out"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></div><span style="font-size:10px;font-family:ui-monospace,Menlo,monospace;color:#9aa0aa;min-width:28px;text-align:center">{{ zoomLabel }}</span><div onClick="{{ zoomInFn }}" style="{{ zoomInStyle }}" title="Zoom in"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div></div><div style="display:flex;align-items:center;gap:4px"><span style="font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace">V</span><div onClick="{{ zoomVOutFn }}" style="{{ zoomVOutStyle }}" title="Vertical zoom out"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></div><span style="font-size:10px;font-family:ui-monospace,Menlo,monospace;color:#9aa0aa;min-width:28px;text-align:center">{{ vzoomLabel }}</span><div onClick="{{ zoomVInFn }}" style="{{ zoomVInStyle }}" title="Vertical zoom in"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div></div><div style="display:flex;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:7px;gap:2px"><div onClick="{{ setModeNote }}" style="{{ modeNoteStyle }}">Notes</div><div onClick="{{ setModeVel }}" style="{{ modeVelStyle }}">Vel</div></div></div></sc-if>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="position:relative">
+              <div onClick="{{ toggleDrum }}" style="display:flex;align-items:center;gap:8px;padding:7px 12px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer;white-space:nowrap"><span style="font-size:8px;letter-spacing:.14em;color:#8a8f99;font-family:ui-monospace,Menlo,monospace">GROOVE</span><span style="font-size:12px;font-weight:500;color:#e9eaee">{{ drumPattern }}</span><span style="font-size:9px;color:#8a8f99">▾</span></div>
+              <sc-if value="{{ open_drum }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:100%;right:0;margin-top:6px;min-width:236px;background:#21262f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px;box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:60"><div style="padding:6px 8px 7px;font-size:8.5px;letter-spacing:.1em;color:#6b7280;font-family:ui-monospace,Menlo,monospace;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px">{{ drumSuggestHint }}</div><sc-for list="{{ drumItems }}" as="it" hint-placeholder-count="6"><div onClick="{{ it.pick }}" style="{{ it.rowStyle }}"><span>{{ it.label }}</span><sc-if value="{{ it.suggested }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;gap:4px;font-size:8px;letter-spacing:.08em;color:#d68fa6;font-family:ui-monospace,Menlo,monospace;background:rgba(194,115,138,.16);padding:2px 6px;border-radius:4px"><span style="width:5px;height:5px;border-radius:50%;background:#c2738a"></span>SUGGESTED</span></sc-if></div></sc-for></div></sc-if>
+            </div>
+            <div onClick="{{ toggleBass }}" style="display:flex;align-items:center;gap:8px;cursor:pointer"><div style="{{ bassBoxStyle }}"></div><span style="font-size:11px;color:#9aa0aa">Show Bass</span></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:4px;margin-bottom:6px"><div style="width:178px;flex:none"></div><div style="flex:1;overflow:hidden"><div style="{{ rulerContentStyle }}"><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;padding-left:4px;border-left:1px solid rgba(255,255,255,.06)">1</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;padding-left:4px;border-left:1px solid rgba(255,255,255,.06)">2</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;padding-left:4px;border-left:1px solid rgba(255,255,255,.06)">3</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;padding-left:4px;border-left:1px solid rgba(255,255,255,.06)">4</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;padding-left:4px;border-left:1px solid rgba(255,255,255,.06)">5</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;padding-left:4px;border-left:1px solid rgba(255,255,255,.06)">6</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;padding-left:4px;border-left:1px solid rgba(255,255,255,.06)">7</span><span style="flex:1;font-size:8px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;padding-left:4px;border-left:1px solid rgba(255,255,255,.06)">8</span></div></div></div>
+
+        <div style="position:relative;display:flex;flex-direction:column;gap:6px;flex:1">
+
+          <!-- CHORDS LANE -->
+          <div style="{{ laneStyle }}">
+            <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:9px">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:3px;background:#6f93b8;box-shadow:0 0 6px #6f93b8"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">Chords</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ ms_chord.toggleM }}" style="{{ ms_chord.mStyle }}" title="Mute">M</div><div onClick="{{ ms_chord.toggleS }}" style="{{ ms_chord.sStyle }}" title="Solo">S</div></div></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div onClick="{{ regenAllChords }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
+                <div onClick="{{ midiChords }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+              </div>
+            </div>
+            <div style="{{ ms_chord.areaStyle }}">
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ chordRows }}" as="r" hint-placeholder-count="8"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
+              <div style="{{ matrixContentStyle }}">
+              <div style="{{ gridStyle }}"></div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0"><sc-for list="{{ chordNotes }}" as="n" hint-placeholder-count="12"><div style="{{ n.style }}"></div></sc-for></div></sc-if>
+              <sc-if value="{{ showWave }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;gap:1px;padding:8px 10px"><sc-for list="{{ chordWave }}" as="b" hint-placeholder-count="40"><div style="{{ b.style }}"></div></sc-for></div></sc-if>
+              </div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:3;pointer-events:none"><sc-for list="{{ chordRows }}" as="r" hint-placeholder-count="8"><div style="position:absolute;inset:0"><div style="{{ r.lLabelStyle }}">{{ r.name }}</div><div style="{{ r.rLabelStyle }}">{{ r.name }}</div></div></sc-for></div></sc-if>
+            </div>
+          </div>
+
+          <!-- BASS LANE -->
+          <sc-if value="{{ showBass }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ laneStyle }}">
+            <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:3px;background:#5f86ab;box-shadow:0 0 6px #5f86ab"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">Bass</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ ms_bass.toggleM }}" style="{{ ms_bass.mStyle }}" title="Mute">M</div><div onClick="{{ ms_bass.toggleS }}" style="{{ ms_bass.sStyle }}" title="Solo">S</div></div></div>
+              <span style="font-size:9px;color:#5f646e;font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em">follows chord roots</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div onClick="{{ midiBass }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa" title="Export bass MIDI"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+              </div>
+            </div>
+            <div style="{{ ms_bass.areaStyle }}">
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ bassRows }}" as="r" hint-placeholder-count="6"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
+              <div style="{{ matrixContentStyle }}">
+              <div style="{{ gridStyle }}"></div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0"><sc-for list="{{ bassNotes }}" as="n" hint-placeholder-count="8"><div style="{{ n.style }}"></div></sc-for></div></sc-if>
+              <sc-if value="{{ showWave }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;gap:1px;padding:8px 10px"><sc-for list="{{ bassWave }}" as="b" hint-placeholder-count="40"><div style="{{ b.style }}"></div></sc-for></div></sc-if>
+              </div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:3;pointer-events:none"><sc-for list="{{ bassRows }}" as="r" hint-placeholder-count="6"><div style="position:absolute;inset:0"><div style="{{ r.lLabelStyle }}">{{ r.name }}</div><div style="{{ r.rLabelStyle }}">{{ r.name }}</div></div></sc-for></div></sc-if>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- MELODY LANE -->
+          <div style="{{ laneStyle }}">
+            <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:3px;background:#82b48f;box-shadow:0 0 6px #82b48f"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">Melody</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ ms_mel.toggleM }}" style="{{ ms_mel.mStyle }}" title="Mute">M</div><div onClick="{{ ms_mel.toggleS }}" style="{{ ms_mel.sStyle }}" title="Solo">S</div></div></div>
+              <div style="display:flex;gap:4px"><sc-for list="{{ melTabs }}" as="t" hint-placeholder-count="3"><div onClick="{{ t.pick }}" style="{{ t.style }}">{{ t.label }}</div></sc-for></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div onClick="{{ regenMel }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
+                <div onClick="{{ midiMel }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+              </div>
+            </div>
+            <div style="{{ ms_mel.areaStyle }}">
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ melRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
+              <div style="{{ matrixContentStyle }}">
+              <div style="{{ gridStyle }}"></div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div onPointerDown="{{ addMel }}" style="position:absolute;inset:0;cursor:crosshair"><sc-for list="{{ melNotes }}" as="n" hint-placeholder-count="16"><div onPointerDown="{{ n.onDown }}" onDoubleClick="{{ n.onDbl }}" style="{{ n.style }}"><sc-if value="{{ n.showVel }}" hint-placeholder-val="{{ false }}"><span style="{{ n.velLabelStyle }}">{{ n.velLabel }}</span></sc-if><sc-if value="{{ n.resizable }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ n.onResize }}" style="{{ n.handleStyle }}"></div></sc-if></div></sc-for></div></sc-if>
+              <sc-if value="{{ showWave }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;gap:1px;padding:8px 10px"><sc-for list="{{ melWave }}" as="b" hint-placeholder-count="40"><div style="{{ b.style }}"></div></sc-for></div></sc-if>
+              <sc-if value="{{ melEmpty }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;pointer-events:none">VARIANT EMPTY — DRAW OR LAYER A MELODY</div></sc-if>
+              </div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:3;pointer-events:none"><sc-for list="{{ melRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.lLabelStyle }}">{{ r.name }}</div><div style="{{ r.rLabelStyle }}">{{ r.name }}</div></div></sc-for></div></sc-if>
+            </div>
+          </div>
+
+          <!-- COUNTER LANE -->
+          <div style="{{ laneStyle }}">
+            <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:3px;background:#cf9d5c;box-shadow:0 0 6px #cf9d5c"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">Counter</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ ms_ctr.toggleM }}" style="{{ ms_ctr.mStyle }}" title="Mute">M</div><div onClick="{{ ms_ctr.toggleS }}" style="{{ ms_ctr.sStyle }}" title="Solo">S</div></div></div>
+              <div style="display:flex;gap:4px"><sc-for list="{{ ctrTabs }}" as="t" hint-placeholder-count="3"><div onClick="{{ t.pick }}" style="{{ t.style }}">{{ t.label }}</div></sc-for></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div onClick="{{ regenCtr }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
+                <div onClick="{{ midiCtr }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+              </div>
+            </div>
+            <div style="{{ ms_ctr.areaStyle }}">
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ ctrRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
+              <div style="{{ matrixContentStyle }}">
+              <div style="{{ gridStyle }}"></div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div onPointerDown="{{ addCtr }}" style="position:absolute;inset:0;cursor:crosshair"><sc-for list="{{ ctrNotes }}" as="n" hint-placeholder-count="10"><div onPointerDown="{{ n.onDown }}" onDoubleClick="{{ n.onDbl }}" style="{{ n.style }}"><sc-if value="{{ n.showVel }}" hint-placeholder-val="{{ false }}"><span style="{{ n.velLabelStyle }}">{{ n.velLabel }}</span></sc-if><sc-if value="{{ n.resizable }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ n.onResize }}" style="{{ n.handleStyle }}"></div></sc-if></div></sc-for></div></sc-if>
+              <sc-if value="{{ showWave }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;gap:1px;padding:8px 10px"><sc-for list="{{ ctrWave }}" as="b" hint-placeholder-count="40"><div style="{{ b.style }}"></div></sc-for></div></sc-if>
+              <sc-if value="{{ ctrEmpty }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#3f444c;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;pointer-events:none">VARIANT EMPTY — DRAW OR LAYER A COUNTER</div></sc-if>
+              </div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:3;pointer-events:none"><sc-for list="{{ ctrRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.lLabelStyle }}">{{ r.name }}</div><div style="{{ r.rLabelStyle }}">{{ r.name }}</div></div></sc-for></div></sc-if>
+            </div>
+          </div>
+
+          <!-- DRUMS LANE -->
+          <div style="{{ laneStyle }}">
+            <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:3px;background:#c2738a;box-shadow:0 0 6px #c2738a"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">Drums</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ ms_drums.toggleM }}" style="{{ ms_drums.mStyle }}" title="Mute">M</div><div onClick="{{ ms_drums.toggleS }}" style="{{ ms_drums.sStyle }}" title="Solo">S</div></div></div>
+              <span style="font-size:9px;color:#5f646e;font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em">{{ drumPattern }}</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div onClick="{{ midiDrums }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa" title="Export drum MIDI"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+              </div>
+            </div>
+            <div style="{{ ms_drums.areaStyle }}">
+              <div style="position:absolute;left:7px;top:13%;z-index:4;font-size:7px;color:#5a6068;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;pointer-events:none">HH</div>
+              <div style="position:absolute;left:7px;top:43%;z-index:4;font-size:7px;color:#5a6068;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;pointer-events:none">SN</div>
+              <div style="position:absolute;left:7px;top:72%;z-index:4;font-size:7px;color:#5a6068;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;pointer-events:none">BD</div>
+              <div style="{{ matrixContentStyle }}">
+              <div style="{{ gridStyle }}"></div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div onPointerDown="{{ drumCellDown }}" style="position:absolute;inset:0;cursor:pointer"><sc-for list="{{ drumNotes }}" as="n" hint-placeholder-count="24"><div style="{{ n.style }}"></div></sc-for></div></sc-if>
+              <sc-if value="{{ showWave }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;gap:1px;padding:8px 10px"><sc-for list="{{ drumWave }}" as="b" hint-placeholder-count="40"><div style="{{ b.style }}"></div></sc-for></div></sc-if>
+              </div>
+            </div>
+          </div>
+
+          <!-- PLAYHEAD -->
+          <div style="position:absolute;top:0;bottom:0;left:179px;right:0;pointer-events:none;overflow:hidden"><div ref="{{ phRef }}" style="{{ playheadStyle }}"></div></div>
+
+        </div>
+        <sc-if value="{{ showPan }}" hint-placeholder-val="{{ false }}"><div style="display:flex;margin-top:8px;padding-left:178px"><div onPointerDown="{{ startPan }}" style="position:relative;flex:1;height:10px;background:#101319;border:1px solid rgba(255,255,255,.06);border-radius:5px;cursor:pointer"><div style="{{ panThumbStyle }}"></div></div></div></sc-if>
+      </div>
+    </div>
+
+    <!-- ============ FOOTER ============ -->
+    <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
+      <div onClick="{{ exportMidi }}" style="{{ exportBtnStyle }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg><span style="letter-spacing:.08em">EXPORT MULTI-TRACK MIDI</span></div>
+      <div style="flex:1"></div>
+      <div onClick="{{ scrambleSeed }}" style="display:flex;align-items:center;gap:14px;padding:9px 13px;background:#101319;border:1px solid rgba(255,255,255,.08);border-radius:9px;cursor:pointer">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:8px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">AMBIENT SEED MATRIX</span><span style="font-size:15px;color:#82b48f;font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em">{{ seedHex }}</span></div>
+        <div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:#1a1e25;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#82b48f"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M21 16v5h-5"/><path d="M3 21h5v-5"/></svg></div>
+      </div>
+    </div>
+
+  </div>
+
+  <sc-if value="{{ anyMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeMenus }}" style="position:fixed;inset:0;z-index:50"></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#4a90d9&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#4a90d9&quot;,&quot;#e0a44a&quot;,&quot;#5fb98b&quot;,&quot;#c2738a&quot;]},&quot;glow&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const HEPT={major:[0,2,4,5,7,9,11],minor:[0,2,3,5,7,8,10]};
+const SCALES={'Pentatonic Major':[0,2,4,7,9],'Pentatonic Minor':[0,3,5,7,10],'Heptatonic Major':[0,2,4,5,7,9,11],'Heptatonic Natural Minor':[0,2,3,5,7,8,10]};
+const KEYS=NOTE_NAMES.slice();
+const SCALE_LIST=['Pentatonic Major','Pentatonic Minor','Heptatonic Major','Heptatonic Natural Minor'];
+const TYPES=['Ballad','Pop','Cinematic','Lo-Fi','Ambient'];
+const SEGMENTS=['Intro','Verse','Pre-Chorus','Chorus','Bridge','Outro'];
+const OPTIONS=['Rousing Crescendo','Moody Wind Down','Gentle Swell','Steady Groove','Sparse Reflection'];
+const DRUM_PATTERNS=['Basic 8th-Note','Four-on-the-Floor','Syncopated','Slow-Burn & 6/8 Fills','Gated-Reverb Drive','Driving 16th Open Hat'];
+const DRUM_REC={
+  'Ballad':['Slow-Burn & 6/8 Fills','Basic 8th-Note'],
+  'Pop':['Four-on-the-Floor','Basic 8th-Note'],
+  'Cinematic':['Gated-Reverb Drive','Slow-Burn & 6/8 Fills'],
+  'Lo-Fi':['Syncopated','Basic 8th-Note'],
+  'Ambient':['Slow-Burn & 6/8 Fills','Syncopated']
+};
+function _genDrums(pat){
+  const K=[],S=[],H=[],O=[]; // kick, snare, closed hat, open hat
+  for(let b=0;b<8;b++){
+    const o=b*16; const fill=(b%4===3);
+    if(pat==='Basic 8th-Note'){
+      K.push(o+0,o+8); S.push(o+4,o+12); for(let i=0;i<16;i+=2)H.push(o+i);
+    } else if(pat==='Four-on-the-Floor'){
+      K.push(o+0,o+4,o+8,o+12); S.push(o+4,o+12); for(let i=0;i<16;i+=2)H.push(o+i); for(let i=2;i<16;i+=4)O.push(o+i);
+    } else if(pat==='Syncopated'){
+      K.push(o+0,o+6,o+10); S.push(o+4,o+12); if(b%2)S.push(o+14); for(let i=0;i<16;i+=2)H.push(o+i); H.push(o+7,o+15);
+    } else if(pat==='Slow-Burn & 6/8 Fills'){
+      K.push(o+0,o+9); S.push(o+6); [0,3,6,9,12,15].forEach(function(i){H.push(o+i);}); if(fill)S.push(o+10,o+12,o+14);
+    } else if(pat==='Gated-Reverb Drive'){
+      K.push(o+0,o+8,o+11); S.push(o+4,o+12); for(let i=0;i<16;i+=2)H.push(o+i);
+    } else if(pat==='Driving 16th Open Hat'){
+      K.push(o+0,o+8); S.push(o+4,o+12); for(let i=0;i<16;i++)H.push(o+i); for(let i=2;i<16;i+=4)O.push(o+i);
+    }
+  }
+  return {kick:K,snare:S,hat:H,open:O};
+}
+
+function _rand(){return (Math.random()*4294967295)>>>0;}
+function _rng(seed){let a=seed>>>0;return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function _clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+function _genChords(key,scale,type){
+  const r=Math.random; const root=NOTE_NAMES.indexOf(key);
+  const isMin=/Minor/.test(scale); const ints=isMin?HEPT.minor:HEPT.major;
+  const lensByType={'Ballad':[2,2,3,4,4],'Pop':[1,1,2,2,2],'Cinematic':[2,3,4,4,2],'Lo-Fi':[1,2,2,2,3],'Ambient':[4,4,3,2]};
+  const extByType={'Ballad':0.6,'Pop':0.18,'Cinematic':0.65,'Lo-Fi':0.5,'Ambient':0.5};
+  const lens=lensByType[type]||[1,1,2,2,2,3,4];
+  const ext=extByType[type]!=null?extByType[type]:0.35;
+  const segs=[]; let rem=16;
+  while(rem>0){let l=lens[Math.floor(r()*lens.length)]; if(l>rem)l=rem; segs.push(l); rem-=l;}
+  let start=0; const out=[];
+  for(const len of segs){
+    const deg=Math.floor(r()*ints.length);
+    const semis=ints[deg];
+    const noteName=NOTE_NAMES[(root+semis)%12];
+    let suf= isMin ? ['m','m7b5','','m7','m7','maj7','7'][deg%7] : ['','m7','m7','add9','7','m7','m7b5'][deg%7];
+    if(r()<ext*0.4) suf=['sus4','add9','9sus4','7'][Math.floor(r()*4)];
+    if(r()>ext){ if(suf==='maj7'||suf==='add9'||suf==='7'||suf==='9sus4')suf=''; else if(suf==='m7')suf='m'; else if(suf==='m7b5')suf='dim'; }
+    const tones=[ 48+semis, 48+ints[(deg+2)%7], 48+ints[(deg+4)%7] ];
+    if(r()<ext) tones.push(60+semis);
+    out.push({name:noteName+suf,len,start,tones});
+    start+=len;
+  }
+  return out;
+}
+
+const HARM={
+  'Pentatonic Major':{h:[0,2,4,5,7,9,11], r:[0,2,4,7,9]},
+  'Pentatonic Minor':{h:[0,2,3,5,7,8,10], r:[0,3,5,7,10]},
+  'Heptatonic Major':{h:[0,2,4,5,7,9,11], r:[0,2,4,5,7,9,11]},
+  'Heptatonic Natural Minor':{h:[0,2,3,5,7,8,10], r:[0,2,3,5,7,8,10]}
+};
+function _chordPool(key,scale){
+  const root=NOTE_NAMES.indexOf(key); const cfg=HARM[scale]||HARM['Heptatonic Major']; const h=cfg.h, n=h.length, tonic=48+root; const out=[];
+  cfg.r.forEach(function(rs){
+    const i=h.indexOf(rs);
+    const third=h[(i+2)%n]+((i+2>=n)?12:0);
+    const fifth=h[(i+4)%n]+((i+4>=n)?12:0);
+    const seventh=h[(i+6)%n]+((i+6>=n)?12:0);
+    const second=h[(i+1)%n]+((i+1>=n)?12:0);
+    const t3=third-rs, t5=fifth-rs, t7=seventh-rs, t2=second-rs;
+    const rn=NOTE_NAMES[(root+rs)%12];
+    let base=''; if(t3===4)base=''; else if(t3===3)base='m'; else if(t3<=2)base='sus2'; else base='sus4';
+    let q5=''; if(t5===6)q5='b5'; else if(t5===8)q5='#5';
+    const tri=[tonic+rs,tonic+third,tonic+fifth];
+    out.push({name:rn+base+q5, tones:tri});
+    if((base===''||base==='m')&&q5===''){
+      let sev=null;
+      if(t7===11) sev=(base===''?'maj7':'m(maj7)');
+      else if(t7===10) sev=(base===''?'7':'m7');
+      if(sev) out.push({name:rn+sev, tones:[tonic+rs,tonic+third,tonic+fifth,tonic+seventh]});
+      out.push({name:rn+base+'add9', tones:[tonic+rs,tonic+third,tonic+fifth,tonic+rs+t2+12]});
+    } else if(q5==='b5'){
+      out.push({name:rn+'m7b5', tones:[tonic+rs,tonic+third,tonic+fifth,tonic+seventh]});
+    }
+  });
+  return out;
+}
+function _scaleMidi(key,scale,lo,hi){const root=NOTE_NAMES.indexOf(key);const ints=SCALES[scale]||SCALES['Heptatonic Major'];const a=[];for(let m=lo;m<=hi;m++){if(ints.indexOf(((m-root)%12+12)%12)>=0)a.push(m);}return a;}
+function _segProfile(seg){return ({'Intro':{den:0.55,reg:-3,len:1.4,sync:-0.10},'Verse':{den:0.85,reg:0,len:1.1,sync:0},'Pre-Chorus':{den:1.05,reg:2,len:0.9,sync:0.12},'Chorus':{den:1.30,reg:4,len:0.8,sync:0.18},'Bridge':{den:0.95,reg:-2,len:1.0,sync:0.10},'Outro':{den:0.55,reg:-4,len:1.5,sync:-0.08}})[seg]||{den:1,reg:0,len:1,sync:0};}
+function _optProfile(opt){switch(opt){
+  case 'Rousing Crescendo':return {env:function(b){return 0.45+b/7*1.0;},lenMul:0.95};
+  case 'Moody Wind Down':return {env:function(b){return 1.25-b/7*0.9;},lenMul:1.3};
+  case 'Gentle Swell':return {env:function(b){return 0.5+Math.sin(b/7*Math.PI)*0.7;},lenMul:1.15};
+  case 'Steady Groove':return {env:function(){return 1;},lenMul:0.85};
+  default:return {env:function(){return 0.62;},lenMul:1.6};
+}}
+function _recommendMacros(type,segment,option,scale){
+  const base=({'Ballad':{d:0.42,s:0.55,y:0.22,r:0.40},'Pop':{d:0.62,s:0.45,y:0.40,r:0.50},'Cinematic':{d:0.50,s:0.60,y:0.25,r:0.55},'Lo-Fi':{d:0.55,s:0.40,y:0.55,r:0.60},'Ambient':{d:0.30,s:0.70,y:0.18,r:0.35}})[type]||{d:0.6,s:0.45,y:0.30,r:0.50};
+  const seg=({'Intro':{d:-0.15,s:-0.05,y:-0.05,r:-0.05},'Verse':{d:0,s:0,y:0,r:0},'Pre-Chorus':{d:0.08,s:-0.05,y:0.05,r:0.05},'Chorus':{d:0.18,s:-0.10,y:0.08,r:0.08},'Bridge':{d:0.0,s:0.05,y:0.05,r:0.10},'Outro':{d:-0.18,s:0.10,y:-0.05,r:-0.05}})[segment]||{d:0,s:0,y:0,r:0};
+  const opt=({'Rousing Crescendo':{d:0.06,y:0.05,r:0.05},'Moody Wind Down':{d:-0.08,y:-0.05,r:0},'Gentle Swell':{d:-0.02,y:0,r:0},'Steady Groove':{d:0.05,y:0.08,r:-0.05},'Sparse Reflection':{d:-0.18,y:-0.08,r:-0.10}})[option]||{d:0,y:0,r:0};
+  const sc=/Pentatonic/.test(scale)?-0.05:0.05;
+  return {density:_clamp(base.d+seg.d+opt.d,0.05,1),split:_clamp(base.s+seg.s,0,1),sync:_clamp(base.y+seg.y+opt.y,0,1),rhythm:_clamp(base.r+seg.r+opt.r+sc,0,1)};
+}
+
+function _genMono(seed,o){
+  const seg=_segProfile(o.segment); const opt=_optProfile(o.option);
+  const lo=o.register[0]+seg.reg, hi=o.register[1]+seg.reg;
+  const rng=_rng(seed); const notes=_scaleMidi(o.key,o.scale,lo,hi);
+  if(!notes.length) return [];
+  const baseDen=Math.max(0.05,o.density*o.sparse);
+  const syncEff=_clamp(o.sync,0,1.2);
+  let idx=Math.floor(rng()*notes.length); const out=[]; let s=0;
+  while(s<128){
+    const bar=Math.floor(s/16); const e=opt.env(bar);
+    const isDown=s%4===0, isBeat=s%2===0;
+    let p=baseDen*e;
+    if(isDown)p*=1.15; else if(isBeat)p*=0.75*(0.6+syncEff); else p*=0.5*(0.3+syncEff)*(0.5+o.rhythm);
+    if(o.counter)p*=0.7;
+    if(rng()<p){
+      idx+=Math.round(rng()*4-2); idx=_clamp(idx,0,notes.length-1);
+      let len=[1,1,2,2,3,4][Math.floor(rng()*6)];
+      len=Math.max(1,Math.round(len*(1.2-o.density*0.4)*seg.len*opt.lenMul));
+      const vel=Math.round(_clamp((isDown?104:isBeat?88:72)*(0.7+0.3*e)+(rng()*16-8),35,122));
+      out.push({step:s,len:len,midi:notes[idx],vel:vel});
+      s+=len;
+    } else s+=1;
+  }
+  return out;
+}
+
+function _wave(notes,bins){const a=new Array(bins).fill(0);for(const n of notes){const b0=Math.floor(n.step/128*bins);const b1=Math.floor((n.step+n.len)/128*bins);for(let b=b0;b<=Math.min(bins-1,b1);b++)a[b]+=1;}let mx=1;for(const v of a)if(v>mx)mx=v;return a.map(function(v,i){const base=v/mx;const jit=base>0?0.16*Math.abs(Math.sin(i*1.7)):0;return Math.min(1,base*0.88+jit);});}
+
+function _vlq(n){const b=[n&0x7f];n>>=7;while(n>0){b.unshift((n&0x7f)|0x80);n>>=7;}return b;}
+function _buildMidi(tempo,tracks){
+  const T=120; const u16=function(n){return [(n>>8)&0xff,n&0xff];}; const u32=function(n){return [(n>>>24)&0xff,(n>>16)&0xff,(n>>8)&0xff,n&0xff];};
+  const chunks=[];
+  const usPB=Math.round(60000000/tempo);
+  let tt=[]; tt=tt.concat(_vlq(0),[0xff,0x51,0x03,(usPB>>16)&0xff,(usPB>>8)&0xff,usPB&0xff],_vlq(0),[0xff,0x2f,0x00]);
+  chunks.push(tt);
+  for(const tr of tracks){
+    const ev=[];
+    for(const n of tr.notes){ev.push({t:n.step*T,s:0x90,a:n.midi,b:(n.vel==null?90:n.vel)});ev.push({t:(n.step+Math.max(1,n.len))*T,s:0x80,a:n.midi,b:0});}
+    ev.sort(function(x,y){return x.t-y.t || x.s-y.s;});
+    let by=[]; let last=0;
+    for(const e of ev){by=by.concat(_vlq(e.t-last),[e.s|tr.channel,e.a,e.b]);last=e.t;}
+    by=by.concat(_vlq(0),[0xff,0x2f,0x00]);
+    chunks.push(by);
+  }
+  let all=[0x4d,0x54,0x68,0x64].concat(u32(6),u16(1),u16(chunks.length),u16(480));
+  for(const c of chunks){all=all.concat([0x4d,0x54,0x72,0x6b],u32(c.length),c);}
+  return new Uint8Array(all);
+}
+function _dl(bytes,name){const blob=new Blob([bytes],{type:'audio/midi'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);}
+
+class Component extends DCLogic {
+  phRef = React.createRef();
+  _running = false;
+  state = {
+    key:'E', scale:'Pentatonic Major', tempo:120,
+    engine:'matrix', view:'grid', bassOnly:false,
+    type:'Ballad', segment:'Verse', option:'Rousing Crescendo',
+    engineModel:'array', editMode:'note',
+    zoom:1, vzoom:1, pan:0, collapseLeft:false, collapseTonality:false, collapseChords:false,
+    density:0.48, split:0.55, sync:0.27, rhythm:0.40,
+    chords:_genChords('E','Pentatonic Major','Ballad'), chordsGen:true, chordsLocked:true,
+    melSeeds:[_rand(),null,null], activeMel:0, melodyLocked:true, melOverride:[null,null,null],
+    ctrSeeds:[_rand(),null,null], activeCtr:0, ctrOverride:[null,null,null],
+    drumOverride:null,
+    mute:{chord:false,bass:false,mel:false,ctr:false,drums:false},
+    solo:{chord:false,bass:false,mel:false,ctr:false,drums:false},
+    openMenu:null, openChord:null, drumPattern:'Basic 8th-Note', playing:false, loop:true, seed:0x9F3AC71E
+  };
+  componentWillUnmount(){this._pause();if(this.ctx){try{this.ctx.close();}catch(e){}}}
+
+  sel(){ return this.props.accent || '#4a90d9'; }
+  glow(){ return this.props.glow!==false; }
+  _rgba(hex,a){const h=hex.replace('#','');const n=parseInt(h,16);return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
+
+  startSlider(e,key,min,max,step){
+    e.preventDefault();
+    const track=e.currentTarget; const rect=track.getBoundingClientRect(); const self=this;
+    const macro=(key==='density'||key==='split'||key==='sync'||key==='rhythm');
+    const upd=function(cx){let p=(cx-rect.left)/rect.width;p=_clamp(p,0,1);let v=min+p*(max-min);if(step)v=Math.round(v/step)*step;self.setState(function(){const o={};o[key]=v;if(macro){o.melOverride=[null,null,null];o.ctrOverride=[null,null,null];}return o;});};
+    upd(e.clientX);
+    const move=function(ev){upd(ev.clientX);};
+    const up=function(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};
+    window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
+  }
+  toggleMenu(name){this.setState(function(s){return {openMenu:s.openMenu===name?null:name, openChord:null};});}
+  toggleChordMenu(i){this.setState(function(s){return {openChord:s.openChord===i?null:i, openMenu:null};});}
+  setChord(i,p){this.setState(function(s){const ch=s.chords.slice();if(ch[i])ch[i]=Object.assign({},ch[i],{name:p.name,tones:p.tones.slice()});return {chords:ch, openChord:null};});}
+  pick(name,val){this.setState(function(s){const ns={openMenu:null};ns[name]=val;if(name==='drumPattern'){ns.drumOverride=null;}if(['key','scale','segment','option','type'].indexOf(name)>=0){ns.melOverride=[null,null,null];ns.ctrOverride=[null,null,null];}if(['type','segment','option','scale'].indexOf(name)>=0){const t=name==='type'?val:s.type,sg=name==='segment'?val:s.segment,op=name==='option'?val:s.option,sc=name==='scale'?val:s.scale;const rec=_recommendMacros(t,sg,op,sc);ns.density=rec.density;ns.split=rec.split;ns.sync=rec.sync;ns.rhythm=rec.rhythm;}if((name==='key'||name==='scale')&&s.chordsGen){ns.chords=_genChords(name==='key'?val:s.key,name==='scale'?val:s.scale,s.type);}return ns;});}
+
+  _opts(){const s=this.state;return {density:s.density,sync:s.sync,rhythm:s.rhythm,engine:s.engine,option:s.option,segment:s.segment,key:s.key,scale:s.scale};}
+  _melNotes(){const s=this.state;if(s.melOverride[s.activeMel])return s.melOverride[s.activeMel];const ms=s.melSeeds[s.activeMel];return ms!=null?_genMono(ms,Object.assign({},this._opts(),{register:[58,84],sparse:0.6+s.split*0.8})):[];}
+  _ctrNotes(){const s=this.state;if(s.ctrOverride[s.activeCtr])return s.ctrOverride[s.activeCtr];const cs=s.ctrSeeds[s.activeCtr];return cs!=null?_genMono(cs,Object.assign({},this._opts(),{register:[46,74],sparse:0.6+(1-s.split)*0.8,counter:true})):[];}
+  _drums(){return this.state.drumOverride||_genDrums(this.state.drumPattern);}
+  computeNotes(){
+    const s=this.state;
+    const chord=[];
+    for(const c of s.chords){for(const m of c.tones){chord.push({step:c.start*8,len:c.len*8,midi:m});}}
+    const mel=this._melNotes(); const ctr=this._ctrNotes();
+    const bass=[]; for(const c of s.chords){const pc=((c.tones&&c.tones[0])||48)%12;bass.push({step:c.start*8,len:c.len*8,midi:36+pc});}
+    return {chord:chord,mel:mel,ctr:ctr,bass:bass};
+  }
+  _top(midi,range){let n=(midi-range[0])/(range[1]-range[0]);n=_clamp(n,0,1);return 12+(1-n)*70;}
+  _rowPct(range){const sc=_scaleMidi(this.state.key,this.state.scale,range[0],range[1]);if(sc.length<2)return 10;const gaps=[];for(let i=1;i<sc.length;i++)gaps.push(Math.abs(this._top(sc[i],range)-this._top(sc[i-1],range)));gaps.sort(function(a,b){return a-b;});return gaps[Math.floor(gaps.length/2)];}
+  _noteH(range){return _clamp((this._rowPct(range)/100)*108*(this.state.vzoom||1)*0.92,8,64);}
+  pianoRows(range,labelPx){const sc=_scaleMidi(this.state.key,this.state.scale,range[0]-3,range[1]+3);const root=NOTE_NAMES.indexOf(this.state.key);const self=this;const out=[];const lp=labelPx;for(let i=0;i<sc.length;i++){const m=sc[i];const tHere=self._top(m,range);const tUp=(i+1<sc.length)?self._top(sc[i+1],range):tHere-6;const tDn=(i-1>=0)?self._top(sc[i-1],range):tHere+6;const span=Math.min(Math.abs(tHere-tUp),Math.abs(tHere-tDn));const bandH=Math.max(1.5,span*0.78);let top=tHere-bandH/2,height=bandH;if(top<0){height+=top;top=0;}if(top+height>100){height=100-top;}if(height<=0)continue;const isRoot=(m%12)===root;const labelStyle={position:'absolute',top:'calc('+tHere+'% - '+(lp*0.62)+'px)',fontSize:lp+'px',lineHeight:1,fontFamily:'ui-monospace,Menlo,monospace',fontWeight:isRoot?700:500,color:isRoot?self.sel():'#b6bcc6',background:'rgba(10,12,16,.72)',padding:'1px 3px',borderRadius:'3px'};out.push({name:NOTE_NAMES[m%12],bandStyle:{position:'absolute',left:0,right:0,top:top+'%',height:height+'%',background:isRoot?self._rgba(self.sel(),0.20):'rgba(255,255,255,.065)',borderTop:'1px solid rgba(255,255,255,.05)',borderBottom:'1px solid rgba(0,0,0,.32)'},lLabelStyle:Object.assign({left:'4px'},labelStyle),rLabelStyle:Object.assign({right:'4px'},labelStyle)});}return out;}
+  noteStyles(notes,range,color,hp){const g=this.glow();const self=this;const h=hp||this._noteH(range);return notes.map(function(n){return {style:{position:'absolute',left:(n.step/128*100)+'%',width:(Math.max(n.len,0.7)/128*100)+'%',top:'calc('+self._top(n.midi,range)+'% - '+(h/2)+'px)',height:h+'px',borderRadius:'2px',background:color,border:'1px solid rgba(7,9,12,.55)',boxShadow:'none'}};});}
+  scaleBands(range){const lo=range[0]-4,hi=range[1]+4;const sc=_scaleMidi(this.state.key,this.state.scale,lo,hi);const root=NOTE_NAMES.indexOf(this.state.key);const self=this;const out=[];for(let i=0;i<sc.length;i++){const m=sc[i];const tHere=self._top(m,range);const tUp=(i+1<sc.length)?self._top(sc[i+1],range):tHere-6;const tDn=(i-1>=0)?self._top(sc[i-1],range):tHere+6;let top=(tHere+tUp)/2,bottom=(tHere+tDn)/2;top=_clamp(top,0,100);bottom=_clamp(bottom,0,100);if(bottom<=top)continue;const isRoot=(m%12)===root;out.push({style:{position:'absolute',left:0,right:0,top:top+'%',height:(bottom-top)+'%',background:isRoot?self._rgba(self.sel(),0.10):((i%2===0)?'rgba(255,255,255,.028)':'transparent'),borderTop:'1px solid rgba(255,255,255,.03)'}});}return out;}
+  editableNotes(notes,range,color,track,hp,mode){const self=this;const h=hp||this._noteH(range);const velMode=mode==='velocity';const vf=_clamp(Math.round(h*0.52),7,12);return notes.map(function(n,i){const vel=(n.vel==null?90:n.vel);const op=0.3+0.7*_clamp(vel/124,0,1);return {style:{position:'absolute',left:(n.step/128*100)+'%',width:(Math.max(n.len,0.7)/128*100)+'%',top:'calc('+self._top(n.midi,range)+'% - '+(h/2)+'px)',height:h+'px',borderRadius:'2px',background:color,opacity:op,border:'1px solid rgba(7,9,12,.55)',boxShadow:'none',cursor:velMode?'ns-resize':'grab',touchAction:'none',overflow:'hidden'},onDown:function(e){velMode?self.startVelDrag(e,track,i):self.startNoteDrag(e,track,i);},onDbl:function(e){self.deleteNote(e,track,i);},resizable:(!velMode)&&((n.len||1)>=2),onResize:function(e){self.startNoteResize(e,track,i);},handleStyle:{position:'absolute',right:'0',top:'0',bottom:'0',width:'8px',cursor:'ew-resize',borderRadius:'0 2px 2px 0',background:'rgba(255,255,255,.32)'},velLabel:String(vel),showVel:((n.len||1)>=2)&&h>=11,velLabelStyle:{position:'absolute',right:'4px',top:'50%',transform:'translateY(-50%)',fontSize:vf+'px',lineHeight:1,fontFamily:'ui-monospace,Menlo,monospace',fontWeight:700,color:'rgba(7,9,12,.72)',pointerEvents:'none'}};});}
+  guideLines(range){const sc=_scaleMidi(this.state.key,this.state.scale,range[0],range[1]);const root=NOTE_NAMES.indexOf(this.state.key);const self=this;return sc.map(function(m){const top=self._top(m,range);const isRoot=(m%12)===root;return {name:NOTE_NAMES[m%12],lineStyle:{position:'absolute',left:0,right:0,top:top+'%',height:'1px',background:isRoot?'rgba(255,255,255,.13)':'rgba(255,255,255,.045)'},lLabel:{position:'absolute',left:'3px',top:'calc('+top+'% - 7px)',fontSize:'7px',fontFamily:'ui-monospace,Menlo,monospace',letterSpacing:'.02em',color:isRoot?'#8a8f99':'#474c54'},rLabel:{position:'absolute',right:'3px',top:'calc('+top+'% - 7px)',fontSize:'7px',fontFamily:'ui-monospace,Menlo,monospace',letterSpacing:'.02em',color:isRoot?'#8a8f99':'#474c54'}};});}
+  startVelDrag(e,track,idx){e.preventDefault();e.stopPropagation();const surface=e.currentTarget.parentElement;const rect=surface.getBoundingClientRect();const base=(track==='mel'?this._melNotes():this._ctrNotes()).map(function(n){return Object.assign({},n);});const orig=Object.assign({},base[idx]);const origVel=orig.vel==null?90:orig.vel;const self=this;const startY=e.clientY;let dragging=false;const upd=function(cy){const dv=Math.round((startY-cy)/rect.height*120);base[idx]=Object.assign({},orig,{vel:_clamp(origVel+dv,1,127)});self._setOverride(track,base.slice());};const move=function(ev){if(!dragging){if(Math.abs(ev.clientY-startY)<3)return;dragging=true;}upd(ev.clientY);};const up=function(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);}
+  setEditMode(m){this.setState({editMode:m});}
+  _editRange(track){return track==='mel'?[56,84]:[46,76];}
+  _setOverride(track,arr){this.setState(function(s){if(track==='mel'){const o=s.melOverride.slice();o[s.activeMel]=arr;return {melOverride:o};}else{const o=s.ctrOverride.slice();o[s.activeCtr]=arr;return {ctrOverride:o};}});}
+  _snapMidi(track,topPct){const rng=this._editRange(track);let n=_clamp(1-(topPct-12)/70,0,1);let midi=Math.round(rng[0]+n*(rng[1]-rng[0]));const sc=_scaleMidi(this.state.key,this.state.scale,rng[0],rng[1]);if(!sc.length)return midi;return sc.reduce(function(a,b){return Math.abs(b-midi)<Math.abs(a-midi)?b:a;},sc[0]);}
+  startNoteDrag(e,track,idx){e.preventDefault();e.stopPropagation();const surface=e.currentTarget.parentElement;const rect=surface.getBoundingClientRect();const base=(track==='mel'?this._melNotes():this._ctrNotes()).map(function(n){return Object.assign({},n);});const orig=Object.assign({},base[idx]);const self=this;const startX=e.clientX,startY=e.clientY;const cur0Step=Math.round(_clamp((startX-rect.left)/rect.width,0,1)*128);const grabStep=orig.step-cur0Step;const grabTop=self._top(orig.midi,self._editRange(track))-((startY-rect.top)/rect.height*100);let dragging=false;const upd=function(cx,cy){const cs=Math.round(_clamp((cx-rect.left)/rect.width,0,1)*128);const step=_clamp(cs+grabStep,0,127);const topPct=((cy-rect.top)/rect.height*100)+grabTop;base[idx]=Object.assign({},orig,{step:step,midi:self._snapMidi(track,topPct)});self._setOverride(track,base.slice());};const move=function(ev){if(!dragging){if(Math.abs(ev.clientX-startX)<3&&Math.abs(ev.clientY-startY)<3)return;dragging=true;}upd(ev.clientX,ev.clientY);};const up=function(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);}
+  startNoteResize(e,track,idx){e.preventDefault();e.stopPropagation();const surface=e.currentTarget.parentElement.parentElement;const rect=surface.getBoundingClientRect();const base=(track==='mel'?this._melNotes():this._ctrNotes()).map(function(n){return Object.assign({},n);});const orig=Object.assign({},base[idx]);const self=this;const startX=e.clientX;let dragging=false;const upd=function(cx){const dStep=Math.round((cx-startX)/rect.width*128);const len=_clamp((orig.len||1)+dStep,1,128-orig.step);base[idx]=Object.assign({},orig,{len:len});self._setOverride(track,base.slice());};const move=function(ev){if(!dragging){if(Math.abs(ev.clientX-startX)<3)return;dragging=true;}upd(ev.clientX);};const up=function(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);}
+  startAddNote(e,track){if(this.state.editMode==='velocity')return;if(e.target!==e.currentTarget)return;const rect=e.currentTarget.getBoundingClientRect();let fx=_clamp((e.clientX-rect.left)/rect.width,0,1);let step=_clamp(Math.round(fx*128),0,127);let topPct=(e.clientY-rect.top)/rect.height*100;const cur=(track==='mel'?this._melNotes():this._ctrNotes()).map(function(n){return Object.assign({},n);});cur.push({step:step,len:2,midi:this._snapMidi(track,topPct)});this._setOverride(track,cur);}
+  deleteNote(e,track,idx){e.preventDefault();e.stopPropagation();const cur=(track==='mel'?this._melNotes():this._ctrNotes()).filter(function(_,i){return i!==idx;});this._setOverride(track,cur);}
+  toggleDrumCell(e,kind){const rect=e.currentTarget.getBoundingClientRect();let fx=_clamp((e.clientX-rect.left)/rect.width,0,1);let step=_clamp(Math.round(fx*128),0,127);const d=this._drums();const nd={kick:d.kick.slice(),snare:d.snare.slice(),hat:d.hat.slice(),open:d.open.slice()};const arr=nd[kind];const at=arr.indexOf(step);if(at>=0)arr.splice(at,1);else arr.push(step);this.setState({drumOverride:nd});}
+  drumCellTarget(e){const rect=e.currentTarget.getBoundingClientRect();const fy=(e.clientY-rect.top)/rect.height;const kind=fy<0.36?'hat':(fy<0.62?'snare':'kick');this.toggleDrumCell(e,kind);}
+  waveStyles(arr,color){const g=this.glow();return arr.map(function(h){return {style:{flex:'1 1 0',height:(Math.max(h,0.04)*86)+'%',minHeight:'2px',alignSelf:'center',borderRadius:'1px',background:'linear-gradient(180deg,'+color+'ee,'+color+'40)',boxShadow:(g&&h>0.55)?('0 0 6px '+color+'55'):'none'}};});}
+
+  regenChord(i){this.setState(function(s){const one=_genChords(s.key,s.scale,s.type)[0]||{name:'C',tones:[48,52,55]};const ch=s.chords.slice();ch[i]=Object.assign({},ch[i],{name:one.name,tones:one.tones});return {chords:ch};});}
+  addChord(){this.setState(function(s){if(s.chords.length>=16)return null;const ch=s.chords.slice();let idx=-1,mx=1;ch.forEach(function(c,i){if(c.len>mx){mx=c.len;idx=i;}});if(idx<0)return null;const c=ch[idx];const one=_genChords(s.key,s.scale,s.type)[0];const half=Math.floor(c.len/2);ch.splice(idx,1,Object.assign({},c,{len:c.len-half}),{name:one.name,len:half,tones:one.tones,start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
+  splitChord(i){this.setState(function(s){const c=s.chords[i];if(!c||c.len<2)return null;const ch=s.chords.slice();const a=Math.ceil(c.len/2),b=c.len-a;ch.splice(i,1,{name:c.name,len:a,tones:c.tones.slice(),start:0},{name:c.name,len:b,tones:c.tones.slice(),start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
+  mergeChord(i){this.setState(function(s){const c=s.chords[i],n=s.chords[i+1];if(!c||!n||c.name!==n.name)return null;const ch=s.chords.slice();ch.splice(i,2,{name:c.name,len:c.len+n.len,tones:c.tones.slice(),start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
+  clearAll(){this.setState({chords:[],chordsGen:false,chordsLocked:false,melSeeds:[null,null,null],melodyLocked:false,ctrSeeds:[null,null,null]});}
+  genChords(){this.setState(function(s){return {chords:_genChords(s.key,s.scale,s.type),chordsGen:true,chordsLocked:true};});}
+  toggleLockChords(){this.setState(function(s){return s.chordsGen?{chordsLocked:!s.chordsLocked}:null;});}
+  genMel(){this.setState(function(s){if(!s.chordsLocked)return null;const m=s.melSeeds.slice();m[s.activeMel]=_rand();const o=s.melOverride.slice();o[s.activeMel]=null;return {melSeeds:m,melOverride:o,melodyLocked:true};});}
+  regenMel(){this.setState(function(s){const m=s.melSeeds.slice();m[s.activeMel]=_rand();const o=s.melOverride.slice();o[s.activeMel]=null;return {melSeeds:m,melOverride:o};});}
+  toggleLockMel(){this.setState(function(s){return s.melSeeds.some(function(x){return x!=null;})?{melodyLocked:!s.melodyLocked}:null;});}
+  genCtr(){this.setState(function(s){if(!s.melodyLocked)return null;const c=s.ctrSeeds.slice();c[s.activeCtr]=_rand();const o=s.ctrOverride.slice();o[s.activeCtr]=null;return {ctrSeeds:c,ctrOverride:o};});}
+  regenCtr(){this.setState(function(s){const c=s.ctrSeeds.slice();c[s.activeCtr]=_rand();const o=s.ctrOverride.slice();o[s.activeCtr]=null;return {ctrSeeds:c,ctrOverride:o};});}
+  pickMel(i){this.setState({activeMel:i});}
+  pickCtr(i){this.setState({activeCtr:i});}
+  resetMacros(){const s=this.state;const rec=_recommendMacros(s.type,s.segment,s.option,s.scale);this.setState({density:rec.density,split:rec.split,sync:rec.sync,rhythm:rec.rhythm,melOverride:[null,null,null],ctrOverride:[null,null,null]});}
+  scrambleSeed(){const sd=_rand();this.setState(function(s){const m=s.melSeeds.slice();if(m[s.activeMel]!=null)m[s.activeMel]=_rand();const c=s.ctrSeeds.slice();if(c[s.activeCtr]!=null)c[s.activeCtr]=_rand();return {seed:sd,melSeeds:m,ctrSeeds:c,melOverride:[null,null,null],ctrOverride:[null,null,null],density:_clamp(s.density+(Math.random()*0.24-0.12),0.1,1),sync:_clamp(s.sync+(Math.random()*0.24-0.12),0,1)};});}
+  midiChords(){const n=this.computeNotes();_dl(_buildMidi(this.state.tempo,[{notes:n.chord,channel:0}]),'Peitho-chords.mid');}
+  midiMel(){const n=this.computeNotes();_dl(_buildMidi(this.state.tempo,[{notes:n.mel,channel:0}]),'Peitho-melody.mid');}
+  midiCtr(){const n=this.computeNotes();_dl(_buildMidi(this.state.tempo,[{notes:n.ctr,channel:0}]),'Peitho-counter.mid');}
+  midiBass(){const n=this.computeNotes();_dl(_buildMidi(this.state.tempo,[{notes:n.bass,channel:0}]),'Peitho-bass.mid');}
+  _drumMidi(){const d=this._drums();const n=[];d.kick.forEach(function(s){n.push({step:s,len:1,midi:36});});d.snare.forEach(function(s){n.push({step:s,len:1,midi:38});});d.hat.forEach(function(s){n.push({step:s,len:1,midi:42});});d.open.forEach(function(s){n.push({step:s,len:2,midi:46});});return n;}
+  midiDrums(){_dl(_buildMidi(this.state.tempo,[{notes:this._drumMidi(),channel:9}]),'Peitho-drums.mid');}
+  drumStyles(d,color){const g=this.glow();const rows={hat:{top:18,h:6,w:0.7,op:0.6},open:{top:18,h:6,w:0.7,op:0.95},snare:{top:46,h:9,w:1.0,op:0.85},kick:{top:74,h:11,w:1.3,op:1}};const out=[];['hat','open','snare','kick'].forEach(function(k){const r=rows[k];d[k].forEach(function(st){out.push({style:{position:'absolute',left:(st/128*100)+'%',top:r.top+'%',width:r.w+'%',minWidth:'3px',height:r.h+'px',borderRadius:'2px',background:color,opacity:r.op,boxShadow:(g&&(k==='kick'||k==='open'))?('0 0 6px '+color+'aa'):'none'}});});});return out;}
+  exportMidi(){const n=this.computeNotes();_dl(_buildMidi(this.state.tempo,[{notes:n.chord,channel:0},{notes:n.bass,channel:1},{notes:n.mel,channel:2},{notes:n.ctr,channel:3},{notes:this._drumMidi(),channel:9}]),'Peitho-8bar.mid');}
+
+  _audible(name){const s=this.state;const anySolo=['chord','bass','mel','ctr','drums'].some(function(k){return s.solo[k];});if(anySolo)return !!s.solo[name];return !s.mute[name];}
+  toggleMute(name){this.setState(function(s){const m=Object.assign({},s.mute);m[name]=!m[name];return {mute:m};});}
+  toggleSolo(name){this.setState(function(s){const so=Object.assign({},s.solo);so[name]=!so[name];return {solo:so};});}
+
+  _ensureAudio(){if(this.ctx)return;const AC=window.AudioContext||window.webkitAudioContext;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=0.45;this.master.connect(this.ctx.destination);}
+  _voice(time,midi,durSec,opts){const ctx=this.ctx;const freq=440*Math.pow(2,(midi-69)/12);const o=ctx.createOscillator();o.type=opts.type||'triangle';o.frequency.value=freq;const g=ctx.createGain();const peak=opts.gain||0.15;g.gain.setValueAtTime(0.0001,time);g.gain.linearRampToValueAtTime(peak,time+0.01);g.gain.exponentialRampToValueAtTime(0.0001,time+Math.max(0.06,durSec));o.connect(g);g.connect(this.master);o.start(time);o.stop(time+Math.max(0.06,durSec)+0.03);}
+  _noise(time,dur,gain,freq){const ctx=this.ctx;const n=Math.max(1,Math.floor(ctx.sampleRate*dur));const buf=ctx.createBuffer(1,n,ctx.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;const src=ctx.createBufferSource();src.buffer=buf;const f=ctx.createBiquadFilter();f.type='highpass';f.frequency.value=freq;const g=ctx.createGain();g.gain.setValueAtTime(gain,time);g.gain.exponentialRampToValueAtTime(0.0001,time+dur);src.connect(f);f.connect(g);g.connect(this.master);src.start(time);src.stop(time+dur);}
+  _drumVoice(time,kind){const ctx=this.ctx;if(kind==='kick'){const o=ctx.createOscillator();const g=ctx.createGain();o.frequency.setValueAtTime(150,time);o.frequency.exponentialRampToValueAtTime(48,time+0.12);g.gain.setValueAtTime(0.9,time);g.gain.exponentialRampToValueAtTime(0.0001,time+0.2);o.connect(g);g.connect(this.master);o.start(time);o.stop(time+0.22);}else if(kind==='snare'){this._noise(time,0.18,0.45,1400);const o=ctx.createOscillator();const g=ctx.createGain();o.type='triangle';o.frequency.value=190;g.gain.setValueAtTime(0.35,time);g.gain.exponentialRampToValueAtTime(0.0001,time+0.12);o.connect(g);g.connect(this.master);o.start(time);o.stop(time+0.14);}else{this._noise(time,kind==='open'?0.16:0.045,0.22,8000);}}
+  _stepDur(){return (60/this.state.tempo)/4;}
+  _loopLen(){return 128*this._stepDur();}
+  _elapsedSteps(){return (performance.now()-this._t0)/1000/this._stepDur();}
+  _play(){this._ensureAudio();if(this.ctx.state==='suspended'){this.ctx.resume();}this._notesCache=this.computeNotes();this._drumCache=this._drums();this._t0=performance.now();this._lastStep=-1;this._running=true;const self=this;this.sched=setInterval(function(){self._scheduler();},16);this._raf=requestAnimationFrame(function(){self._tick();});}
+  _pause(){this._running=false;if(this.sched){clearInterval(this.sched);this.sched=null;}if(this._raf){cancelAnimationFrame(this._raf);this._raf=null;}}
+  _scheduler(){if(!this._running||!this.ctx)return;const nowStep=Math.floor(this._elapsedSteps());while(this._lastStep<nowStep){this._lastStep++;const loopStep=((this._lastStep%128)+128)%128;if(loopStep===0&&this._lastStep>0){if(!this.state.loop){this._pause();this.setState({playing:false});return;}this._notesCache=this.computeNotes();this._drumCache=this._drums();}this._scheduleStep(loopStep,this.ctx.currentTime+0.02);}}
+  _scheduleStep(step,time){const sd=this._stepDur();const n=this._notesCache;const d=this._drumCache;const self=this;if(this.ctx.state==='suspended')return;const play=function(arr,name,opts){if(!self._audible(name))return;for(const nt of arr){if(nt.step===step){const v=(nt.vel==null?90:nt.vel)/95;self._voice(time,nt.midi,Math.max(1,nt.len)*sd*0.92,Object.assign({},opts,{gain:opts.gain*v}));}}};play(n.chord,'chord',{type:'sawtooth',gain:0.05});play(n.bass,'bass',{type:'triangle',gain:0.20});play(n.mel,'mel',{type:'square',gain:0.10});play(n.ctr,'ctr',{type:'triangle',gain:0.09});if(this._audible('drums')){['kick','snare','hat','open'].forEach(function(k){if(d[k]&&d[k].indexOf(step)>=0)self._drumVoice(time,k);});}}
+  _tick(){if(!this._running)return;let pos=this._elapsedSteps()/128;pos=pos-Math.floor(pos);const z=this.state.zoom,pn=this.state.pan;let x=(pos*z-pn*(z-1))*100;if(this.phRef&&this.phRef.current){this.phRef.current.style.left=x+'%';this.phRef.current.style.opacity=(x<-1||x>101)?'0':(this.state.playing?'1':'0.22');}const self=this;this._raf=requestAnimationFrame(function(){self._tick();});}
+  togglePlay(){const willPlay=!this.state.playing;this.setState({playing:willPlay});if(willPlay)this._play();else this._pause();}
+  zoomBy(d){this.setState(function(s){const z=_clamp(Math.round((s.zoom+d)*2)/2,1,4);return {zoom:z,pan:z<=1?0:s.pan};});}
+  zoomVBy(d){this.setState(function(s){return {vzoom:_clamp(Math.round((s.vzoom+d)*2)/2,1,4)};});}
+  zoomReset(){this.setState({zoom:1,pan:0});}
+  toggleLeft(){this.setState(function(s){return {collapseLeft:!s.collapseLeft};});}
+  toggleTonality(){this.setState(function(s){return {collapseTonality:!s.collapseTonality};});}
+  toggleChords(){this.setState(function(s){return {collapseChords:!s.collapseChords};});}
+
+  menuItems(name,list,current){const self=this;const sel=this.sel();return list.map(function(v){const a=v===current;return {label:v,pick:function(){self.pick(name,v);},style:{padding:'8px 12px',fontSize:'12.5px',cursor:'pointer',borderRadius:'6px',whiteSpace:'nowrap',color:a?'#e9eaee':'#9aa0aa',background:a?self._rgba(sel,0.16):'transparent',fontWeight:a?600:400}};});}
+  tabItems(seeds,active,color,kind){const self=this;return [0,1,2].map(function(i){const filled=seeds[i]!=null;const isA=i===active;return {label:'V'+(i+1),pick:function(){kind==='mel'?self.pickMel(i):self.pickCtr(i);},style:{padding:'4px 9px',fontSize:'10px',borderRadius:'5px',cursor:'pointer',fontFamily:'ui-monospace,Menlo,monospace',letterSpacing:'.04em',background:isA?self._rgba(color,0.18):'transparent',color:isA?color:(filled?'#cfd3da':'#5f646e'),border:'1px solid '+(isA?self._rgba(color,0.6):'rgba(255,255,255,.08)')}};});}
+
+  renderVals(){
+    const s=this.state; const sel=this.sel(); const self=this;
+    const C1='#6f93b8',C2='#82b48f',C3='#cf9d5c';
+    const NC1='#b6d4f8',NCB='#a0c6f4',NC2='#bff2d0',NC3='#ffd79a';
+    const notes=this.computeNotes();
+    const fill=function(pct){return {position:'absolute',left:0,height:'4px',width:pct+'%',borderRadius:'3px',background:sel,boxShadow:'0 0 8px '+sel};};
+    const handle=function(pct){return {position:'absolute',left:pct+'%',top:'50%',transform:'translate(-50%,-50%)',width:'14px',height:'14px',borderRadius:'50%',background:'#e9eaee',boxShadow:'0 1px 4px rgba(0,0,0,.6)'};};
+    const gridStyle={position:'absolute',inset:0,background:'repeating-linear-gradient(90deg,transparent 0 calc(6.25% - 1px),rgba(255,255,255,.025) calc(6.25% - 1px) 6.25%),repeating-linear-gradient(90deg,transparent 0 calc(12.5% - 1px),rgba(255,255,255,.06) calc(12.5% - 1px) 12.5%)'};
+    const segV=function(active){return {whiteSpace:'nowrap',padding:'7px 15px',borderRadius:'6px',fontSize:'12px',fontWeight:600,cursor:'pointer',letterSpacing:'.02em',background:active?self._rgba(sel,0.16):'transparent',color:active?sel:'#8a8f99',border:'1px solid '+(active?self._rgba(sel,0.5):'transparent')};};
+    const genBtn=function(enabled){return {display:'flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',flex:'none',borderRadius:'7px',cursor:enabled?'pointer':'default',background:enabled?sel:'#1a1e25',color:enabled?'#fff':'#3f444c',border:'1px solid '+(enabled?'transparent':'rgba(255,255,255,.06)'),opacity:enabled?1:0.55,pointerEvents:enabled?'auto':'none'};};
+    const lockBtn=function(on){return {display:'flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',flex:'none',borderRadius:'7px',cursor:'pointer',background:on?self._rgba(sel,0.16):'#1a1e25',color:on?sel:'#5f646e',border:'1px solid '+(on?self._rgba(sel,0.5):'rgba(255,255,255,.06)')};};
+    const anySolo=['chord','bass','mel','ctr','drums'].some(function(k){return s.solo[k];});
+    const ms=function(name){const muted=s.mute[name];const soloed=s.solo[name];const audible=anySolo?soloed:!muted;const btn=function(on,onc){return {display:'flex',alignItems:'center',justifyContent:'center',width:'17px',height:'17px',borderRadius:'4px',cursor:'pointer',fontSize:'9px',fontWeight:700,fontFamily:'ui-monospace,Menlo,monospace',letterSpacing:'.02em',border:'1px solid '+(on?onc:'rgba(255,255,255,.12)'),background:on?onc:'transparent',color:on?'#0c0e12':'#7d828c'};};return {mStyle:btn(muted,'#c2738a'),sStyle:btn(soloed,sel),toggleM:function(){self.toggleMute(name);},toggleS:function(){self.toggleSolo(name);},areaStyle:{position:'relative',flex:1,minWidth:0,overflow:'hidden',opacity:audible?1:0.26,transition:'opacity .15s'}};};
+    const z=s.zoom,pn=s.pan; const transX=(z>1?(pn*(z-1)/z*100):0);
+    const matrixContentStyle={position:'relative',height:'100%',width:(z*100)+'%',transform:'translateX(-'+transX+'%)',transformOrigin:'left top'};
+
+    const melFilled=s.melSeeds[s.activeMel]!=null||s.melOverride[s.activeMel]!=null;
+    const ctrFilled=s.ctrSeeds[s.activeCtr]!=null||s.ctrOverride[s.activeCtr]!=null;
+    const melHas=s.melSeeds.some(function(x){return x!=null;})||s.melOverride.some(function(x){return x!=null;});
+    const dur=(32*60/s.tempo);
+    const hx=(s.seed>>>0).toString(16).toUpperCase();
+    const padded=('00000000'+hx).slice(-8);
+
+    return {
+      key:s.key, scale:s.scale, tempo:s.tempo, type:s.type, segment:s.segment, option:s.option,
+      // engine model
+      engineModel:s.engineModel, engineArraySelected:s.engineModel==='array',
+      setArray:function(){self.setState({engineModel:'array'});},
+      engineArrayStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'pointer',background:self._rgba(sel,0.12),border:'1px solid '+self._rgba(sel,0.55)},
+      engineCheckStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'20px',height:'20px',flex:'none',borderRadius:'50%',background:sel,color:'#fff'},
+      enginePulseStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.06)',opacity:0.6},
+      macroSeed:'Seeded from '+s.type+' · '+s.segment+' · '+s.option,
+      // zoom + pan
+      matrixContentStyle:matrixContentStyle,
+      rulerContentStyle:{display:'flex',gap:'4px',width:(z*100)+'%',transform:'translateX(-'+transX+'%)',transformOrigin:'left top'},
+      zoomLabel:z.toFixed(1)+'x', zoomInFn:function(){self.zoomBy(0.5);}, zoomOutFn:function(){self.zoomBy(-0.5);},
+      vzoomLabel:s.vzoom.toFixed(1)+'x', zoomVInFn:function(){self.zoomVBy(0.5);}, zoomVOutFn:function(){self.zoomVBy(-0.5);},
+      zoomInStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'5px',cursor:z<4?'pointer':'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.08)',color:z<4?'#cfd3da':'#3f444c',opacity:z<4?1:0.5},
+      zoomOutStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'5px',cursor:z>1?'pointer':'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.08)',color:z>1?'#cfd3da':'#3f444c',opacity:z>1?1:0.5},
+      zoomVInStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'5px',cursor:s.vzoom<3?'pointer':'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.08)',color:s.vzoom<3?'#cfd3da':'#3f444c',opacity:s.vzoom<3?1:0.5},
+      zoomVOutStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'5px',cursor:s.vzoom>1?'pointer':'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.08)',color:s.vzoom>1?'#cfd3da':'#3f444c',opacity:s.vzoom>1?1:0.5},
+      laneStyle:{display:'flex',flex:'1 1 auto',minHeight:Math.round(108*s.vzoom)+'px',background:'#101319',border:'1px solid rgba(255,255,255,.06)',borderRadius:'9px',overflow:'hidden'},
+      chordBands:this.scaleBands([44,72]), bassBands:this.scaleBands([30,52]), melBands:this.scaleBands([56,84]), ctrBands:this.scaleBands([46,76]),
+      chordRows:this.pianoRows([44,72],_clamp((this._rowPct([44,72])/100)*108*s.vzoom*0.5,8,15)), bassRows:this.pianoRows([30,52],_clamp((this._rowPct([30,52])/100)*108*s.vzoom*0.5,8,15)), melRows:this.pianoRows([56,84],_clamp((this._rowPct([56,84])/100)*108*s.vzoom*0.5,8,15)), ctrRows:this.pianoRows([46,76],_clamp((this._rowPct([46,76])/100)*108*s.vzoom*0.5,8,15)),
+      showPan:z>1, startPan:function(e){self.startSlider(e,'pan',0,1,0);},
+      panThumbStyle:{position:'absolute',top:0,bottom:0,width:(100/z)+'%',left:(pn*(1-1/z)*100)+'%',background:self._rgba(sel,0.5),borderRadius:'5px',cursor:'grab'},
+      // collapses
+      showLeft:!s.collapseLeft, collapsedLeft:s.collapseLeft, toggleLeft:function(){self.toggleLeft();},
+      showTonality:!s.collapseTonality, collapseTonality:s.collapseTonality, toggleTonality:function(){self.toggleTonality();},
+      tonalityChevron:{display:'flex',color:'#8a8f99',transform:s.collapseTonality?'rotate(-90deg)':'none',transition:'transform .15s'},
+      tonalitySummary:s.key+' · '+s.scale+' · '+s.tempo+' BPM  —  '+s.type+' / '+s.segment+' / '+s.option,
+      showChords:!s.collapseChords, collapseChords:s.collapseChords, toggleChords:function(){self.toggleChords();},
+      chordsChevron:{display:'flex',color:'#8a8f99',cursor:'pointer',transform:s.collapseChords?'rotate(-90deg)':'none',transition:'transform .15s'},
+      chordSummary:s.chords.map(function(c){return c.name;}).join('  ·  '),
+      // menus
+      toggleKey:function(){self.toggleMenu('key');}, toggleScale:function(){self.toggleMenu('scale');}, toggleType:function(){self.toggleMenu('type');}, toggleSegment:function(){self.toggleMenu('segment');}, toggleOption:function(){self.toggleMenu('option');},
+      open_key:s.openMenu==='key', open_scale:s.openMenu==='scale', open_type:s.openMenu==='type', open_segment:s.openMenu==='segment', open_option:s.openMenu==='option',
+      keyItems:this.menuItems('key',KEYS,s.key), scaleItems:this.menuItems('scale',SCALE_LIST,s.scale), typeItems:this.menuItems('type',TYPES,s.type), segItems:this.menuItems('segment',SEGMENTS,s.segment), optItems:this.menuItems('option',OPTIONS,s.option),
+      anyMenuOpen:(s.openMenu!=null||s.openChord!=null), closeMenus:function(){self.setState({openMenu:null,openChord:null});},
+      // view + transport
+      viewGridStyle:segV(s.view==='grid'), viewWaveStyle:segV(s.view==='wave'),
+      setGrid:function(){self.setState({view:'grid'});}, setWave:function(){self.setState({view:'wave'});},
+      showBass:s.bassOnly, toggleBass:function(){self.setState({bassOnly:!s.bassOnly});},
+      bassBoxStyle:{width:'15px',height:'15px',borderRadius:'4px',border:'1px solid '+(s.bassOnly?sel:'rgba(255,255,255,.2)'),background:s.bassOnly?sel:'transparent'},
+      bassCells:s.chords.map(function(c){const pc=((c.tones&&c.tones[0])||48)%12;const oct=2;return {name:NOTE_NAMES[pc]+oct,style:{flex:String(c.len),minWidth:0,position:'relative',display:'flex',alignItems:'center',justifyContent:'center',background:'#15202a',border:'1px solid rgba(111,147,184,.22)',borderRadius:'7px'}};}),
+      playing:s.playing, paused:!s.playing, togglePlay:function(){self.togglePlay();},
+      playBtnStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',borderRadius:'7px',cursor:'pointer',background:s.playing?sel:'#21262f',color:s.playing?'#fff':'#cfd3da'},
+      loop:s.loop, toggleLoop:function(){self.setState({loop:!s.loop});},
+      loopStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',borderRadius:'7px',cursor:'pointer',background:s.loop?self._rgba(sel,0.16):'transparent',color:s.loop?sel:'#5f646e'},
+      phRef:self.phRef,
+      playheadStyle:{position:'absolute',top:0,bottom:0,left:'0',width:'2px',background:'rgba(255,255,255,.7)',boxShadow:'0 0 10px rgba(255,255,255,.85)',opacity:s.playing?1:0.22},
+      // tempo
+      tempoFill:Object.assign(fill((s.tempo-60)/120*100),{}), tempoHandle:handle((s.tempo-60)/120*100),
+      startTempo:function(e){self.startSlider(e,'tempo',60,180,1);},
+      // macro sliders
+      densityStr:s.density.toFixed(2), densityFill:fill(s.density*100), densityHandle:handle(s.density*100), startDensity:function(e){self.startSlider(e,'density',0,1,0.01);},
+      splitStr:s.split.toFixed(2), splitFill:fill(s.split*100), splitHandle:handle(s.split*100), startSplit:function(e){self.startSlider(e,'split',0,1,0.01);},
+      syncStr:s.sync.toFixed(2), syncFill:fill(s.sync*100), syncHandle:handle(s.sync*100), startSync:function(e){self.startSlider(e,'sync',0,1,0.01);},
+      rhythmStr:s.rhythm.toFixed(2), rhythmFill:fill(s.rhythm*100), rhythmHandle:handle(s.rhythm*100), startRhythm:function(e){self.startSlider(e,'rhythm',0,1,0.01);},
+      resetMacros:function(){self.resetMacros();},
+      // chords
+      chordCount:s.chords.length,
+      chordCells:s.chords.map(function(c,i){const nx=s.chords[i+1];return {name:c.name,lenLabel:(c.len/2)+'b',regen:function(){self.regenChord(i);},canSplit:c.len>=2,splitFn:function(){self.splitChord(i);},canMerge:!!(nx&&nx.name===c.name),mergeFn:function(){self.mergeChord(i);},menuOpen:s.openChord===i,openMenu:function(){self.toggleChordMenu(i);},pool:_chordPool(s.key,s.scale).map(function(p){return {label:p.name,pick:function(){self.setChord(i,p);},style:{padding:'7px 10px',fontSize:'12px',cursor:'pointer',borderRadius:'5px',whiteSpace:'nowrap',textAlign:'center',color:p.name===c.name?'#e9eaee':'#9aa0aa',background:p.name===c.name?self._rgba(sel,0.16):'transparent',fontWeight:p.name===c.name?600:400}};}),style:{flex:String(c.len),minWidth:0,position:'relative',display:'flex',alignItems:'center',justifyContent:'center',background:'#1a1e25',border:'1px solid rgba(255,255,255,.07)',borderRadius:'7px'}};}),
+      regenAllChords:function(){self.genChords();}, addChord:function(){self.addChord();}, clearAll:function(){self.clearAll();}, midiChords:function(){self.midiChords();},
+      // pipeline
+      genChords:function(){self.genChords();}, step1GenStyle:genBtn(true),
+      lockChordsStyle:lockBtn(s.chordsLocked), toggleLockChords:function(){self.toggleLockChords();},
+      genMel:function(){self.genMel();}, step2GenStyle:genBtn(s.chordsLocked), step2Hint:s.chordsLocked?'monophonic lines':'lock chords first',
+      lockMelStyle:lockBtn(s.melodyLocked), toggleLockMel:function(){self.toggleLockMel();},
+      genCtr:function(){self.genCtr();}, step3GenStyle:genBtn(s.melodyLocked&&melHas), step3Hint:(s.melodyLocked&&melHas)?'answering voice':'lock melody first',
+      // lanes
+      showGrid:s.view==='grid', showWave:s.view==='wave',
+      chordNotes:this.noteStyles(notes.chord,[44,72],NC1), melNotes:this.editableNotes(notes.mel,[56,84],NC2,'mel',null,s.editMode), ctrNotes:this.editableNotes(notes.ctr,[46,76],NC3,'ctr',null,s.editMode),
+      editMode:s.editMode, setModeNote:function(){self.setEditMode('note');}, setModeVel:function(){self.setEditMode('velocity');},
+      modeNoteStyle:{padding:'5px 11px',borderRadius:'5px',fontSize:'11px',fontWeight:600,cursor:'pointer',background:s.editMode==='note'?self._rgba(sel,0.18):'transparent',color:s.editMode==='note'?sel:'#8a8f99'},
+      modeVelStyle:{padding:'5px 11px',borderRadius:'5px',fontSize:'11px',fontWeight:600,cursor:'pointer',background:s.editMode==='velocity'?self._rgba(sel,0.18):'transparent',color:s.editMode==='velocity'?sel:'#8a8f99'},
+      chordGuides:this.guideLines([44,72]), bassGuides:this.guideLines([30,52]), melGuides:this.guideLines([56,84]), ctrGuides:this.guideLines([46,76]),
+      bassNotes:this.noteStyles(notes.bass,[30,52],NCB), bassWave:this.waveStyles(_wave(notes.bass,80),'#5f86ab'),
+      chordWave:this.waveStyles(_wave(notes.chord,80),C1), melWave:this.waveStyles(_wave(notes.mel,80),C2), ctrWave:this.waveStyles(_wave(notes.ctr,80),C3),
+      gridStyle:gridStyle,
+      ms_chord:ms('chord'), ms_bass:ms('bass'), ms_mel:ms('mel'), ms_ctr:ms('ctr'), ms_drums:ms('drums'),
+      addMel:function(e){self.startAddNote(e,'mel');}, addCtr:function(e){self.startAddNote(e,'ctr');},
+      drumCellDown:function(e){self.drumCellTarget(e);},
+      melTabs:this.tabItems(s.melSeeds,s.activeMel,C2,'mel'), ctrTabs:this.tabItems(s.ctrSeeds,s.activeCtr,C3,'ctr'),
+      regenMel:function(){self.regenMel();}, regenCtr:function(){self.regenCtr();}, midiMel:function(){self.midiMel();}, midiCtr:function(){self.midiCtr();}, midiBass:function(){self.midiBass();},
+      drumPattern:s.drumPattern, midiDrums:function(){self.midiDrums();},
+      toggleDrum:function(){self.toggleMenu('drum');}, open_drum:s.openMenu==='drum',
+      drumItems:DRUM_PATTERNS.map(function(v){const active=v===s.drumPattern;const sugg=(DRUM_REC[s.type]||[]).indexOf(v)>=0;return {label:v,suggested:sugg,pick:function(){self.pick('drumPattern',v);},rowStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'8px 10px',fontSize:'12px',cursor:'pointer',borderRadius:'5px',whiteSpace:'nowrap',color:active?'#e9eaee':'#9aa0aa',background:active?self._rgba(sel,0.16):'transparent',fontWeight:active?600:400}};}),
+      drumSuggestHint:(DRUM_REC[s.type]&&DRUM_REC[s.type][0])?('Suggested for '+s.type+': '+DRUM_REC[s.type][0]):'',
+      drumNotes:this.drumStyles(this._drums(),'#c2738a'),
+      drumWave:this.waveStyles(_wave(this._drums().kick.concat(this._drums().snare,this._drums().hat).map(function(st){return {step:st,len:1};}),80),'#c2738a'),
+      melEmpty:s.view==='grid'&&!melFilled, ctrEmpty:s.view==='grid'&&!ctrFilled,
+      // footer
+      exportMidi:function(){self.exportMidi();},
+      exportBtnStyle:{display:'flex',alignItems:'center',gap:'10px',padding:'13px 22px',borderRadius:'9px',cursor:'pointer',background:sel,color:'#fff',fontSize:'12px',fontWeight:700},
+      seedHex:'0x'+padded.slice(0,4)+'·'+padded.slice(4), scrambleSeed:function(){self.scrambleSeed();}
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "peitho-composer",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/server.ts"
+  },
+  "dependencies": {
+    "@peitho/array": "workspace:*",
+    "@peitho/pulse": "workspace:*"
+  }
+}
