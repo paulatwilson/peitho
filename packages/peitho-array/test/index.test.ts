@@ -4,7 +4,9 @@ import {
   DIRECTION_TYPES,
   OPTIONS,
   SEGMENTS,
+  chordPool,
   createEmptyPattern,
+  generateChords,
   recommendMacros,
   scaleMidi,
 } from "../src/index";
@@ -73,4 +75,40 @@ test("keeps default direction compatible with composer prototype", () => {
     sync: 0.27,
     rhythm: 0.4,
   });
+});
+
+test("builds in-key chord pool for composer chord menus", () => {
+  const chords = chordPool("C", "major");
+
+  expect(chords.map((chord) => chord.name)).toContain("C");
+  expect(chords.map((chord) => chord.name)).toContain("Cmaj7");
+  expect(chords.map((chord) => chord.name)).toContain("Dm7");
+  expect(chords.every((chord) => chord.tones.length >= 3)).toBe(true);
+});
+
+test("generates seeded chord progression that fills requested bars", () => {
+  const chords = generateChords({
+    key: "E",
+    scale: "pentatonic-major",
+    type: "Ballad",
+    bars: 8,
+    seed: 1234,
+  });
+
+  expect(chords[0]?.start).toBe(0);
+  expect(chords.reduce((sum, chord) => sum + chord.len, 0)).toBe(16);
+  expect(chords.at(-1)!.start + chords.at(-1)!.len).toBe(16);
+});
+
+test("uses seed for repeatable chord generation", () => {
+  const input = {
+    key: "A",
+    scale: "natural-minor" as const,
+    type: "Darkwave" as const,
+    bars: 16,
+    seed: 99,
+  };
+
+  expect(generateChords(input)).toEqual(generateChords(input));
+  expect(generateChords(input).reduce((sum, chord) => sum + chord.len, 0)).toBe(32);
 });

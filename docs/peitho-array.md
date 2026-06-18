@@ -270,6 +270,24 @@ The engine should support both:
 
 Peitho-Composer can expose a small curated set. Other systems can use broader progression libraries.
 
+Current extracted API:
+
+```ts
+chordPool("C", "major");
+
+generateChords({
+  key: "E",
+  scale: "pentatonic-major",
+  type: "Ballad",
+  bars: 8,
+  seed: 1234,
+});
+```
+
+`chordPool()` supports Composer chord-menu selection. `generateChords()` extracts the prototype progression behaviour but adds seed support so generated progressions can be repeatable.
+
+This is still prototype-derived. Later rule-set work should replace the loose random degree choice with genre/segment/option-aware progression rules.
+
 ### Direction Taxonomy And Macros
 
 Peitho-Composer's initial direction selection should be backed by `peitho-array`, because the same selection drives chord choice, melodic density, rhythmic complexity, and future `peitho-pulse` prompt constraints.
@@ -367,11 +385,14 @@ It currently provides:
 - configurable pattern shell creation
 - key-to-pitch-class mapping
 - scale-to-MIDI mapping
+- direction taxonomy and macro recommendations
+- chord pool generation
+- seeded chord progression generation
 
 Next implementation step:
 
 1. Add seeded random utilities.
 2. Add rhythm pattern parser.
-3. Add chord/progression helpers.
-4. Extract pure generation logic from `docs/Peitho/Peitho.dc.html`.
+3. Extract segment and option profile helpers.
+4. Extract melody/counter generation from `docs/Peitho/Peitho.dc.html`.
 5. Keep Peitho-Composer's 8-bar behaviour as app configuration.

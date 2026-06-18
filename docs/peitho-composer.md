@@ -121,8 +121,8 @@ Keep `docs/Peitho/Peitho.dc.html` as working reference while the Bun app shell g
 Move deterministic helpers from the prototype into `packages/peitho-array`:
 
 - scales and keys
-- chord pool
-- chord generation
+- chord pool (started)
+- chord generation (started)
 - macro recommendations
 - segment and option profiles
 - seeded RNG

@@ -78,6 +78,19 @@ export type ChordEvent = {
   tones: number[];
 };
 
+export type ChordTemplate = {
+  name: string;
+  tones: number[];
+};
+
+export type GenerateChordsOptions = {
+  key: string;
+  scale: ScaleName;
+  type: DirectionType;
+  bars?: number;
+  seed?: number;
+};
+
 export type PeithoPattern = {
   bars: number;
   beatsPerBar: number;
@@ -152,6 +165,41 @@ const OPTION_MACROS: Record<OptionName, Partial<MacroVector>> = {
   "Minimal Loop": { density: -0.2, sync: -0.02, rhythm: -0.08 },
 };
 
+const HEPTATONIC_INTERVALS = {
+  major: [0, 2, 4, 5, 7, 9, 11],
+  minor: [0, 2, 3, 5, 7, 8, 10],
+} as const;
+
+const CHORD_LENGTHS_BY_TYPE: Record<DirectionType, number[]> = {
+  Ballad: [2, 2, 3, 4, 4],
+  Pop: [1, 1, 2, 2, 2],
+  Cinematic: [2, 3, 4, 4, 2],
+  "Lo-Fi": [1, 2, 2, 2, 3],
+  Ambient: [4, 4, 3, 2],
+  "New Wave": [1, 1, 2, 2, 4],
+  Electropop: [1, 1, 1, 2, 2],
+  Classical: [2, 2, 4, 4],
+  Jazz: [1, 2, 2, 3],
+  Synth: [1, 2, 2, 4],
+  Rock: [1, 1, 2, 4],
+  Darkwave: [2, 2, 3, 4],
+};
+
+const CHORD_EXTENSION_BY_TYPE: Record<DirectionType, number> = {
+  Ballad: 0.6,
+  Pop: 0.18,
+  Cinematic: 0.65,
+  "Lo-Fi": 0.5,
+  Ambient: 0.5,
+  "New Wave": 0.35,
+  Electropop: 0.28,
+  Classical: 0.42,
+  Jazz: 0.8,
+  Synth: 0.36,
+  Rock: 0.22,
+  Darkwave: 0.52,
+};
+
 export const SCALE_INTERVALS: Record<ScaleName, number[]> = {
   "pentatonic-major": [0, 2, 4, 7, 9],
   "pentatonic-minor": [0, 3, 5, 7, 10],
@@ -178,6 +226,17 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+export function createRng(seed: number): () => number {
+  let value = seed >>> 0;
+
+  return () => {
+    value = (value + 0x6d2b79f5) | 0;
+    let next = Math.imul(value ^ (value >>> 15), 1 | value);
+    next = (next + Math.imul(next ^ (next >>> 7), 61 | next)) ^ next;
+    return ((next ^ (next >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 export function keyToPitchClass(key: string): number {
   const index = NOTE_NAMES.indexOf(key as (typeof NOTE_NAMES)[number]);
   if (index === -1) throw new Error(`Unknown key: ${key}`);
@@ -194,6 +253,117 @@ export function scaleMidi(key: string, scale: ScaleName, lo: number, hi: number)
   }
 
   return notes;
+}
+
+function harmonicScale(scale: ScaleName): readonly number[] {
+  return scale === "pentatonic-minor" || scale === "natural-minor"
+    ? HEPTATONIC_INTERVALS.minor
+    : HEPTATONIC_INTERVALS.major;
+}
+
+export function chordPool(key: string, scale: ScaleName): ChordTemplate[] {
+  const root = keyToPitchClass(key);
+  const harmony = harmonicScale(scale);
+  const roots = SCALE_INTERVALS[scale];
+  const tonic = 48 + root;
+  const out: ChordTemplate[] = [];
+
+  for (const rootStep of roots) {
+    const degreeIndex = harmony.indexOf(rootStep);
+    if (degreeIndex === -1) continue;
+
+    const third = harmony[(degreeIndex + 2) % harmony.length] + (degreeIndex + 2 >= harmony.length ? 12 : 0);
+    const fifth = harmony[(degreeIndex + 4) % harmony.length] + (degreeIndex + 4 >= harmony.length ? 12 : 0);
+    const seventh = harmony[(degreeIndex + 6) % harmony.length] + (degreeIndex + 6 >= harmony.length ? 12 : 0);
+    const second = harmony[(degreeIndex + 1) % harmony.length] + (degreeIndex + 1 >= harmony.length ? 12 : 0);
+    const thirdInterval = third - rootStep;
+    const fifthInterval = fifth - rootStep;
+    const seventhInterval = seventh - rootStep;
+    const secondInterval = second - rootStep;
+    const rootName = NOTE_NAMES[(root + rootStep) % 12];
+    const base = thirdInterval === 4 ? "" : thirdInterval === 3 ? "m" : thirdInterval <= 2 ? "sus2" : "sus4";
+    const fifthQuality = fifthInterval === 6 ? "b5" : fifthInterval === 8 ? "#5" : "";
+    const triad = [tonic + rootStep, tonic + third, tonic + fifth];
+
+    out.push({ name: `${rootName}${base}${fifthQuality}`, tones: triad });
+
+    if ((base === "" || base === "m") && fifthQuality === "") {
+      let seventhSuffix: string | null = null;
+      if (seventhInterval === 11) seventhSuffix = base === "" ? "maj7" : "m(maj7)";
+      else if (seventhInterval === 10) seventhSuffix = base === "" ? "7" : "m7";
+
+      if (seventhSuffix) {
+        out.push({
+          name: `${rootName}${seventhSuffix}`,
+          tones: [tonic + rootStep, tonic + third, tonic + fifth, tonic + seventh],
+        });
+      }
+
+      out.push({
+        name: `${rootName}${base}add9`,
+        tones: [tonic + rootStep, tonic + third, tonic + fifth, tonic + rootStep + secondInterval + 12],
+      });
+    } else if (fifthQuality === "b5") {
+      out.push({
+        name: `${rootName}m7b5`,
+        tones: [tonic + rootStep, tonic + third, tonic + fifth, tonic + seventh],
+      });
+    }
+  }
+
+  return out;
+}
+
+export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
+  const root = keyToPitchClass(options.key);
+  const harmony = harmonicScale(options.scale);
+  const rng = options.seed == null ? Math.random : createRng(options.seed);
+  const lengths = CHORD_LENGTHS_BY_TYPE[options.type];
+  const extensionProbability = CHORD_EXTENSION_BY_TYPE[options.type];
+  const totalHalfBars = (options.bars ?? 8) * 2;
+  const segments: number[] = [];
+  let remaining = totalHalfBars;
+
+  while (remaining > 0) {
+    let length = lengths[Math.floor(rng() * lengths.length)];
+    if (length > remaining) length = remaining;
+    segments.push(length);
+    remaining -= length;
+  }
+
+  let start = 0;
+
+  return segments.map((len) => {
+    const degree = Math.floor(rng() * harmony.length);
+    const semitone = harmony[degree];
+    const noteName = NOTE_NAMES[(root + semitone) % 12];
+    let suffix =
+      options.scale === "pentatonic-minor" || options.scale === "natural-minor"
+        ? ["m", "m7b5", "", "m7", "m7", "maj7", "7"][degree % 7]
+        : ["", "m7", "m7", "add9", "7", "m7", "m7b5"][degree % 7];
+
+    if (rng() < extensionProbability * 0.4) {
+      suffix = ["sus4", "add9", "9sus4", "7"][Math.floor(rng() * 4)];
+    }
+
+    if (rng() > extensionProbability) {
+      if (suffix === "maj7" || suffix === "add9" || suffix === "7" || suffix === "9sus4") suffix = "";
+      else if (suffix === "m7") suffix = "m";
+      else if (suffix === "m7b5") suffix = "dim";
+    }
+
+    const tones = [
+      48 + semitone,
+      48 + harmony[(degree + 2) % harmony.length],
+      48 + harmony[(degree + 4) % harmony.length],
+    ];
+
+    if (rng() < extensionProbability) tones.push(60 + semitone);
+
+    const chord = { name: `${noteName}${suffix}`, len, start, tones };
+    start += len;
+    return chord;
+  });
 }
 
 export function recommendMacros(selection: DirectionSelection): MacroSettings {
