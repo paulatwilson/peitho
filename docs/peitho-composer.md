@@ -39,6 +39,28 @@ The user should experience one composer workflow. Engine choice, validation, rep
 
 The Composer may impose product limits such as 8 bars, 4/4, and a compact sketch workflow. Those limits belong to the Composer, not the engines.
 
+## Direction Selection
+
+Peitho-Composer's first musical choice is not decoration. Tonality plus Type, Segment, and Option seed the rest of the interface.
+
+Those selections initialise:
+
+- macro values
+- chord progression bias
+- melodic density
+- note split between melody/counter material
+- syncopation level
+- rhythmic complexity
+- future Peitho-Pulse prompt constraints
+
+Current direction axes come from `peitho-array`:
+
+- Type: Ballad, Pop, Cinematic, Lo-Fi, Ambient, New Wave, Electropop, Classical, Jazz, Synth, Rock, Darkwave.
+- Segment: Intro, Verse, Pre-Chorus, Chorus, Hook, Bridge, Middle-Eight, Breakdown, Outro.
+- Option: Rousing Crescendo, Moody Wind Down, Gentle Swell, Steady Groove, Sparse Reflection, Driving Pulse, Tension Lift, Release Drop, Nocturne Drift, Angular Push, Anthem Rise, Minimal Loop.
+
+Peitho-Composer should call `recommendMacros()` from `@peitho/array` whenever Type, Segment, Option, or Scale changes. Later, `@peitho/pulse` should receive the same selection so AI plans and deterministic repair passes share one musical intent.
+
 ## Prototype Baseline
 
 The prototype is a Design Component rather than a normal React app. It runs directly in the browser through:

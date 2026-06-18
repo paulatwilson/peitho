@@ -270,6 +270,40 @@ The engine should support both:
 
 Peitho-Composer can expose a small curated set. Other systems can use broader progression libraries.
 
+### Direction Taxonomy And Macros
+
+Peitho-Composer's initial direction selection should be backed by `peitho-array`, because the same selection drives chord choice, melodic density, rhythmic complexity, and future `peitho-pulse` prompt constraints.
+
+Current direction axes:
+
+- Type: Ballad, Pop, Cinematic, Lo-Fi, Ambient, New Wave, Electropop, Classical, Jazz, Synth, Rock, Darkwave.
+- Segment: Intro, Verse, Pre-Chorus, Chorus, Hook, Bridge, Middle-Eight, Breakdown, Outro.
+- Option: Rousing Crescendo, Moody Wind Down, Gentle Swell, Steady Groove, Sparse Reflection, Driving Pulse, Tension Lift, Release Drop, Nocturne Drift, Angular Push, Anthem Rise, Minimal Loop.
+
+The public API starts with:
+
+```ts
+recommendMacros({
+  type: "Darkwave",
+  segment: "Breakdown",
+  option: "Moody Wind Down",
+  scale: "natural-minor",
+});
+```
+
+It returns bounded macro settings:
+
+```ts
+{
+  density: number;
+  split: number;
+  sync: number;
+  rhythm: number;
+}
+```
+
+Composer uses these values to initialise the interface. `peitho-array` uses them to bias deterministic generation. `peitho-pulse` can use the same selection to constrain planner prompts and repair model output.
+
 ### Melodic Motion
 
 Melody generation should favour:

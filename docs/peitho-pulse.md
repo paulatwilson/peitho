@@ -31,6 +31,7 @@ It should output data that `peitho-array` can validate, shape, compile, and rend
 - voice-leading constraints
 - rhythm mask compilation
 - final `PeithoPattern` output
+- shared Type, Segment, Option, and macro recommendations
 
 `peitho-array` must not depend on `peitho-pulse`.
 
@@ -125,6 +126,7 @@ Expected output:
 - chord/progression suggestions
 - phrase plan
 - section metadata
+- direction-aware macro hints
 
 `peitho-pulse` then parses that into Peitho-native objects and hands final validation to `peitho-array`.
 
