@@ -308,7 +308,7 @@ Use this as the first working checklist:
   - `soft`: resolve via predominant or colour -> tonic
   - `loop`: end somewhere that naturally returns to the opening chord
   - `none`: keep current freer ending
-- [ ] Let `tension` and `repetition` nudge weights.
+- [x] Let `tension` and `repetition` nudge weights.
   - higher `tension` should favour dominant/colour roles
   - higher `repetition` should reuse previous/root material more often
 - [ ] Confirm package boundary stays clean: Composer passes resolved numbers/strings; `peitho-array` has no Ballad, Darkwave, Drop, Motorik, or other product preset names.

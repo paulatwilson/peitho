@@ -361,15 +361,21 @@ function weightedDegree(
   degrees: ChordDegreeMetadata[],
   previous: ChordDegreeMetadata | null,
   rng: () => number,
+  profile: Required<ProgressionProfile>,
   allowedRoles?: ChordDegreeRole[],
 ): number {
   const candidates = allowedRoles ? degrees.filter((degree) => allowedRoles.includes(degree.role)) : degrees;
   if (!previous) return candidates[Math.floor(rng() * candidates.length)].degree;
+  const tension = clamp(profile.tension, 0, 1);
+  const repetition = clamp(profile.repetition, 0, 1);
 
   const weights = candidates.map((degree) => {
     const roleWeight = ROLE_TRANSITION_WEIGHTS[previous.role][degree.role];
-    const repeatPenalty = degree.degree === previous.degree ? 0.65 : 1;
-    return roleWeight * repeatPenalty;
+    const tensionWeight =
+      degree.role === "dominant" || degree.role === "colour" ? 0.75 + tension : 1.25 - tension * 0.5;
+    const repeatWeight = degree.degree === previous.degree ? 0.65 + repetition * 1.35 : 1;
+    const rootWeight = degree.degree === 0 ? 0.8 + repetition * 0.55 : 1;
+    return roleWeight * tensionWeight * repeatWeight * rootWeight;
   });
 
   return pickWeightedDegree(candidates, weights, rng);
@@ -380,12 +386,19 @@ function loopCadenceDegree(
   previous: ChordDegreeMetadata | null,
   opening: ChordDegreeMetadata,
   rng: () => number,
+  profile: Required<ProgressionProfile>,
 ): number {
+  const tension = clamp(profile.tension, 0, 1);
+  const repetition = clamp(profile.repetition, 0, 1);
+
   const weights = degrees.map((degree) => {
     const fromPrevious = previous ? ROLE_TRANSITION_WEIGHTS[previous.role][degree.role] : 1;
     const toOpening = ROLE_TRANSITION_WEIGHTS[degree.role][opening.role];
-    const repeatPenalty = degree.degree === opening.degree ? 0.5 : 1;
-    return fromPrevious * toOpening * repeatPenalty;
+    const tensionWeight =
+      degree.role === "dominant" || degree.role === "colour" ? 0.75 + tension : 1.25 - tension * 0.5;
+    const repeatWeight = degree.degree === previous?.degree ? 0.65 + repetition * 1.35 : 1;
+    const openingWeight = degree.degree === opening.degree ? 0.5 + repetition * 0.7 : 1;
+    return fromPrevious * toOpening * tensionWeight * repeatWeight * openingWeight;
   });
 
   return pickWeightedDegree(degrees, weights, rng);
@@ -404,16 +417,16 @@ function cadenceDegree(
 
   if (profile.cadence === "strong") {
     if (index === finalIndex) return 0;
-    if (index === finalIndex - 1) return weightedDegree(degrees, previous, rng, ["dominant"]);
+    if (index === finalIndex - 1) return weightedDegree(degrees, previous, rng, profile, ["dominant"]);
   }
 
   if (profile.cadence === "soft") {
     if (index === finalIndex) return 0;
-    if (index === finalIndex - 1) return weightedDegree(degrees, previous, rng, ["predominant", "colour"]);
+    if (index === finalIndex - 1) return weightedDegree(degrees, previous, rng, profile, ["predominant", "colour"]);
   }
 
   if (profile.cadence === "loop" && index === finalIndex && opening) {
-    return loopCadenceDegree(degrees, previous, opening, rng);
+    return loopCadenceDegree(degrees, previous, opening, rng, profile);
   }
 
   return null;
@@ -510,7 +523,11 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
       progressionProfile,
       rng,
     );
-    const degree = cadence ?? (index === 0 && progressionProfile.start === "tonic" ? 0 : weightedDegree(degrees, previousDegree, rng));
+    const degree =
+      cadence ??
+      (index === 0 && progressionProfile.start === "tonic"
+        ? 0
+        : weightedDegree(degrees, previousDegree, rng, progressionProfile));
     const degreeMeta = degrees[degree];
     if (index === 0) openingDegree = degreeMeta;
     previousDegree = degreeMeta;

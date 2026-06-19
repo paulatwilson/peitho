@@ -153,7 +153,7 @@ test("uses seeded weighted movement between chord roles", () => {
     progressionProfile: { start: "tonic" },
   });
 
-  expect(chords.map((chord) => chord.name)).toEqual(["C", "Bdim", "Em", "F", "C", "Am", "Am", "Em"]);
+  expect(chords.map((chord) => chord.name)).toEqual(["C", "Bdim", "Em", "F", "C", "Am", "Bdim", "Em"]);
 });
 
 test("applies cadence profiles to final chord movement", () => {
@@ -185,7 +185,7 @@ test("applies cadence profiles to final chord movement", () => {
     "F",
     "C",
     "Am",
-    "F",
+    "Am",
     "C",
   ]);
   expect(namesForCadence("loop")).toEqual([
@@ -195,9 +195,39 @@ test("applies cadence profiles to final chord movement", () => {
     "F",
     "C",
     "Am",
-    "Am",
-    "G",
+    "Bdim",
+    "F",
   ]);
+});
+
+test("lets tension and repetition nudge chord role weights", () => {
+  const base = {
+    key: "C",
+    scale: "major" as const,
+    bars: 16,
+    seed: 123,
+    chordLengths: [1],
+    extensionProbability: 0,
+    progressionProfile: { start: "tonic" as const, cadence: "none" as const },
+  };
+  const tenseNames = new Set(["G", "Bdim", "Am"]);
+  const rootName = (name: string) => name.replace(/m7b5|maj7|add9|dim|sus4|9sus4|m7|m|7/g, "");
+  const namesForProfile = (tension: number, repetition: number) =>
+    generateChords({ ...base, progressionProfile: { ...base.progressionProfile, tension, repetition } }).map(
+      (chord) => chord.name,
+    );
+  const rolePressure = (names: string[]) => names.filter((name) => tenseNames.has(name)).length;
+  const reuse = (names: string[]) =>
+    names.filter((name, index) => index > 0 && rootName(name) === rootName(names[index - 1])).length +
+    names.filter((name) => rootName(name) === "C").length;
+
+  const lowTension = namesForProfile(0, 0);
+  const highTension = namesForProfile(1, 0);
+  const lowRepetition = namesForProfile(0, 0);
+  const highRepetition = namesForProfile(0, 1);
+
+  expect(rolePressure(highTension)).toBeGreaterThan(rolePressure(lowTension));
+  expect(reuse(highRepetition)).toBeGreaterThan(reuse(lowRepetition));
 });
 
 test("accepts composer display scale names in engine helpers", () => {
