@@ -1,5 +1,5 @@
 const port = Number(process.env.PORT ?? 3000);
-const root = new URL("../../../", import.meta.url);
+const root = new URL("../public/", import.meta.url);
 
 const contentTypes: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -17,7 +17,7 @@ function contentType(pathname: string): string {
 }
 
 function resolvePath(pathname: string): URL {
-  const cleanPath = pathname === "/" ? "/docs/Peitho/Peitho.dc.html" : pathname;
+  const cleanPath = pathname === "/" ? "/index.html" : pathname;
   return new URL(`.${cleanPath}`, root);
 }
 

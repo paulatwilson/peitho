@@ -3,13 +3,13 @@
 **Full system documentation lives in [`docs/PEITHO.md`](./docs/PEITHO.md). Read it before editing.**
 
 ## What this is
-Peitho-Composer is an 8-bar generative MIDI composition surface. The current prototype is one file:
-**`docs/Peitho/Peitho.dc.html`**. Open it directly in a browser to run — there is
-**no build step, no bundler, no npm**.
+Peitho-Composer is an 8-bar generative MIDI composition surface. The original
+prototype is **`docs/Peitho/Peitho.dc.html`** and should stay reference-only.
+The working Composer copy is **`apps/peitho-composer/public/index.html`**.
 
 ## Critical rules (this is NOT a normal React app)
-- `docs/Peitho/Peitho.dc.html` is a **Design Component** driven by the custom
-  runtime **`docs/Peitho/support.js`**. **Never edit `support.js`** — it is
+- `apps/peitho-composer/public/index.html` is a **Design Component** driven by the custom
+  runtime **`apps/peitho-composer/public/support.js`**. **Never edit `support.js`** — it is
   framework code.
 - The file is `<x-dc>` template + a `<script>` logic class
   (`class Component extends DCLogic`). See PEITHO.md §2 for the model.
@@ -46,7 +46,9 @@ Peitho-Composer is an 8-bar generative MIDI composition surface. The current pro
 - `Peitho-Pulse` (LM engine) is a disabled stub; `Peitho-Array` is this build.
 
 ## Files
-- `docs/Peitho/Peitho.dc.html` — the app.
+- `apps/peitho-composer/public/index.html` — the working Composer app copy.
+- `docs/Peitho/Peitho.dc.html` — original reference prototype.
 - `docs/PEITHO.md` — full top-to-bottom documentation.
-- `docs/Peitho/support.js` — runtime (do not edit).
+- `apps/peitho-composer/public/support.js` — Composer runtime copy (do not edit).
+- `docs/Peitho/support.js` — original runtime reference (do not edit).
 - `Peitho Directions.dc.html` — old visual-direction exploration; not part of the app.
