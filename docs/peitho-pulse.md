@@ -31,8 +31,6 @@ It should output data that `peitho-array` can validate, shape, compile, and rend
 - voice-leading constraints
 - rhythm mask compilation
 - final `PeithoPattern` output
-- shared Type, Segment, Option, and macro recommendations
-
 `peitho-array` must not depend on `peitho-pulse`.
 
 ## Core Contract
@@ -148,15 +146,15 @@ Each response feeds the next call. Pulse returns a full `PeithoPattern` each tim
 
 ## What Peitho-Pulse Will Use
 
-`peitho-pulse` should use three sources:
-
-| Source | Use In `peitho-pulse` | Do Not Use For |
+| Source | Role in `peitho-pulse` | Do Not Use For |
 | --- | --- | --- |
-| ACE-Step 1.5 | primary local music LM/planner target, prompt expansion, song blueprint generation, metadata planning, possible audio-understanding path later | forcing raw audio generation into Peitho core |
-| Magenta / Magenta.js | reference and possible optional model layer for symbolic sequence continuation, MusicRNN-style primer flows, MusicVAE-like variation ideas | replacing ACE-Step as main planner or adding TensorFlow.js to `peitho-array` |
-| `peitho-array` | final symbolic target, validation, repair, deterministic compilation, MIDI-ready events | stochastic model inference |
+| Magenta.js (`@magenta/music`) | **Stage 1 — active.** ImprovRNN for chord-conditioned melody and counter. DrumsRNN for beat generation. TF.js runtime. | adding ML inference to `peitho-array`; audio generation |
+| `peitho-array` | repair passes (`snapToScale`, `quantizeToGrid`, `thinDensity`), shared types (`NoteEvent`, `ChordEvent`, `PeithoPattern`), seeded generation as fallback | stochastic model inference; Composer-specific presets |
+| TyTorch / libtorch | **Stage 2 — future.** Load PyTorch-format symbolic MIDI models (e.g. MMM) without Python. Replaces TF.js backend if Bun compatibility confirmed. | Stage 1 work |
+| MLX (Apple Silicon) | **Stage 3 — future.** Native Apple Silicon inference. Replaces TF.js and TyTorch when model conversion is ready. | Stage 1–2 work |
+| ACE-Step 1.5 LM planner | **Future consideration.** Text-to-structure planning layer. Feeds `PulseRequest.prompt` if a text-conditioned model is added. Not a melody generator — audio path is out of scope. | primary note generation; Python runtime |
 
-Default rule: `peitho-pulse` can be heavier than `peitho-array`, but it should keep its output symbolic and Peitho-native.
+Default rule: output stays symbolic and Peitho-native at every stage. The backend runtime can be swapped without changing `PulseRequest` or `PeithoPattern`.
 
 ## ACE-Step 1.5 Reference
 

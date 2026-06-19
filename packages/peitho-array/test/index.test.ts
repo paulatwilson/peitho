@@ -75,6 +75,42 @@ test("uses seed for repeatable chord generation", () => {
   expect(generateChords(input).reduce((sum, chord) => sum + chord.len, 0)).toBe(32);
 });
 
+test("accepts progression profile input for chord generation", () => {
+  const chords = generateChords({
+    key: "E",
+    scale: "major",
+    bars: 8,
+    seed: 2026,
+    chordLengths: [2],
+    extensionProbability: 0,
+    progressionProfile: {
+      start: "tonic",
+      cadence: "none",
+      tension: 0.35,
+      repetition: 0.7,
+    },
+  });
+
+  expect(chords).toEqual(
+    generateChords({
+      key: "E",
+      scale: "major",
+      bars: 8,
+      seed: 2026,
+      chordLengths: [2],
+      extensionProbability: 0,
+      progressionProfile: {
+        start: "tonic",
+        cadence: "none",
+        tension: 0.35,
+        repetition: 0.7,
+      },
+    }),
+  );
+  expect(chords[0]?.name.startsWith("E")).toBe(true);
+  expect(chords.reduce((sum, chord) => sum + chord.len, 0)).toBe(16);
+});
+
 test("accepts composer display scale names in engine helpers", () => {
   expect(scaleMidi("E", "Pentatonic Major", 56, 64)).toEqual(scaleMidi("E", "pentatonic-major", 56, 64));
   expect(chordPool("E", "Heptatonic Natural Minor").length).toBeGreaterThan(0);

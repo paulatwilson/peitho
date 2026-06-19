@@ -289,6 +289,45 @@ generateChords({
 
 This is still prototype-derived. Product-level presets such as genre, segment, or option should be resolved by the consumer into explicit parameters such as `chordLengths` and `extensionProbability` before calling `peitho-array`.
 
+### Immediate Chord Progression TODO
+
+Keep this work small. The first useful target is nicer chord progressions for Peitho-Composer, still deterministic and lightweight. Do not add AI, model inference, TensorFlow.js, Magenta checkpoints, or broad EMI-style analysis here.
+
+Use this as the first working checklist:
+
+- [x] Add a small `ProgressionProfile` type consumed by `generateChords()`.
+  - `start?: "tonic" | "any"`
+  - `cadence?: "none" | "soft" | "strong" | "loop"`
+  - `tension?: number`
+  - `repetition?: number`
+- [ ] Keep existing `chordLengths`, `extensionProbability`, seeded repeatability, and `ChordEvent[]` output working.
+- [ ] Add internal scale-degree metadata with simple roles: tonic, predominant, dominant, colour.
+- [ ] Replace loose random degree choice with seeded weighted movement between roles.
+- [ ] Add cadence handling:
+  - `strong`: bias final movement toward dominant -> tonic
+  - `soft`: resolve via predominant or colour -> tonic
+  - `loop`: end somewhere that naturally returns to the opening chord
+  - `none`: keep current freer ending
+- [ ] Let `tension` and `repetition` nudge weights.
+  - higher `tension` should favour dominant/colour roles
+  - higher `repetition` should reuse previous/root material more often
+- [ ] Confirm package boundary stays clean: Composer passes resolved numbers/strings; `peitho-array` has no Ballad, Darkwave, Drop, Motorik, or other product preset names.
+- [ ] Add focused tests:
+  - seeded output is repeatable
+  - generated chords fill requested bars
+  - strong cadence ends on tonic
+  - loop cadence can return to the opening chord
+  - higher `repetition` repeats more roots than lower `repetition`
+  - major/minor/pentatonic outputs stay in key
+
+Useful reference ideas for this slice:
+
+- Scribbletune: small pattern/sequence vocabulary and light deterministic helpers.
+- `emi-ts`: reuse/motif thinking and avoiding unrelated random events.
+- Magenta: repair/constraint mindset for symbolic sequences, not model code.
+
+Stop point for this slice: `generateChords()` produces more coherent progressions with tests, without changing Composer UI and without adding heavyweight dependencies.
+
 ### Preset Inputs
 
 Peitho-Composer owns its product preset catalogue. Those presets live with the Composer app, not in `peitho-array`.
@@ -401,10 +440,10 @@ It currently provides:
 
 Next implementation step:
 
-1. Add rhythm pattern parser.
-2. Add motif and phrase-plan types.
-3. Add rule-based chord progression constraints.
-4. Keep Peitho-Composer's preset catalogue and 8-bar behaviour as app configuration.
+1. Add the minimal `ProgressionProfile` input described above.
+2. Add internal degree-role metadata.
+3. Replace random degree selection with seeded weighted movement.
+4. Add cadence tests before expanding motifs or rhythm grammar.
 
 ## Repair Pass Helpers
 

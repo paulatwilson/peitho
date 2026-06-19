@@ -38,6 +38,13 @@ export type ChordTemplate = {
   tones: number[];
 };
 
+export type ProgressionProfile = {
+  start?: "tonic" | "any";
+  cadence?: "none" | "soft" | "strong" | "loop";
+  tension?: number;
+  repetition?: number;
+};
+
 export type GenerateChordsOptions = {
   key: string;
   scale: ScaleInput;
@@ -45,6 +52,7 @@ export type GenerateChordsOptions = {
   seed?: number;
   chordLengths?: number[];
   extensionProbability?: number;
+  progressionProfile?: ProgressionProfile;
 };
 
 export type GenerateMonoOptions = MacroSettings & {
@@ -114,6 +122,12 @@ export type OptionProfile = {
 
 const DEFAULT_CHORD_LENGTHS = [1, 1, 2, 2, 2, 3, 4];
 const DEFAULT_EXTENSION_PROBABILITY = 0.35;
+const DEFAULT_PROGRESSION_PROFILE: Required<ProgressionProfile> = {
+  start: "any",
+  cadence: "none",
+  tension: 0.5,
+  repetition: 0.5,
+};
 const DEFAULT_SEGMENT_PROFILE: SegmentProfile = { density: 1, register: 0, length: 1, sync: 0 };
 const DEFAULT_OPTION_PROFILE: OptionProfile = { envelope: "sparse", length: 1.6 };
 
@@ -317,6 +331,10 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
   const rng = options.seed == null ? Math.random : createRng(options.seed);
   const lengths = options.chordLengths ?? DEFAULT_CHORD_LENGTHS;
   const extensionProbability = options.extensionProbability ?? DEFAULT_EXTENSION_PROBABILITY;
+  const progressionProfile = {
+    ...DEFAULT_PROGRESSION_PROFILE,
+    ...options.progressionProfile,
+  };
   const totalHalfBars = (options.bars ?? 8) * 2;
   const segments: number[] = [];
   let remaining = totalHalfBars;
@@ -330,8 +348,9 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
 
   let start = 0;
 
-  return segments.map((len) => {
-    const degree = Math.floor(rng() * harmony.length);
+  return segments.map((len, index) => {
+    const degree =
+      index === 0 && progressionProfile.start === "tonic" ? 0 : Math.floor(rng() * harmony.length);
     const semitone = harmony[degree];
     const noteName = NOTE_NAMES[(root + semitone) % 12];
     let suffix =
