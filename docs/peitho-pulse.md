@@ -156,216 +156,48 @@ Each response feeds the next call. Pulse returns a full `PeithoPattern` each tim
 
 Default rule: output stays symbolic and Peitho-native at every stage. The backend runtime can be swapped without changing `PulseRequest` or `PeithoPattern`.
 
-## ACE-Step 1.5 Reference
+## Magenta Reference
 
-Reference:
+Reference: `https://github.com/magenta/magenta-js` — Apache-2.0
 
-```txt
-https://github.com/ace-step/ACE-Step-1.5
-```
+`@magenta/music` v1.23.1 is the active Stage 1 runtime. It provides pre-trained `MusicRNN` models including ImprovRNN (chord-conditioned melody) and DrumsRNN (beat continuation). TF.js backend.
 
-Licence:
+Key concepts used by Pulse:
 
-```txt
-MIT
-```
+- `NoteSequence` — Magenta's symbolic note format, converted to/from `NoteEvent`
+- primer sequence — short musical context that seeds continuation
+- temperature — controls randomness; mapped from `density` + `sync` macros
+- chord progression strings — ImprovRNN accepts `["Cm", "G", "Eb", "Bb"]` for conditioning
 
-ACE-Step 1.5 is the primary target because its architecture includes a Language Model planner that turns user queries into song blueprints. The repo documents a hybrid architecture where the LM plans metadata, lyrics, captions, and structure, then guides a Diffusion Transformer audio decoder.
+`@magenta/music` is a `peitho-pulse` dependency only. It must not enter `peitho-array`.
 
-Peitho should focus on the planner side first.
+## Staging
 
-Useful areas to evaluate:
+### Stage 1 — Magenta.js (active)
 
-- LM query rewriting
-- song blueprint generation
-- duration, BPM, key, scale, and time-signature control
-- prompt-to-structure planning
-- metadata generation
-- lyrics and section structure handling
-- local Apple Silicon execution through MLX
-- REST API and CLI behaviour as temporary integration paths
+`MagentaPulsePlanner` is implemented in `src/index.ts`.
 
-Avoid initially:
+- ImprovRNN: chord-conditioned melody and counter generation
+- DrumsRNN: beat pattern generation
+- Repair pass: `quantizeToGrid` → `snapToScale` → `thinDensity` (all from `peitho-array`)
+- Lazy model loading: first `generate()` call initialises models; subsequent calls reuse them
+- `PulseRequest.prompt` accepted but not yet used (reserved for Stage 4)
 
-- DiT audio generation
-- VAE/audio decode path
-- stem separation
-- cover generation
-- repaint/edit audio workflows
-- LoRA training
-- quality scoring
+Checkpoints load from Google storage by default. Local checkpoint path can be passed via `MagentaPlannerConfig`.
 
-Those may be useful later, but the first Peitho target is symbolic planning.
+### Stage 2 — TyTorch / libtorch (future)
 
-## ACE-Step Staging
+Evaluate loading PyTorch-format MIDI models (e.g. MMM multi-track transformer) via TyTorch TypeScript bindings to libtorch. No Python in runtime. Node.js 24+ required — Bun compatibility to be confirmed.
 
-### Stage 1: External Process / API Bridge
+Outcome: if viable, implement `TytorchPulsePlanner` as an alternative to `MagentaPulsePlanner`.
 
-Use ACE-Step as installed Python/MLX system on macOS, driven by `peitho-pulse` through a local process or REST API.
+### Stage 3 — MLX Native (future)
 
-Purpose:
+Apple Silicon native inference via MLX C++ + `bun:ffi`. Replaces TF.js and TyTorch backends once model weight conversion is confirmed. Target: sub-500ms melody generation.
 
-- prove prompt-to-plan workflow
-- inspect actual output shape
-- compare LM models
-- avoid premature native binding work
+### Stage 4 — Text-conditioned LM (future)
 
-Expected output:
-
-- structured text
-- JSON-like blueprint
-- chord/progression suggestions
-- phrase plan
-- section metadata
-- direction-aware macro hints
-
-`peitho-pulse` then parses that into Peitho-native objects and hands final validation to `peitho-array`.
-
-### Stage 2: Symbolic Planner Adapter
-
-Build an adapter around ACE-Step planner output.
-
-Responsibilities:
-
-- normalise key, scale, BPM, metre, and length
-- map sections to `PhrasePlan`
-- map motifs to `Motif` or `MotifBank`
-- map chords to `ChordEvent`
-- map melody hints to `NoteEvent`
-- run `peitho-array` repair passes
-- reject unsupported or ambiguous model output
-
-### Stage 3: MLX Runtime Research
-
-Work out whether the ACE-Step LM planner can run directly from TypeScript/Bun on the user's Mac.
-
-Candidate paths:
-
-- Bun calls a small local MLX runner process
-- Bun uses Node-API bindings around MLX
-- Bun uses `bun:ffi` against a small native library
-- Bun continues using REST/process bridge if that remains more reliable
-
-Success criteria:
-
-- local Apple Silicon execution
-- no Python in the Peitho-Composer runtime path, if practical
-- model output is stable enough to parse
-- symbolic plan generation works without forcing audio generation
-
-### Stage 4: Native Planner Package
-
-Only after Stage 1-3 are proven, create a clean package boundary for a native planner runtime.
-
-Possible shape:
-
-```txt
-packages/peitho-pulse
-  src/
-    planners/
-      ace-step-api.ts
-      ace-step-mlx.ts
-      magenta.ts
-    adapters/
-      ace-step-plan.ts
-      magenta-sequence.ts
-    repair/
-      array-repair.ts
-```
-
-## Magenta / Magenta.js Reference
-
-Reference:
-
-```txt
-https://github.com/magenta/magenta-js
-```
-
-Licence:
-
-```txt
-Apache-2.0
-```
-
-Magenta.js provides TypeScript/JavaScript inference libraries for pre-trained Magenta models. Its music package includes TensorFlow.js implementations of note-based models such as MusicRNN, DrumsRNN, PerformanceRNN, ImprovRNN, and MusicVAE.
-
-Useful areas to evaluate:
-
-- MusicRNN primer/continuation flow
-- symbolic `NoteSequence` style data representation
-- quantised note sequence handling
-- temperature controls for variation
-- MusicVAE interpolation/variation ideas
-- browser and Node inference patterns
-
-Integration rule:
-
-Magenta is optional and secondary. It can inform planner workflows or become an optional adapter, but it should not be required by `peitho-array`.
-
-## Magenta Staging
-
-### Stage 1: Conceptual Borrowing
-
-Use Magenta for design vocabulary:
-
-- primer sequence
-- continuation
-- sample count
-- temperature
-- quantised note sequence
-- symbolic model output
-
-### Stage 2: Optional Prototype Adapter
-
-If useful, make a separate `peitho-pulse` adapter that runs a Magenta model and maps output into `PeithoPattern`.
-
-This adapter should be optional because it brings TensorFlow.js and larger browser/Node dependencies.
-
-### Stage 3: Compare Against ACE-Step
-
-Use Magenta outputs as a comparison point:
-
-- Does it produce better continuation for short melodies?
-- Is it useful for drums?
-- Is its dependency weight acceptable?
-- Does it add value once ACE-Step planner works?
-
-If not, keep Magenta as concept-only reference.
-
-## Peitho-Array Staging
-
-`peitho-array` is always part of the `peitho-pulse` pipeline.
-
-### Stage 1: Shared Types
-
-Use `PeithoPattern`, `NoteEvent`, `ChordEvent`, `PatternConfig`, and future motif/phrase types as the final output contract.
-
-### Stage 2: Validation
-
-Before returning output, `peitho-pulse` should ask `peitho-array` to validate:
-
-- note ranges
-- scale membership
-- chord membership
-- grid bounds
-- overlap rules
-- section length
-- metre and quantisation
-
-### Stage 3: Repair
-
-Use deterministic `peitho-array` repair passes to fix AI rough edges:
-
-- snap notes to scale
-- avoid impossible leaps
-- anchor strong beats to chord tones
-- thin density
-- fit material into requested bars
-- normalise velocities
-
-### Stage 4: Compilation
-
-AI output should compile down to the same event format as deterministic generation. The app or game should not care whether material came from `peitho-array` alone or from `peitho-pulse`.
+Add a text-conditioned planner that uses `PulseRequest.prompt` (the keyword string) to guide generation. Candidate: ACE-Step 1.5 LM planner side (structure/blueprint, not audio). Feeds high-level plan into `peitho-array` or Magenta rather than replacing them.
 
 ## Non-Goals
 
@@ -380,23 +212,23 @@ AI output should compile down to the same event format as deterministic generati
 
 ## Current Implementation
 
-Current scaffold lives in:
+Lives in `packages/peitho-pulse/src/index.ts`.
 
-```txt
-packages/peitho-pulse/src/index.ts
-```
+Currently exports:
 
-It currently provides:
+- `PulseTarget` — `"chords" | "drums" | "melody" | "counter"`
+- `PulseRequest` — full resolved request type (key, scale, macros, profiles, locked context, prompt)
+- `PulsePlanner` — interface: `generate(request: PulseRequest): Promise<PeithoPattern>`
+- `StubPulsePlanner` — returns empty `PeithoPattern`, used for testing
+- `MagentaPulsePlanner` — active Stage 1 planner (ImprovRNN + DrumsRNN, lazy init, repair pass)
+- `MagentaPlannerConfig` — optional checkpoint URL overrides
+- `MlxRuntimeConfig` — reserved for Stage 3 native runtime
 
-- `PulsePrompt`
-- `PulsePlanner`
-- `StubPulsePlanner`
-- `MlxRuntimeConfig`
+Dependencies: `@peitho/array` (workspace), `@magenta/music` ^1.23.1, `@tensorflow/tfjs` ^4.22.0.
 
-Next implementation step:
+Next steps:
 
-1. Define a `PulsePlan` intermediate schema.
-2. Add an ACE-Step API/process adapter stub.
-3. Add a parser that maps a mocked ACE-Step plan into `PeithoPattern`.
-4. Add `peitho-array` validation/repair hooks.
-5. Keep Magenta as concept-only until ACE-Step planner route is understood.
+1. Wire `/pulse/generate` endpoint in `apps/peitho-composer/src/server.ts`.
+2. Enable the Pulse engine button in `apps/peitho-composer/public/index.html`.
+3. Download and serve Magenta checkpoints locally (remove Google storage dependency).
+4. Implement `TytorchPulsePlanner` once Bun compatibility with TyTorch is confirmed (Stage 2).

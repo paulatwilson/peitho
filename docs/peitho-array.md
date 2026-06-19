@@ -300,7 +300,7 @@ Use this as the first working checklist:
   - `cadence?: "none" | "soft" | "strong" | "loop"`
   - `tension?: number`
   - `repetition?: number`
-- [ ] Keep existing `chordLengths`, `extensionProbability`, seeded repeatability, and `ChordEvent[]` output working.
+- [x] Keep existing `chordLengths`, `extensionProbability`, seeded repeatability, and `ChordEvent[]` output working.
 - [ ] Add internal scale-degree metadata with simple roles: tonic, predominant, dominant, colour.
 - [ ] Replace loose random degree choice with seeded weighted movement between roles.
 - [ ] Add cadence handling:

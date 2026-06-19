@@ -75,6 +75,37 @@ test("uses seed for repeatable chord generation", () => {
   expect(generateChords(input).reduce((sum, chord) => sum + chord.len, 0)).toBe(32);
 });
 
+test("preserves chord length, extension, seed, and event output contract", () => {
+  const input = {
+    key: "C",
+    scale: "major" as const,
+    chordLengths: [3],
+    extensionProbability: 1,
+    bars: 3,
+    seed: 808,
+  };
+  const chords = generateChords(input);
+
+  expect(chords).toEqual(generateChords(input));
+  expect(chords).toEqual([
+    expect.objectContaining({
+      name: expect.any(String),
+      start: 0,
+      len: 3,
+      tones: expect.any(Array),
+    }),
+    expect.objectContaining({
+      name: expect.any(String),
+      start: 3,
+      len: 3,
+      tones: expect.any(Array),
+    }),
+  ]);
+  expect(chords.every((chord) => chord.len === 3)).toBe(true);
+  expect(chords.every((chord) => chord.tones.length === 4)).toBe(true);
+  expect(chords.at(-1)!.start + chords.at(-1)!.len).toBe(6);
+});
+
 test("accepts progression profile input for chord generation", () => {
   const chords = generateChords({
     key: "E",
