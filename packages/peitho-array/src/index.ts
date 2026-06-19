@@ -168,6 +168,33 @@ const MINOR_DEGREE_ROLES: ChordDegreeRole[] = [
 const MAJOR_DEGREE_SUFFIXES = ["", "m7", "m7", "add9", "7", "m7", "m7b5"] as const;
 const MINOR_DEGREE_SUFFIXES = ["m", "m7b5", "", "m7", "m7", "maj7", "7"] as const;
 
+const ROLE_TRANSITION_WEIGHTS: Record<ChordDegreeRole, Record<ChordDegreeRole, number>> = {
+  tonic: {
+    tonic: 0.7,
+    predominant: 1.25,
+    dominant: 1,
+    colour: 0.8,
+  },
+  predominant: {
+    tonic: 0.55,
+    predominant: 0.45,
+    dominant: 1.55,
+    colour: 0.85,
+  },
+  dominant: {
+    tonic: 1.55,
+    predominant: 0.45,
+    dominant: 0.35,
+    colour: 0.75,
+  },
+  colour: {
+    tonic: 1.15,
+    predominant: 1,
+    dominant: 0.95,
+    colour: 0.45,
+  },
+};
+
 export const SCALE_INTERVALS: Record<ScaleName, number[]> = {
   "pentatonic-major": [0, 2, 4, 7, 9],
   "pentatonic-minor": [0, 3, 5, 7, 10],
@@ -318,6 +345,25 @@ function chordDegreeMetadata(scale: ScaleInput): ChordDegreeMetadata[] {
   }));
 }
 
+function weightedDegree(degrees: ChordDegreeMetadata[], previous: ChordDegreeMetadata | null, rng: () => number): number {
+  if (!previous) return Math.floor(rng() * degrees.length);
+
+  const weights = degrees.map((degree) => {
+    const roleWeight = ROLE_TRANSITION_WEIGHTS[previous.role][degree.role];
+    const repeatPenalty = degree.degree === previous.degree ? 0.65 : 1;
+    return roleWeight * repeatPenalty;
+  });
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  let pick = rng() * total;
+
+  for (let index = 0; index < weights.length; index += 1) {
+    pick -= weights[index];
+    if (pick <= 0) return degrees[index].degree;
+  }
+
+  return degrees.at(-1)!.degree;
+}
+
 export function chordPool(key: string, scale: ScaleInput): ChordTemplate[] {
   const root = keyToPitchClass(key);
   const harmony = harmonicScale(scale);
@@ -395,11 +441,13 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
   }
 
   let start = 0;
+  let previousDegree: ChordDegreeMetadata | null = null;
 
   return segments.map((len, index) => {
     const degree =
-      index === 0 && progressionProfile.start === "tonic" ? 0 : Math.floor(rng() * harmony.length);
+      index === 0 && progressionProfile.start === "tonic" ? 0 : weightedDegree(degrees, previousDegree, rng);
     const degreeMeta = degrees[degree];
+    previousDegree = degreeMeta;
     const semitone = degreeMeta.semitone;
     const noteName = NOTE_NAMES[(root + semitone) % 12];
     let suffix = degreeMeta.suffix;

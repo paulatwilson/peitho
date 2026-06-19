@@ -1,6 +1,10 @@
+import { MagentaPulsePlanner, type PulseRequest } from "@peitho/pulse";
+
 const port = Number(process.env.PORT ?? 3000);
 const root = new URL("../public/", import.meta.url);
 const composerEngineBrowserEntry = new URL("./composer-engine.ts", import.meta.url);
+
+const pulsePlanner = new MagentaPulsePlanner();
 
 const contentTypes: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -26,6 +30,27 @@ Bun.serve({
   port,
   async fetch(req) {
     const url = new URL(req.url);
+
+    if (url.pathname === "/pulse/generate" && req.method === "POST") {
+      let body: PulseRequest;
+      try {
+        body = await req.json();
+      } catch {
+        return new Response("Invalid JSON", { status: 400 });
+      }
+      try {
+        const pattern = await pulsePlanner.generate(body);
+        return new Response(JSON.stringify(pattern), {
+          headers: { "content-type": "application/json" },
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return new Response(JSON.stringify({ error: message }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        });
+      }
+    }
 
     if (url.pathname === "/composer-engine.js") {
       const result = await Bun.build({
