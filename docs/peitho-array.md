@@ -311,7 +311,7 @@ Use this as the first working checklist:
 - [x] Let `tension` and `repetition` nudge weights.
   - higher `tension` should favour dominant/colour roles
   - higher `repetition` should reuse previous/root material more often
-- [ ] Confirm package boundary stays clean: Composer passes resolved numbers/strings; `peitho-array` has no Ballad, Darkwave, Drop, Motorik, or other product preset names.
+- [x] Confirm package boundary stays clean: Composer passes resolved numbers/strings; `peitho-array` has no Ballad, Darkwave, Drop, Motorik, or other product preset names.
 - [ ] Add focused tests:
   - seeded output is repeatable
   - generated chords fill requested bars
