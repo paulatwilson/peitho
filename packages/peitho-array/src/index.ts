@@ -345,23 +345,78 @@ function chordDegreeMetadata(scale: ScaleInput): ChordDegreeMetadata[] {
   }));
 }
 
-function weightedDegree(degrees: ChordDegreeMetadata[], previous: ChordDegreeMetadata | null, rng: () => number): number {
-  if (!previous) return Math.floor(rng() * degrees.length);
-
-  const weights = degrees.map((degree) => {
-    const roleWeight = ROLE_TRANSITION_WEIGHTS[previous.role][degree.role];
-    const repeatPenalty = degree.degree === previous.degree ? 0.65 : 1;
-    return roleWeight * repeatPenalty;
-  });
+function pickWeightedDegree(candidates: ChordDegreeMetadata[], weights: number[], rng: () => number): number {
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   let pick = rng() * total;
 
   for (let index = 0; index < weights.length; index += 1) {
     pick -= weights[index];
-    if (pick <= 0) return degrees[index].degree;
+    if (pick <= 0) return candidates[index].degree;
   }
 
-  return degrees.at(-1)!.degree;
+  return candidates.at(-1)!.degree;
+}
+
+function weightedDegree(
+  degrees: ChordDegreeMetadata[],
+  previous: ChordDegreeMetadata | null,
+  rng: () => number,
+  allowedRoles?: ChordDegreeRole[],
+): number {
+  const candidates = allowedRoles ? degrees.filter((degree) => allowedRoles.includes(degree.role)) : degrees;
+  if (!previous) return candidates[Math.floor(rng() * candidates.length)].degree;
+
+  const weights = candidates.map((degree) => {
+    const roleWeight = ROLE_TRANSITION_WEIGHTS[previous.role][degree.role];
+    const repeatPenalty = degree.degree === previous.degree ? 0.65 : 1;
+    return roleWeight * repeatPenalty;
+  });
+
+  return pickWeightedDegree(candidates, weights, rng);
+}
+
+function loopCadenceDegree(
+  degrees: ChordDegreeMetadata[],
+  previous: ChordDegreeMetadata | null,
+  opening: ChordDegreeMetadata,
+  rng: () => number,
+): number {
+  const weights = degrees.map((degree) => {
+    const fromPrevious = previous ? ROLE_TRANSITION_WEIGHTS[previous.role][degree.role] : 1;
+    const toOpening = ROLE_TRANSITION_WEIGHTS[degree.role][opening.role];
+    const repeatPenalty = degree.degree === opening.degree ? 0.5 : 1;
+    return fromPrevious * toOpening * repeatPenalty;
+  });
+
+  return pickWeightedDegree(degrees, weights, rng);
+}
+
+function cadenceDegree(
+  index: number,
+  finalIndex: number,
+  degrees: ChordDegreeMetadata[],
+  previous: ChordDegreeMetadata | null,
+  opening: ChordDegreeMetadata | null,
+  profile: Required<ProgressionProfile>,
+  rng: () => number,
+): number | null {
+  if (profile.cadence === "none") return null;
+
+  if (profile.cadence === "strong") {
+    if (index === finalIndex) return 0;
+    if (index === finalIndex - 1) return weightedDegree(degrees, previous, rng, ["dominant"]);
+  }
+
+  if (profile.cadence === "soft") {
+    if (index === finalIndex) return 0;
+    if (index === finalIndex - 1) return weightedDegree(degrees, previous, rng, ["predominant", "colour"]);
+  }
+
+  if (profile.cadence === "loop" && index === finalIndex && opening) {
+    return loopCadenceDegree(degrees, previous, opening, rng);
+  }
+
+  return null;
 }
 
 export function chordPool(key: string, scale: ScaleInput): ChordTemplate[] {
@@ -442,11 +497,22 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
 
   let start = 0;
   let previousDegree: ChordDegreeMetadata | null = null;
+  let openingDegree: ChordDegreeMetadata | null = null;
+  const finalSegmentIndex = segments.length - 1;
 
   return segments.map((len, index) => {
-    const degree =
-      index === 0 && progressionProfile.start === "tonic" ? 0 : weightedDegree(degrees, previousDegree, rng);
+    const cadence = cadenceDegree(
+      index,
+      finalSegmentIndex,
+      degrees,
+      previousDegree,
+      openingDegree,
+      progressionProfile,
+      rng,
+    );
+    const degree = cadence ?? (index === 0 && progressionProfile.start === "tonic" ? 0 : weightedDegree(degrees, previousDegree, rng));
     const degreeMeta = degrees[degree];
+    if (index === 0) openingDegree = degreeMeta;
     previousDegree = degreeMeta;
     const semitone = degreeMeta.semitone;
     const noteName = NOTE_NAMES[(root + semitone) % 12];

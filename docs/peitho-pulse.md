@@ -31,6 +31,7 @@ It should output data that `peitho-array` can validate, shape, compile, and rend
 - voice-leading constraints
 - rhythm mask compilation
 - final `PeithoPattern` output
+
 `peitho-array` must not depend on `peitho-pulse`.
 
 ## Core Contract
@@ -377,6 +378,40 @@ Awaiting `validatePattern()` export from `peitho-array`.
 ### Stage 4: Compilation
 
 AI output compiles to the same event format as deterministic generation. The app should not care whether material came from `peitho-array` alone or from `peitho-pulse`.
+
+## Model Candidates
+
+All models we want to evaluate and integrate. Goal: best of all worlds — use the right model for each pipeline step. No Python in runtime.
+
+| Model | Source | Pipeline role | Runtime | Status |
+| --- | --- | --- | --- | --- |
+| ImprovRNN | Magenta / Google | Melody — chord-conditioned | TF.js | Stage 1, active |
+| DrumsRNN | Magenta / Google | Beats — pattern continuation | TF.js | Stage 1, active |
+| MusicVAE | Magenta / Google | Style variation / interpolation between takes | TF.js | Evaluate after Stage 1 |
+| MusicTransformer | Magenta / Google | Melody — high-quality, GiantMIDI trained | TF.js / TyTorch | Evaluate vs ImprovRNN |
+| MMM (Multi-Track Music Machine) | Huggingface | Counter-melody — multi-track, chord-conditioned | TyTorch (PyTorch weights) | Stage 2 candidate |
+| Anticipatory Music Transformer | Stanford | Counter-melody — MIDI infilling, chord-aware | TyTorch (PyTorch weights) | Stage 2 candidate |
+| ABC Notation LMs | Huggingface | LM planning — text prompt → ABC notation → notes | MLX / TyTorch | Stage 3 candidate |
+| emi-ts SPEAC | `paulatwilson/emi-ts` | Counter-melody — structural phrase grammar, call-and-response | Bun, zero deps | Integrate after Stage 1 |
+| ACE-Step 1.5 LM planner | `ace-step/ACE-Step-1.5` | LM planning — structure/blueprint from text prompt | MLX / native | Stage 4 |
+
+### Runtime priority
+
+No Python. Preference order for backends:
+
+1. Native Bun / TF.js (zero extra setup)
+2. TyTorch (libtorch, no Python, Node.js 24+ — Bun compat to confirm)
+3. MLX via `bun:ffi` (Apple Silicon native, requires weight conversion)
+
+### Evaluation criteria
+
+When comparing models for the same role:
+
+- Does it produce musically interesting output for the style?
+- Does it respect chord context?
+- Does it understand phrase structure (not just random notes)?
+- Is latency acceptable (target: under 2s per generation step)?
+- Is the output repairable by `peitho-array`'s repair pass?
 
 ## Non-Goals
 

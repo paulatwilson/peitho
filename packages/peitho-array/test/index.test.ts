@@ -156,6 +156,50 @@ test("uses seeded weighted movement between chord roles", () => {
   expect(chords.map((chord) => chord.name)).toEqual(["C", "Bdim", "Em", "F", "C", "Am", "Am", "Em"]);
 });
 
+test("applies cadence profiles to final chord movement", () => {
+  const base = {
+    key: "C",
+    scale: "major" as const,
+    bars: 4,
+    seed: 42,
+    chordLengths: [1],
+    extensionProbability: 0,
+  };
+  const namesForCadence = (cadence: "strong" | "soft" | "loop") =>
+    generateChords({ ...base, progressionProfile: { start: "tonic", cadence } }).map((chord) => chord.name);
+
+  expect(namesForCadence("strong")).toEqual([
+    "C",
+    "Bdim",
+    "Em",
+    "F",
+    "C",
+    "Am",
+    "Bdim",
+    "C",
+  ]);
+  expect(namesForCadence("soft")).toEqual([
+    "C",
+    "Bdim",
+    "Em",
+    "F",
+    "C",
+    "Am",
+    "F",
+    "C",
+  ]);
+  expect(namesForCadence("loop")).toEqual([
+    "C",
+    "Bdim",
+    "Em",
+    "F",
+    "C",
+    "Am",
+    "Am",
+    "G",
+  ]);
+});
+
 test("accepts composer display scale names in engine helpers", () => {
   expect(scaleMidi("E", "Pentatonic Major", 56, 64)).toEqual(scaleMidi("E", "pentatonic-major", 56, 64));
   expect(chordPool("E", "Heptatonic Natural Minor").length).toBeGreaterThan(0);
