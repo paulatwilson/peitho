@@ -301,7 +301,7 @@ Use this as the first working checklist:
   - `tension?: number`
   - `repetition?: number`
 - [x] Keep existing `chordLengths`, `extensionProbability`, seeded repeatability, and `ChordEvent[]` output working.
-- [ ] Add internal scale-degree metadata with simple roles: tonic, predominant, dominant, colour.
+- [x] Add internal scale-degree metadata with simple roles: tonic, predominant, dominant, colour.
 - [ ] Replace loose random degree choice with seeded weighted movement between roles.
 - [ ] Add cadence handling:
   - `strong`: bias final movement toward dominant -> tonic

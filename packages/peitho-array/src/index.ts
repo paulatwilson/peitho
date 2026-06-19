@@ -45,6 +45,15 @@ export type ProgressionProfile = {
   repetition?: number;
 };
 
+type ChordDegreeRole = "tonic" | "predominant" | "dominant" | "colour";
+
+type ChordDegreeMetadata = {
+  degree: number;
+  semitone: number;
+  role: ChordDegreeRole;
+  suffix: string;
+};
+
 export type GenerateChordsOptions = {
   key: string;
   scale: ScaleInput;
@@ -135,6 +144,29 @@ const HEPTATONIC_INTERVALS = {
   major: [0, 2, 4, 5, 7, 9, 11],
   minor: [0, 2, 3, 5, 7, 8, 10],
 } as const;
+
+const MAJOR_DEGREE_ROLES: ChordDegreeRole[] = [
+  "tonic",
+  "predominant",
+  "tonic",
+  "predominant",
+  "dominant",
+  "colour",
+  "dominant",
+];
+
+const MINOR_DEGREE_ROLES: ChordDegreeRole[] = [
+  "tonic",
+  "colour",
+  "tonic",
+  "predominant",
+  "dominant",
+  "colour",
+  "dominant",
+];
+
+const MAJOR_DEGREE_SUFFIXES = ["", "m7", "m7", "add9", "7", "m7", "m7b5"] as const;
+const MINOR_DEGREE_SUFFIXES = ["m", "m7b5", "", "m7", "m7", "maj7", "7"] as const;
 
 export const SCALE_INTERVALS: Record<ScaleName, number[]> = {
   "pentatonic-major": [0, 2, 4, 7, 9],
@@ -271,6 +303,21 @@ function harmonicScale(scale: ScaleInput): readonly number[] {
     : HEPTATONIC_INTERVALS.major;
 }
 
+function chordDegreeMetadata(scale: ScaleInput): ChordDegreeMetadata[] {
+  const scaleName = normalizeScaleName(scale);
+  const isMinor = scaleName === "pentatonic-minor" || scaleName === "natural-minor";
+  const harmony = harmonicScale(scaleName);
+  const roles = isMinor ? MINOR_DEGREE_ROLES : MAJOR_DEGREE_ROLES;
+  const suffixes = isMinor ? MINOR_DEGREE_SUFFIXES : MAJOR_DEGREE_SUFFIXES;
+
+  return harmony.map((semitone, degree) => ({
+    degree,
+    semitone,
+    role: roles[degree],
+    suffix: suffixes[degree],
+  }));
+}
+
 export function chordPool(key: string, scale: ScaleInput): ChordTemplate[] {
   const root = keyToPitchClass(key);
   const harmony = harmonicScale(scale);
@@ -328,6 +375,7 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
   const root = keyToPitchClass(options.key);
   const scaleName = normalizeScaleName(options.scale);
   const harmony = harmonicScale(scaleName);
+  const degrees = chordDegreeMetadata(scaleName);
   const rng = options.seed == null ? Math.random : createRng(options.seed);
   const lengths = options.chordLengths ?? DEFAULT_CHORD_LENGTHS;
   const extensionProbability = options.extensionProbability ?? DEFAULT_EXTENSION_PROBABILITY;
@@ -351,12 +399,10 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
   return segments.map((len, index) => {
     const degree =
       index === 0 && progressionProfile.start === "tonic" ? 0 : Math.floor(rng() * harmony.length);
-    const semitone = harmony[degree];
+    const degreeMeta = degrees[degree];
+    const semitone = degreeMeta.semitone;
     const noteName = NOTE_NAMES[(root + semitone) % 12];
-    let suffix =
-      scaleName === "pentatonic-minor" || scaleName === "natural-minor"
-        ? ["m", "m7b5", "", "m7", "m7", "maj7", "7"][degree % 7]
-        : ["", "m7", "m7", "add9", "7", "m7", "m7b5"][degree % 7];
+    let suffix = degreeMeta.suffix;
 
     if (rng() < extensionProbability * 0.4) {
       suffix = ["sus4", "add9", "9sus4", "7"][Math.floor(rng() * 4)];
