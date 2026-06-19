@@ -4,64 +4,19 @@ export type ScaleName =
   | "major"
   | "natural-minor";
 
-export const DIRECTION_TYPES = [
-  "Ballad",
-  "Pop",
-  "Cinematic",
-  "Lo-Fi",
-  "Ambient",
-  "New Wave",
-  "Electropop",
-  "Classical",
-  "Jazz",
-  "Synth",
-  "Rock",
-  "Darkwave",
-] as const;
+export type DisplayScaleName =
+  | "Pentatonic Major"
+  | "Pentatonic Minor"
+  | "Heptatonic Major"
+  | "Heptatonic Natural Minor";
 
-export const SEGMENTS = [
-  "Intro",
-  "Verse",
-  "Pre-Chorus",
-  "Chorus",
-  "Hook",
-  "Bridge",
-  "Middle-Eight",
-  "Breakdown",
-  "Outro",
-] as const;
-
-export const OPTIONS = [
-  "Rousing Crescendo",
-  "Moody Wind Down",
-  "Gentle Swell",
-  "Steady Groove",
-  "Sparse Reflection",
-  "Driving Pulse",
-  "Tension Lift",
-  "Release Drop",
-  "Nocturne Drift",
-  "Angular Push",
-  "Anthem Rise",
-  "Minimal Loop",
-] as const;
-
-export type DirectionType = (typeof DIRECTION_TYPES)[number];
-export type SegmentName = (typeof SEGMENTS)[number];
-export type OptionName = (typeof OPTIONS)[number];
+export type ScaleInput = ScaleName | DisplayScaleName;
 
 export type MacroSettings = {
   density: number;
   split: number;
   sync: number;
   rhythm: number;
-};
-
-export type DirectionSelection = {
-  type: DirectionType;
-  segment: SegmentName;
-  option: OptionName;
-  scale?: ScaleName;
 };
 
 export type NoteEvent = {
@@ -85,10 +40,44 @@ export type ChordTemplate = {
 
 export type GenerateChordsOptions = {
   key: string;
-  scale: ScaleName;
-  type: DirectionType;
+  scale: ScaleInput;
   bars?: number;
   seed?: number;
+  chordLengths?: number[];
+  extensionProbability?: number;
+};
+
+export type GenerateMonoOptions = MacroSettings & {
+  key: string;
+  scale: ScaleInput;
+  register: [number, number];
+  sparse: number;
+  counter?: boolean;
+  steps?: number;
+  stepsPerBar?: number;
+  seed: number;
+  segmentProfile?: Partial<SegmentProfile>;
+  optionProfile?: Partial<OptionProfile>;
+};
+
+export type DrumPattern =
+  | "Basic 8th-Note"
+  | "Four-on-the-Floor"
+  | "Syncopated"
+  | "Slow-Burn & 6/8 Fills"
+  | "Gated-Reverb Drive"
+  | "Driving 16th Open Hat";
+
+export type DrumPatternEvents = {
+  kick: number[];
+  snare: number[];
+  hat: number[];
+  open: number[];
+};
+
+export type MidiTrack = {
+  notes: NoteEvent[];
+  channel: number;
 };
 
 export type PeithoPattern = {
@@ -109,96 +98,29 @@ export type PatternConfig = {
   stepsPerBeat?: number;
 };
 
-export const DEFAULT_DIRECTION: DirectionSelection = {
-  type: "Ballad",
-  segment: "Verse",
-  option: "Rousing Crescendo",
-  scale: "pentatonic-major",
-};
-
-type MacroVector = {
+export type SegmentProfile = {
   density: number;
-  split: number;
+  register: number;
+  length: number;
   sync: number;
-  rhythm: number;
 };
 
-const TYPE_MACROS: Record<DirectionType, MacroVector> = {
-  Ballad: { density: 0.42, split: 0.55, sync: 0.22, rhythm: 0.4 },
-  Pop: { density: 0.62, split: 0.45, sync: 0.4, rhythm: 0.5 },
-  Cinematic: { density: 0.5, split: 0.6, sync: 0.25, rhythm: 0.55 },
-  "Lo-Fi": { density: 0.55, split: 0.4, sync: 0.55, rhythm: 0.6 },
-  Ambient: { density: 0.3, split: 0.7, sync: 0.18, rhythm: 0.35 },
-  "New Wave": { density: 0.58, split: 0.42, sync: 0.48, rhythm: 0.62 },
-  Electropop: { density: 0.66, split: 0.38, sync: 0.44, rhythm: 0.58 },
-  Classical: { density: 0.46, split: 0.58, sync: 0.18, rhythm: 0.42 },
-  Jazz: { density: 0.58, split: 0.5, sync: 0.66, rhythm: 0.72 },
-  Synth: { density: 0.6, split: 0.46, sync: 0.36, rhythm: 0.56 },
-  Rock: { density: 0.64, split: 0.4, sync: 0.28, rhythm: 0.54 },
-  Darkwave: { density: 0.5, split: 0.55, sync: 0.34, rhythm: 0.58 },
+export type OptionEnvelope = "rise" | "fall" | "swell" | "flat" | "sparse" | "alternate";
+
+export type OptionProfile = {
+  envelope: OptionEnvelope;
+  length: number;
 };
 
-const SEGMENT_MACROS: Record<SegmentName, Partial<MacroVector>> = {
-  Intro: { density: -0.15, split: -0.05, sync: -0.05, rhythm: -0.05 },
-  Verse: { density: 0, split: 0, sync: 0, rhythm: 0 },
-  "Pre-Chorus": { density: 0.08, split: -0.05, sync: 0.05, rhythm: 0.05 },
-  Chorus: { density: 0.18, split: -0.1, sync: 0.08, rhythm: 0.08 },
-  Hook: { density: 0.16, split: -0.12, sync: 0.1, rhythm: 0.1 },
-  Bridge: { density: 0, split: 0.05, sync: 0.05, rhythm: 0.1 },
-  "Middle-Eight": { density: 0.03, split: 0.08, sync: 0.06, rhythm: 0.12 },
-  Breakdown: { density: -0.22, split: 0.14, sync: 0.04, rhythm: -0.04 },
-  Outro: { density: -0.18, split: 0.1, sync: -0.05, rhythm: -0.05 },
-};
-
-const OPTION_MACROS: Record<OptionName, Partial<MacroVector>> = {
-  "Rousing Crescendo": { density: 0.06, sync: 0.05, rhythm: 0.05 },
-  "Moody Wind Down": { density: -0.08, sync: -0.05, rhythm: 0 },
-  "Gentle Swell": { density: -0.02, sync: 0, rhythm: 0 },
-  "Steady Groove": { density: 0.05, sync: 0.08, rhythm: -0.05 },
-  "Sparse Reflection": { density: -0.18, sync: -0.08, rhythm: -0.1 },
-  "Driving Pulse": { density: 0.08, sync: 0.06, rhythm: 0.08 },
-  "Tension Lift": { density: 0.04, sync: 0.04, rhythm: 0.12 },
-  "Release Drop": { density: -0.1, sync: 0.02, rhythm: -0.02 },
-  "Nocturne Drift": { density: -0.12, sync: -0.04, rhythm: -0.04 },
-  "Angular Push": { density: 0.04, sync: 0.14, rhythm: 0.16 },
-  "Anthem Rise": { density: 0.1, sync: 0.03, rhythm: 0.08 },
-  "Minimal Loop": { density: -0.2, sync: -0.02, rhythm: -0.08 },
-};
+const DEFAULT_CHORD_LENGTHS = [1, 1, 2, 2, 2, 3, 4];
+const DEFAULT_EXTENSION_PROBABILITY = 0.35;
+const DEFAULT_SEGMENT_PROFILE: SegmentProfile = { density: 1, register: 0, length: 1, sync: 0 };
+const DEFAULT_OPTION_PROFILE: OptionProfile = { envelope: "sparse", length: 1.6 };
 
 const HEPTATONIC_INTERVALS = {
   major: [0, 2, 4, 5, 7, 9, 11],
   minor: [0, 2, 3, 5, 7, 8, 10],
 } as const;
-
-const CHORD_LENGTHS_BY_TYPE: Record<DirectionType, number[]> = {
-  Ballad: [2, 2, 3, 4, 4],
-  Pop: [1, 1, 2, 2, 2],
-  Cinematic: [2, 3, 4, 4, 2],
-  "Lo-Fi": [1, 2, 2, 2, 3],
-  Ambient: [4, 4, 3, 2],
-  "New Wave": [1, 1, 2, 2, 4],
-  Electropop: [1, 1, 1, 2, 2],
-  Classical: [2, 2, 4, 4],
-  Jazz: [1, 2, 2, 3],
-  Synth: [1, 2, 2, 4],
-  Rock: [1, 1, 2, 4],
-  Darkwave: [2, 2, 3, 4],
-};
-
-const CHORD_EXTENSION_BY_TYPE: Record<DirectionType, number> = {
-  Ballad: 0.6,
-  Pop: 0.18,
-  Cinematic: 0.65,
-  "Lo-Fi": 0.5,
-  Ambient: 0.5,
-  "New Wave": 0.35,
-  Electropop: 0.28,
-  Classical: 0.42,
-  Jazz: 0.8,
-  Synth: 0.36,
-  Rock: 0.22,
-  Darkwave: 0.52,
-};
 
 export const SCALE_INTERVALS: Record<ScaleName, number[]> = {
   "pentatonic-major": [0, 2, 4, 7, 9],
@@ -222,6 +144,38 @@ export const NOTE_NAMES = [
   "B",
 ] as const;
 
+export const KEYS = NOTE_NAMES;
+
+export const SCALE_LABELS: DisplayScaleName[] = [
+  "Pentatonic Major",
+  "Pentatonic Minor",
+  "Heptatonic Major",
+  "Heptatonic Natural Minor",
+];
+
+export const SCALE_SLUGS_BY_LABEL: Record<DisplayScaleName, ScaleName> = {
+  "Pentatonic Major": "pentatonic-major",
+  "Pentatonic Minor": "pentatonic-minor",
+  "Heptatonic Major": "major",
+  "Heptatonic Natural Minor": "natural-minor",
+};
+
+export const SCALE_LABELS_BY_SLUG: Record<ScaleName, DisplayScaleName> = {
+  "pentatonic-major": "Pentatonic Major",
+  "pentatonic-minor": "Pentatonic Minor",
+  major: "Heptatonic Major",
+  "natural-minor": "Heptatonic Natural Minor",
+};
+
+export const DRUM_PATTERNS: DrumPattern[] = [
+  "Basic 8th-Note",
+  "Four-on-the-Floor",
+  "Syncopated",
+  "Slow-Burn & 6/8 Fills",
+  "Gated-Reverb Drive",
+  "Driving 16th Open Hat",
+];
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -243,9 +197,14 @@ export function keyToPitchClass(key: string): number {
   return index;
 }
 
-export function scaleMidi(key: string, scale: ScaleName, lo: number, hi: number): number[] {
+export function normalizeScaleName(scale: ScaleInput): ScaleName {
+  return (SCALE_SLUGS_BY_LABEL as Partial<Record<string, ScaleName>>)[scale] ?? (scale as ScaleName);
+}
+
+export function scaleMidi(key: string, scale: ScaleInput, lo: number, hi: number): number[] {
   const root = keyToPitchClass(key);
-  const intervals = new Set(SCALE_INTERVALS[scale].map((n) => (n + root) % 12));
+  const scaleName = normalizeScaleName(scale);
+  const intervals = new Set(SCALE_INTERVALS[scaleName].map((n) => (n + root) % 12));
   const notes: number[] = [];
 
   for (let midi = lo; midi <= hi; midi += 1) {
@@ -255,16 +214,53 @@ export function scaleMidi(key: string, scale: ScaleName, lo: number, hi: number)
   return notes;
 }
 
-function harmonicScale(scale: ScaleName): readonly number[] {
-  return scale === "pentatonic-minor" || scale === "natural-minor"
+export function snapToScale(notes: NoteEvent[], key: string, scale: ScaleInput): NoteEvent[] {
+  if (!notes.length) return [];
+
+  const minMidi = Math.min(...notes.map((note) => note.midi));
+  const maxMidi = Math.max(...notes.map((note) => note.midi));
+  const scaleNotes = scaleMidi(key, scale, minMidi - 12, maxMidi + 12);
+
+  if (!scaleNotes.length) return notes.map((note) => ({ ...note }));
+
+  return notes.map((note) => ({
+    ...note,
+    midi: scaleNotes.reduce((closest, candidate) =>
+      Math.abs(candidate - note.midi) < Math.abs(closest - note.midi) ? candidate : closest,
+    ),
+  }));
+}
+
+export function quantizeToGrid(notes: NoteEvent[], stepsPerBeat: number): NoteEvent[] {
+  const quantum = Math.max(1, Math.round(stepsPerBeat));
+
+  return notes.map((note) => {
+    const step = Math.max(0, Math.round(note.step / quantum) * quantum);
+    const len = Math.max(quantum, Math.round(note.len / quantum) * quantum);
+    return { ...note, step, len };
+  });
+}
+
+export function thinDensity(notes: NoteEvent[], density: number, seed: number): NoteEvent[] {
+  const keepProbability = clamp(density, 0, 1);
+  if (keepProbability >= 1) return notes.map((note) => ({ ...note }));
+  if (keepProbability <= 0) return [];
+
+  const rng = createRng(seed);
+  return notes.filter(() => rng() < keepProbability).map((note) => ({ ...note }));
+}
+
+function harmonicScale(scale: ScaleInput): readonly number[] {
+  const scaleName = normalizeScaleName(scale);
+  return scaleName === "pentatonic-minor" || scaleName === "natural-minor"
     ? HEPTATONIC_INTERVALS.minor
     : HEPTATONIC_INTERVALS.major;
 }
 
-export function chordPool(key: string, scale: ScaleName): ChordTemplate[] {
+export function chordPool(key: string, scale: ScaleInput): ChordTemplate[] {
   const root = keyToPitchClass(key);
   const harmony = harmonicScale(scale);
-  const roots = SCALE_INTERVALS[scale];
+  const roots = SCALE_INTERVALS[normalizeScaleName(scale)];
   const tonic = 48 + root;
   const out: ChordTemplate[] = [];
 
@@ -316,10 +312,11 @@ export function chordPool(key: string, scale: ScaleName): ChordTemplate[] {
 
 export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
   const root = keyToPitchClass(options.key);
-  const harmony = harmonicScale(options.scale);
+  const scaleName = normalizeScaleName(options.scale);
+  const harmony = harmonicScale(scaleName);
   const rng = options.seed == null ? Math.random : createRng(options.seed);
-  const lengths = CHORD_LENGTHS_BY_TYPE[options.type];
-  const extensionProbability = CHORD_EXTENSION_BY_TYPE[options.type];
+  const lengths = options.chordLengths ?? DEFAULT_CHORD_LENGTHS;
+  const extensionProbability = options.extensionProbability ?? DEFAULT_EXTENSION_PROBABILITY;
   const totalHalfBars = (options.bars ?? 8) * 2;
   const segments: number[] = [];
   let remaining = totalHalfBars;
@@ -338,7 +335,7 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
     const semitone = harmony[degree];
     const noteName = NOTE_NAMES[(root + semitone) % 12];
     let suffix =
-      options.scale === "pentatonic-minor" || options.scale === "natural-minor"
+      scaleName === "pentatonic-minor" || scaleName === "natural-minor"
         ? ["m", "m7b5", "", "m7", "m7", "maj7", "7"][degree % 7]
         : ["", "m7", "m7", "add9", "7", "m7", "m7b5"][degree % 7];
 
@@ -366,24 +363,6 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
   });
 }
 
-export function recommendMacros(selection: DirectionSelection): MacroSettings {
-  const base = TYPE_MACROS[selection.type];
-  const segment = SEGMENT_MACROS[selection.segment];
-  const option = OPTION_MACROS[selection.option];
-  const scaleShift = selection.scale?.startsWith("pentatonic") ? -0.05 : 0.05;
-
-  return {
-    density: clamp(base.density + (segment.density ?? 0) + (option.density ?? 0), 0.05, 1),
-    split: clamp(base.split + (segment.split ?? 0) + (option.split ?? 0), 0, 1),
-    sync: clamp(base.sync + (segment.sync ?? 0) + (option.sync ?? 0), 0, 1),
-    rhythm: clamp(
-      base.rhythm + (segment.rhythm ?? 0) + (option.rhythm ?? 0) + scaleShift,
-      0,
-      1,
-    ),
-  };
-}
-
 export function createEmptyPattern(config: PatternConfig): PeithoPattern {
   const beatsPerBar = config.beatsPerBar ?? 4;
   const stepsPerBeat = config.stepsPerBeat ?? 4;
@@ -400,4 +379,223 @@ export function createEmptyPattern(config: PatternConfig): PeithoPattern {
     counter: [],
     drums: {},
   };
+}
+
+function resolveSegmentProfile(profile?: Partial<SegmentProfile>): SegmentProfile {
+  return { ...DEFAULT_SEGMENT_PROFILE, ...profile };
+}
+
+function resolveOptionProfile(profile?: Partial<OptionProfile>): OptionProfile {
+  return { ...DEFAULT_OPTION_PROFILE, ...profile };
+}
+
+function envelopeProfile(profile: OptionProfile) {
+  const envelope = profile.envelope;
+
+  if (envelope === "rise") {
+    return { envelope: (bar: number, bars: number) => 0.45 + (bar / Math.max(1, bars - 1)) * 1, length: profile.length };
+  }
+
+  if (envelope === "fall") {
+    return { envelope: (bar: number, bars: number) => 1.25 - (bar / Math.max(1, bars - 1)) * 0.9, length: profile.length };
+  }
+
+  if (envelope === "swell") {
+    return {
+      envelope: (bar: number, bars: number) => 0.5 + Math.sin((bar / Math.max(1, bars - 1)) * Math.PI) * 0.7,
+      length: profile.length,
+    };
+  }
+
+  if (envelope === "alternate") {
+    return { envelope: (bar: number) => 0.85 + (bar % 2) * 0.25, length: profile.length };
+  }
+
+  if (envelope === "flat") {
+    return { envelope: () => 1, length: profile.length };
+  }
+
+  return { envelope: () => 0.62, length: profile.length };
+}
+
+export function generateMono(options: GenerateMonoOptions): NoteEvent[] {
+  const segment = resolveSegmentProfile(options.segmentProfile);
+  const option = envelopeProfile(resolveOptionProfile(options.optionProfile));
+  const steps = options.steps ?? 128;
+  const stepsPerBar = options.stepsPerBar ?? 16;
+  const bars = Math.max(1, Math.ceil(steps / stepsPerBar));
+  const lo = options.register[0] + segment.register;
+  const hi = options.register[1] + segment.register;
+  const rng = createRng(options.seed);
+  const notes = scaleMidi(options.key, options.scale, lo, hi);
+
+  if (!notes.length) return [];
+
+  const baseDensity = Math.max(0.05, options.density * options.sparse);
+  const syncEffect = clamp(options.sync + segment.sync, 0, 1.2);
+  const out: NoteEvent[] = [];
+  let noteIndex = Math.floor(rng() * notes.length);
+  let step = 0;
+
+  while (step < steps) {
+    const bar = Math.floor(step / stepsPerBar);
+    const envelope = option.envelope(bar, bars);
+    const isDown = step % 4 === 0;
+    const isBeat = step % 2 === 0;
+    let probability = baseDensity * envelope * segment.density;
+
+    if (isDown) probability *= 1.15;
+    else if (isBeat) probability *= 0.75 * (0.6 + syncEffect);
+    else probability *= 0.5 * (0.3 + syncEffect) * (0.5 + options.rhythm);
+    if (options.counter) probability *= 0.7;
+
+    if (rng() < probability) {
+      noteIndex += Math.round(rng() * 4 - 2);
+      noteIndex = clamp(noteIndex, 0, notes.length - 1);
+
+      let length = [1, 1, 2, 2, 3, 4][Math.floor(rng() * 6)];
+      length = Math.max(1, Math.round(length * (1.2 - options.density * 0.4) * segment.length * option.length));
+      const velocity = Math.round(
+        clamp((isDown ? 104 : isBeat ? 88 : 72) * (0.7 + 0.3 * envelope) + (rng() * 16 - 8), 35, 122),
+      );
+
+      out.push({ step, len: length, midi: notes[noteIndex], vel: velocity });
+      step += length;
+    } else {
+      step += 1;
+    }
+  }
+
+  return out;
+}
+
+export function generateDrums(pattern: DrumPattern, bars = 8, stepsPerBar = 16): DrumPatternEvents {
+  const kick: number[] = [];
+  const snare: number[] = [];
+  const hat: number[] = [];
+  const open: number[] = [];
+
+  for (let bar = 0; bar < bars; bar += 1) {
+    const offset = bar * stepsPerBar;
+    const fill = bar % 4 === 3;
+
+    if (pattern === "Basic 8th-Note") {
+      kick.push(offset, offset + 8);
+      snare.push(offset + 4, offset + 12);
+      for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
+    } else if (pattern === "Four-on-the-Floor") {
+      kick.push(offset, offset + 4, offset + 8, offset + 12);
+      snare.push(offset + 4, offset + 12);
+      for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
+      for (let i = 2; i < stepsPerBar; i += 4) open.push(offset + i);
+    } else if (pattern === "Syncopated") {
+      kick.push(offset, offset + 6, offset + 10);
+      snare.push(offset + 4, offset + 12);
+      if (bar % 2) snare.push(offset + 14);
+      for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
+      hat.push(offset + 7, offset + 15);
+    } else if (pattern === "Slow-Burn & 6/8 Fills") {
+      kick.push(offset, offset + 9);
+      snare.push(offset + 6);
+      [0, 3, 6, 9, 12, 15].forEach((i) => hat.push(offset + i));
+      if (fill) snare.push(offset + 10, offset + 12, offset + 14);
+    } else if (pattern === "Gated-Reverb Drive") {
+      kick.push(offset, offset + 8, offset + 11);
+      snare.push(offset + 4, offset + 12);
+      for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
+    } else if (pattern === "Driving 16th Open Hat") {
+      kick.push(offset, offset + 8);
+      snare.push(offset + 4, offset + 12);
+      for (let i = 0; i < stepsPerBar; i += 1) hat.push(offset + i);
+      for (let i = 2; i < stepsPerBar; i += 4) open.push(offset + i);
+    }
+  }
+
+  return { kick, snare, hat, open };
+}
+
+export function waveformBins(notes: NoteEvent[], bins: number, steps = 128): number[] {
+  const values = new Array<number>(bins).fill(0);
+
+  for (const note of notes) {
+    const firstBin = Math.floor((note.step / steps) * bins);
+    const lastBin = Math.floor(((note.step + note.len) / steps) * bins);
+    for (let bin = firstBin; bin <= Math.min(bins - 1, lastBin); bin += 1) {
+      values[bin] += 1;
+    }
+  }
+
+  const max = Math.max(1, ...values);
+  return values.map((value, index) => {
+    const base = value / max;
+    const jitter = base > 0 ? 0.16 * Math.abs(Math.sin(index * 1.7)) : 0;
+    return Math.min(1, base * 0.88 + jitter);
+  });
+}
+
+function variableLengthQuantity(value: number): number[] {
+  const bytes = [value & 0x7f];
+  let next = value >> 7;
+
+  while (next > 0) {
+    bytes.unshift((next & 0x7f) | 0x80);
+    next >>= 7;
+  }
+
+  return bytes;
+}
+
+export function buildMidi(tempo: number, tracks: MidiTrack[]): Uint8Array {
+  const ticksPerStep = 120;
+  const u16 = (value: number) => [(value >> 8) & 0xff, value & 0xff];
+  const u32 = (value: number) => [(value >>> 24) & 0xff, (value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff];
+  const chunks: number[][] = [];
+  const microsecondsPerBeat = Math.round(60000000 / tempo);
+  let tempoTrack: number[] = [];
+
+  tempoTrack = tempoTrack.concat(
+    variableLengthQuantity(0),
+    [0xff, 0x51, 0x03, (microsecondsPerBeat >> 16) & 0xff, (microsecondsPerBeat >> 8) & 0xff, microsecondsPerBeat & 0xff],
+    variableLengthQuantity(0),
+    [0xff, 0x2f, 0x00],
+  );
+  chunks.push(tempoTrack);
+
+  for (const track of tracks) {
+    const events: Array<{ time: number; status: number; note: number; velocity: number }> = [];
+
+    for (const note of track.notes) {
+      events.push({ time: note.step * ticksPerStep, status: 0x90, note: note.midi, velocity: note.vel ?? 90 });
+      events.push({
+        time: (note.step + Math.max(1, note.len)) * ticksPerStep,
+        status: 0x80,
+        note: note.midi,
+        velocity: 0,
+      });
+    }
+
+    events.sort((left, right) => left.time - right.time || left.status - right.status);
+
+    let bytes: number[] = [];
+    let lastTime = 0;
+
+    for (const event of events) {
+      bytes = bytes.concat(variableLengthQuantity(event.time - lastTime), [
+        event.status | track.channel,
+        event.note,
+        event.velocity,
+      ]);
+      lastTime = event.time;
+    }
+
+    bytes = bytes.concat(variableLengthQuantity(0), [0xff, 0x2f, 0x00]);
+    chunks.push(bytes);
+  }
+
+  let midi = [0x4d, 0x54, 0x68, 0x64].concat(u32(6), u16(1), u16(chunks.length), u16(480));
+  for (const chunk of chunks) {
+    midi = midi.concat([0x4d, 0x54, 0x72, 0x6b], u32(chunk.length), chunk);
+  }
+
+  return new Uint8Array(midi);
 }

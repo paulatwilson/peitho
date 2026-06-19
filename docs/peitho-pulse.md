@@ -37,21 +37,114 @@ It should output data that `peitho-array` can validate, shape, compile, and rend
 
 ## Core Contract
 
-`peitho-pulse` should accept a musical request plus generation constraints and return a Peitho-compatible symbolic result.
+`peitho-pulse` accepts a fully-resolved musical request from the Composer and returns a Peitho-native pattern. The Composer is responsible for resolving all direction presets into explicit params before calling Pulse. Pulse does not own the preset catalogue.
 
 ```ts
-export type PulsePrompt = {
-  prompt: string;
-  density?: number;
+export type PulseTarget = "chords" | "drums" | "melody" | "counter";
+
+export type PulseRequest = {
+  // what to generate this call
+  target: PulseTarget;
+
+  // musical foundation
+  key: string;
+  scale: ScaleInput;
+  bars: number;
   seed?: number;
+
+  // macros — already summed: type base + segment delta + option delta
+  density: number;
+  split: number;
+  sync: number;
+  rhythm: number;
+
+  // chord generation params (resolved from type preset)
+  chordLengths?: number[];
+  extensionProbability?: number;
+
+  // profiles (resolved from segment + option presets)
+  segmentProfile?: Partial<SegmentProfile>;
+  optionProfile?: Partial<OptionProfile>;
+
+  // musical context — what is already locked (primes the next generation step)
+  chords?: ChordEvent[];    // locked chords → conditions melody and counter
+  melody?: NoteEvent[];     // locked melody → conditions counter
+
+  // LM text prompt — assembled by Composer from direction-presets.json keywords
+  // used by text-conditioned models; ignored by sequence models (Magenta)
+  prompt?: string;
 };
 
 export type PulsePlanner = {
-  generate(input: PulsePrompt): Promise<PeithoPattern>;
+  generate(input: PulseRequest): Promise<PeithoPattern>;
 };
 ```
 
-This contract will expand, but the boundary should remain simple: AI planning in, Peitho-native symbolic music out.
+The boundary stays simple: resolved musical request in, Peitho-native symbolic music out.
+
+## Composer → Pulse Interface
+
+### Keyword System
+
+`direction-presets.json` carries a `keywords` array on each Type, Segment, and Option preset. These are curated musical descriptors that the Composer assembles into a text prompt when calling Pulse.
+
+```json
+{
+  "types": [
+    {
+      "name": "Ballad",
+      "keywords": ["emotional", "slow", "melodic", "lyrical", "intimate"],
+      ...
+    }
+  ],
+  "segments": [
+    {
+      "name": "Chorus",
+      "keywords": ["anthemic", "high energy", "climax", "full texture"],
+      ...
+    }
+  ],
+  "options": [
+    {
+      "name": "Rousing Crescendo",
+      "keywords": ["building", "rising", "triumphant", "intensifying"],
+      ...
+    }
+  ]
+}
+```
+
+The Composer combines Type + Segment + Option keywords into a single string:
+
+```text
+"emotional, slow, melodic, lyrical, anthemic, high energy, climax, building, rising, triumphant"
+```
+
+This string becomes `PulseRequest.prompt`. Users can add or remove keywords in the Composer UI.
+
+### What Each Model Does With The Request
+
+| Field | Magenta sequence models | Text-conditioned LM models (future) |
+| --- | --- | --- |
+| `key`, `scale`, `bars` | used for pitch snapping + grid | used in prompt |
+| `density`, `sync`, `rhythm` | map to temperature + primer length | used in prompt |
+| `segmentProfile`, `optionProfile` | condition generation params | used in prompt |
+| `chords` | musical primer for ImprovRNN | context in prompt |
+| `melody` | musical primer for counter generation | context in prompt |
+| `prompt` | ignored | primary conditioning |
+
+### Generation Pipeline
+
+Composer calls Pulse once per pipeline step, passing locked context forward:
+
+```text
+1. target: "chords"  → returns ChordEvent[]
+2. target: "drums"   → uses chords as context
+3. target: "melody"  → uses chords as primer
+4. target: "counter" → uses chords + melody as primer
+```
+
+Each response feeds the next call. Pulse returns a full `PeithoPattern` each time, populated only for the requested target.
 
 ## What Peitho-Pulse Will Use
 

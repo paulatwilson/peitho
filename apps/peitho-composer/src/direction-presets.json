@@ -1,0 +1,1474 @@
+{
+  "types": [
+    {
+      "name": "Ballad",
+      "macro": {
+        "density": 0.42,
+        "split": 0.55,
+        "sync": 0.22,
+        "rhythm": 0.4
+      },
+      "chordLengths": [
+        2,
+        2,
+        3,
+        4,
+        4
+      ],
+      "extensionProbability": 0.6,
+      "drumRecommendations": [
+        "Slow-Burn & 6/8 Fills",
+        "Basic 8th-Note"
+      ],
+      "pulseKeywords": [
+        "emotional",
+        "lyrical",
+        "warm"
+      ],
+      "keywords": [
+        "emotional",
+        "slow",
+        "lyrical",
+        "intimate",
+        "melodic"
+      ]
+    },
+    {
+      "name": "Pop",
+      "macro": {
+        "density": 0.62,
+        "split": 0.45,
+        "sync": 0.4,
+        "rhythm": 0.5
+      },
+      "chordLengths": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "extensionProbability": 0.18,
+      "drumRecommendations": [
+        "Four-on-the-Floor",
+        "Basic 8th-Note"
+      ],
+      "pulseKeywords": [
+        "bright",
+        "hooky",
+        "polished"
+      ],
+      "keywords": [
+        "bright",
+        "hooky",
+        "polished",
+        "upbeat",
+        "direct"
+      ]
+    },
+    {
+      "name": "Cinematic",
+      "macro": {
+        "density": 0.5,
+        "split": 0.6,
+        "sync": 0.25,
+        "rhythm": 0.55
+      },
+      "chordLengths": [
+        2,
+        3,
+        4,
+        4,
+        2
+      ],
+      "extensionProbability": 0.65,
+      "drumRecommendations": [
+        "Gated-Reverb Drive",
+        "Slow-Burn & 6/8 Fills"
+      ],
+      "pulseKeywords": [
+        "wide",
+        "dramatic",
+        "orchestral"
+      ],
+      "keywords": [
+        "dramatic",
+        "wide",
+        "epic",
+        "orchestral",
+        "emotional"
+      ]
+    },
+    {
+      "name": "Lo-Fi",
+      "macro": {
+        "density": 0.55,
+        "split": 0.4,
+        "sync": 0.55,
+        "rhythm": 0.6
+      },
+      "chordLengths": [
+        1,
+        2,
+        2,
+        2,
+        3
+      ],
+      "extensionProbability": 0.5,
+      "drumRecommendations": [
+        "Syncopated",
+        "Basic 8th-Note"
+      ],
+      "pulseKeywords": [
+        "dusty",
+        "intimate",
+        "soft"
+      ],
+      "keywords": [
+        "dusty",
+        "warm",
+        "intimate",
+        "relaxed",
+        "hazy"
+      ]
+    },
+    {
+      "name": "Ambient",
+      "macro": {
+        "density": 0.3,
+        "split": 0.7,
+        "sync": 0.18,
+        "rhythm": 0.35
+      },
+      "chordLengths": [
+        4,
+        4,
+        3,
+        2
+      ],
+      "extensionProbability": 0.5,
+      "drumRecommendations": [
+        "Slow-Burn & 6/8 Fills",
+        "Syncopated"
+      ],
+      "pulseKeywords": [
+        "spacious",
+        "dreamy",
+        "slow"
+      ],
+      "keywords": [
+        "spacious",
+        "dreamy",
+        "slow",
+        "floating",
+        "minimal"
+      ]
+    },
+    {
+      "name": "New Wave",
+      "macro": {
+        "density": 0.58,
+        "split": 0.42,
+        "sync": 0.48,
+        "rhythm": 0.62
+      },
+      "chordLengths": [
+        1,
+        1,
+        2,
+        2,
+        4
+      ],
+      "extensionProbability": 0.35,
+      "drumRecommendations": [
+        "Driving 16th Open Hat",
+        "Four-on-the-Floor"
+      ],
+      "pulseKeywords": [
+        "angular",
+        "80s",
+        "driving"
+      ],
+      "keywords": [
+        "angular",
+        "retro",
+        "driving",
+        "bright",
+        "synthetic"
+      ]
+    },
+    {
+      "name": "Electropop",
+      "macro": {
+        "density": 0.66,
+        "split": 0.38,
+        "sync": 0.44,
+        "rhythm": 0.58
+      },
+      "chordLengths": [
+        1,
+        1,
+        1,
+        2,
+        2
+      ],
+      "extensionProbability": 0.28,
+      "drumRecommendations": [
+        "Driving 16th Open Hat",
+        "Four-on-the-Floor"
+      ],
+      "pulseKeywords": [
+        "glossy",
+        "synthetic",
+        "club"
+      ],
+      "keywords": [
+        "glossy",
+        "club",
+        "synthetic",
+        "bright",
+        "pulsing"
+      ]
+    },
+    {
+      "name": "Classical",
+      "macro": {
+        "density": 0.46,
+        "split": 0.58,
+        "sync": 0.18,
+        "rhythm": 0.42
+      },
+      "chordLengths": [
+        2,
+        2,
+        4,
+        4
+      ],
+      "extensionProbability": 0.42,
+      "drumRecommendations": [
+        "Basic 8th-Note"
+      ],
+      "pulseKeywords": [
+        "elegant",
+        "ordered",
+        "flowing"
+      ],
+      "keywords": [
+        "elegant",
+        "ordered",
+        "flowing",
+        "refined",
+        "melodic"
+      ]
+    },
+    {
+      "name": "Jazz",
+      "macro": {
+        "density": 0.58,
+        "split": 0.5,
+        "sync": 0.66,
+        "rhythm": 0.72
+      },
+      "chordLengths": [
+        1,
+        2,
+        2,
+        3
+      ],
+      "extensionProbability": 0.8,
+      "drumRecommendations": [
+        "Syncopated",
+        "Basic 8th-Note"
+      ],
+      "pulseKeywords": [
+        "extended",
+        "syncopated",
+        "swing"
+      ],
+      "keywords": [
+        "syncopated",
+        "extended",
+        "swinging",
+        "colourful",
+        "fluid"
+      ]
+    },
+    {
+      "name": "Funk",
+      "macro": {
+        "density": 0.68,
+        "split": 0.36,
+        "sync": 0.72,
+        "rhythm": 0.78
+      },
+      "chordLengths": [
+        1,
+        1,
+        1,
+        2
+      ],
+      "extensionProbability": 0.48,
+      "drumRecommendations": [
+        "Syncopated",
+        "Driving 16th Open Hat"
+      ],
+      "pulseKeywords": [
+        "groove",
+        "syncopated",
+        "staccato"
+      ],
+      "keywords": [
+        "groove",
+        "syncopated",
+        "staccato",
+        "rhythmic",
+        "tight"
+      ]
+    },
+    {
+      "name": "R&B",
+      "macro": {
+        "density": 0.5,
+        "split": 0.48,
+        "sync": 0.6,
+        "rhythm": 0.52
+      },
+      "chordLengths": [
+        2,
+        2,
+        3,
+        4
+      ],
+      "extensionProbability": 0.74,
+      "drumRecommendations": [
+        "Syncopated",
+        "Basic 8th-Note"
+      ],
+      "pulseKeywords": [
+        "smooth",
+        "lush",
+        "late-night"
+      ],
+      "keywords": [
+        "smooth",
+        "lush",
+        "late night",
+        "soulful",
+        "syncopated"
+      ]
+    },
+    {
+      "name": "House",
+      "macro": {
+        "density": 0.64,
+        "split": 0.34,
+        "sync": 0.38,
+        "rhythm": 0.66
+      },
+      "chordLengths": [
+        1,
+        1,
+        2,
+        2,
+        4
+      ],
+      "extensionProbability": 0.3,
+      "drumRecommendations": [
+        "Four-on-the-Floor",
+        "Driving 16th Open Hat"
+      ],
+      "pulseKeywords": [
+        "four-on-floor",
+        "looped",
+        "club"
+      ],
+      "keywords": [
+        "club",
+        "four on floor",
+        "looped",
+        "steady",
+        "uplifting"
+      ]
+    },
+    {
+      "name": "Synth",
+      "macro": {
+        "density": 0.6,
+        "split": 0.46,
+        "sync": 0.36,
+        "rhythm": 0.56
+      },
+      "chordLengths": [
+        1,
+        2,
+        2,
+        4
+      ],
+      "extensionProbability": 0.36,
+      "drumRecommendations": [
+        "Driving 16th Open Hat",
+        "Four-on-the-Floor"
+      ],
+      "pulseKeywords": [
+        "analogue",
+        "sequenced",
+        "wide"
+      ],
+      "keywords": [
+        "analogue",
+        "sequenced",
+        "wide",
+        "pulsing",
+        "textural"
+      ]
+    },
+    {
+      "name": "Folk",
+      "macro": {
+        "density": 0.44,
+        "split": 0.56,
+        "sync": 0.2,
+        "rhythm": 0.36
+      },
+      "chordLengths": [
+        2,
+        2,
+        4,
+        4
+      ],
+      "extensionProbability": 0.2,
+      "drumRecommendations": [
+        "Basic 8th-Note",
+        "Slow-Burn & 6/8 Fills"
+      ],
+      "pulseKeywords": [
+        "organic",
+        "simple",
+        "acoustic"
+      ],
+      "keywords": [
+        "organic",
+        "acoustic",
+        "simple",
+        "earthy",
+        "storytelling"
+      ]
+    },
+    {
+      "name": "Rock",
+      "macro": {
+        "density": 0.64,
+        "split": 0.4,
+        "sync": 0.28,
+        "rhythm": 0.54
+      },
+      "chordLengths": [
+        1,
+        1,
+        2,
+        4
+      ],
+      "extensionProbability": 0.22,
+      "drumRecommendations": [
+        "Gated-Reverb Drive",
+        "Basic 8th-Note"
+      ],
+      "pulseKeywords": [
+        "direct",
+        "anthemic",
+        "guitar-led"
+      ],
+      "keywords": [
+        "direct",
+        "anthemic",
+        "guitar led",
+        "driving",
+        "bold"
+      ]
+    },
+    {
+      "name": "Punk",
+      "macro": {
+        "density": 0.76,
+        "split": 0.32,
+        "sync": 0.18,
+        "rhythm": 0.64
+      },
+      "chordLengths": [
+        1,
+        1,
+        1,
+        2
+      ],
+      "extensionProbability": 0.12,
+      "drumRecommendations": [
+        "Gated-Reverb Drive",
+        "Driving 16th Open Hat"
+      ],
+      "pulseKeywords": [
+        "raw",
+        "fast",
+        "minimal"
+      ],
+      "keywords": [
+        "raw",
+        "fast",
+        "minimal",
+        "urgent",
+        "rough"
+      ]
+    },
+    {
+      "name": "Post-Rock",
+      "macro": {
+        "density": 0.48,
+        "split": 0.62,
+        "sync": 0.24,
+        "rhythm": 0.48
+      },
+      "chordLengths": [
+        3,
+        4,
+        4,
+        6
+      ],
+      "extensionProbability": 0.68,
+      "drumRecommendations": [
+        "Slow-Burn & 6/8 Fills",
+        "Gated-Reverb Drive"
+      ],
+      "pulseKeywords": [
+        "expansive",
+        "crescendo",
+        "textural"
+      ],
+      "keywords": [
+        "expansive",
+        "crescendo",
+        "textural",
+        "patient",
+        "emotional"
+      ]
+    },
+    {
+      "name": "Darkwave",
+      "macro": {
+        "density": 0.5,
+        "split": 0.55,
+        "sync": 0.34,
+        "rhythm": 0.58
+      },
+      "chordLengths": [
+        2,
+        2,
+        3,
+        4
+      ],
+      "extensionProbability": 0.52,
+      "drumRecommendations": [
+        "Gated-Reverb Drive",
+        "Driving 16th Open Hat"
+      ],
+      "pulseKeywords": [
+        "cold",
+        "minor",
+        "shadowy"
+      ],
+      "keywords": [
+        "cold",
+        "minor",
+        "shadowy",
+        "brooding",
+        "synthetic"
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "name": "Intro",
+      "macro": {
+        "density": -0.15,
+        "split": -0.05,
+        "sync": -0.05,
+        "rhythm": -0.05
+      },
+      "profile": {
+        "density": 0.55,
+        "register": -3,
+        "length": 1.4,
+        "sync": -0.1
+      },
+      "pulseKeywords": [
+        "opening",
+        "restrained"
+      ],
+      "keywords": [
+        "opening",
+        "restrained",
+        "establishing",
+        "sparse",
+        "anticipation"
+      ]
+    },
+    {
+      "name": "Verse",
+      "macro": {
+        "density": 0,
+        "split": 0,
+        "sync": 0,
+        "rhythm": 0
+      },
+      "profile": {
+        "density": 0.85,
+        "register": 0,
+        "length": 1.1,
+        "sync": 0
+      },
+      "pulseKeywords": [
+        "narrative",
+        "steady"
+      ],
+      "keywords": [
+        "understated",
+        "narrative",
+        "sparse",
+        "grounded",
+        "steady"
+      ]
+    },
+    {
+      "name": "Pre-Chorus",
+      "macro": {
+        "density": 0.08,
+        "split": -0.05,
+        "sync": 0.05,
+        "rhythm": 0.05
+      },
+      "profile": {
+        "density": 1.05,
+        "register": 2,
+        "length": 0.9,
+        "sync": 0.12
+      },
+      "pulseKeywords": [
+        "lift",
+        "anticipation"
+      ],
+      "keywords": [
+        "rising",
+        "anticipation",
+        "transition",
+        "building",
+        "lift"
+      ]
+    },
+    {
+      "name": "Build",
+      "macro": {
+        "density": 0.12,
+        "split": -0.06,
+        "sync": 0.06,
+        "rhythm": 0.12
+      },
+      "profile": {
+        "density": 1.15,
+        "register": 3,
+        "length": 0.85,
+        "sync": 0.16
+      },
+      "pulseKeywords": [
+        "rising",
+        "tension"
+      ],
+      "keywords": [
+        "rising",
+        "tension",
+        "escalating",
+        "driving",
+        "anticipation"
+      ]
+    },
+    {
+      "name": "Chorus",
+      "macro": {
+        "density": 0.18,
+        "split": -0.1,
+        "sync": 0.08,
+        "rhythm": 0.08
+      },
+      "profile": {
+        "density": 1.3,
+        "register": 4,
+        "length": 0.8,
+        "sync": 0.18
+      },
+      "pulseKeywords": [
+        "big",
+        "resolved"
+      ],
+      "keywords": [
+        "anthemic",
+        "high energy",
+        "climax",
+        "full texture",
+        "driving"
+      ]
+    },
+    {
+      "name": "Hook",
+      "macro": {
+        "density": 0.16,
+        "split": -0.12,
+        "sync": 0.1,
+        "rhythm": 0.1
+      },
+      "profile": {
+        "density": 1.25,
+        "register": 4,
+        "length": 0.75,
+        "sync": 0.2
+      },
+      "pulseKeywords": [
+        "memorable",
+        "compact"
+      ],
+      "keywords": [
+        "memorable",
+        "compact",
+        "catchy",
+        "focused",
+        "bright"
+      ]
+    },
+    {
+      "name": "Drop",
+      "macro": {
+        "density": 0.2,
+        "split": -0.16,
+        "sync": 0.1,
+        "rhythm": 0.16
+      },
+      "profile": {
+        "density": 1.35,
+        "register": 2,
+        "length": 0.7,
+        "sync": 0.18
+      },
+      "pulseKeywords": [
+        "impact",
+        "release"
+      ],
+      "keywords": [
+        "impact",
+        "release",
+        "high energy",
+        "heavy",
+        "driving"
+      ]
+    },
+    {
+      "name": "Bridge",
+      "macro": {
+        "density": 0,
+        "split": 0.05,
+        "sync": 0.05,
+        "rhythm": 0.1
+      },
+      "profile": {
+        "density": 0.95,
+        "register": -2,
+        "length": 1,
+        "sync": 0.1
+      },
+      "pulseKeywords": [
+        "contrast",
+        "shift"
+      ],
+      "keywords": [
+        "contrast",
+        "shift",
+        "fresh",
+        "transitional",
+        "open"
+      ]
+    },
+    {
+      "name": "Solo",
+      "macro": {
+        "density": 0.1,
+        "split": 0.18,
+        "sync": 0.08,
+        "rhythm": 0.1
+      },
+      "profile": {
+        "density": 1.2,
+        "register": 6,
+        "length": 0.9,
+        "sync": 0.14
+      },
+      "pulseKeywords": [
+        "lead",
+        "expressive"
+      ],
+      "keywords": [
+        "expressive",
+        "lead",
+        "featured",
+        "melodic",
+        "free"
+      ]
+    },
+    {
+      "name": "Middle-Eight",
+      "macro": {
+        "density": 0.03,
+        "split": 0.08,
+        "sync": 0.06,
+        "rhythm": 0.12
+      },
+      "profile": {
+        "density": 1,
+        "register": 1,
+        "length": 0.95,
+        "sync": 0.14
+      },
+      "pulseKeywords": [
+        "departure",
+        "contrast"
+      ],
+      "keywords": [
+        "departure",
+        "contrast",
+        "surprising",
+        "fresh",
+        "turning"
+      ]
+    },
+    {
+      "name": "Interlude",
+      "macro": {
+        "density": -0.16,
+        "split": 0.08,
+        "sync": -0.02,
+        "rhythm": -0.04
+      },
+      "profile": {
+        "density": 0.62,
+        "register": -1,
+        "length": 1.35,
+        "sync": -0.02
+      },
+      "pulseKeywords": [
+        "breathing-space",
+        "transitional"
+      ],
+      "keywords": [
+        "breathing space",
+        "transitional",
+        "open",
+        "reduced",
+        "reflective"
+      ]
+    },
+    {
+      "name": "Breakdown",
+      "macro": {
+        "density": -0.22,
+        "split": 0.14,
+        "sync": 0.04,
+        "rhythm": -0.04
+      },
+      "profile": {
+        "density": 0.5,
+        "register": -4,
+        "length": 1.45,
+        "sync": 0.05
+      },
+      "pulseKeywords": [
+        "stripped",
+        "low"
+      ],
+      "keywords": [
+        "stripped",
+        "tension",
+        "minimal",
+        "suspense",
+        "low"
+      ]
+    },
+    {
+      "name": "Outro",
+      "macro": {
+        "density": -0.18,
+        "split": 0.1,
+        "sync": -0.05,
+        "rhythm": -0.05
+      },
+      "profile": {
+        "density": 0.55,
+        "register": -4,
+        "length": 1.5,
+        "sync": -0.08
+      },
+      "pulseKeywords": [
+        "closing",
+        "fade"
+      ],
+      "keywords": [
+        "closing",
+        "resolved",
+        "fading",
+        "reflective",
+        "gentle"
+      ]
+    }
+  ],
+  "options": [
+    {
+      "name": "Rousing Crescendo",
+      "macro": {
+        "density": 0.06,
+        "sync": 0.05,
+        "rhythm": 0.05
+      },
+      "envelope": "rise",
+      "length": 0.95,
+      "pulseKeywords": [
+        "rising",
+        "uplifting"
+      ],
+      "keywords": [
+        "building",
+        "rising",
+        "triumphant",
+        "intensifying",
+        "uplifting"
+      ]
+    },
+    {
+      "name": "Moody Wind Down",
+      "macro": {
+        "density": -0.08,
+        "sync": -0.05,
+        "rhythm": 0
+      },
+      "envelope": "fall",
+      "length": 1.3,
+      "pulseKeywords": [
+        "falling",
+        "reflective"
+      ],
+      "keywords": [
+        "falling",
+        "reflective",
+        "softening",
+        "melancholic",
+        "settling"
+      ]
+    },
+    {
+      "name": "Gentle Swell",
+      "macro": {
+        "density": -0.02,
+        "sync": 0,
+        "rhythm": 0
+      },
+      "envelope": "swell",
+      "length": 1.15,
+      "pulseKeywords": [
+        "soft-build",
+        "gentle"
+      ],
+      "keywords": [
+        "gentle",
+        "soft build",
+        "warm",
+        "rounded",
+        "flowing"
+      ]
+    },
+    {
+      "name": "Steady Groove",
+      "macro": {
+        "density": 0.05,
+        "sync": 0.08,
+        "rhythm": -0.05
+      },
+      "envelope": "flat",
+      "length": 0.85,
+      "pulseKeywords": [
+        "steady",
+        "locked"
+      ],
+      "keywords": [
+        "steady",
+        "locked",
+        "groove",
+        "balanced",
+        "controlled"
+      ]
+    },
+    {
+      "name": "Sparse Reflection",
+      "macro": {
+        "density": -0.18,
+        "sync": -0.08,
+        "rhythm": -0.1
+      },
+      "envelope": "sparse",
+      "length": 1.6,
+      "pulseKeywords": [
+        "minimal",
+        "open"
+      ],
+      "keywords": [
+        "minimal",
+        "open",
+        "reflective",
+        "quiet",
+        "intimate"
+      ]
+    },
+    {
+      "name": "Driving Pulse",
+      "macro": {
+        "density": 0.08,
+        "sync": 0.06,
+        "rhythm": 0.08
+      },
+      "envelope": "flat",
+      "length": 0.85,
+      "pulseKeywords": [
+        "pulsing",
+        "forward"
+      ],
+      "keywords": [
+        "pulsing",
+        "forward",
+        "driving",
+        "energetic",
+        "steady"
+      ]
+    },
+    {
+      "name": "Tension Lift",
+      "macro": {
+        "density": 0.04,
+        "sync": 0.04,
+        "rhythm": 0.12
+      },
+      "envelope": "swell",
+      "length": 1.15,
+      "pulseKeywords": [
+        "tense",
+        "climbing"
+      ],
+      "keywords": [
+        "tense",
+        "climbing",
+        "suspense",
+        "tightening",
+        "urgent"
+      ]
+    },
+    {
+      "name": "Release Drop",
+      "macro": {
+        "density": -0.1,
+        "sync": 0.02,
+        "rhythm": -0.02
+      },
+      "envelope": "fall",
+      "length": 1.3,
+      "pulseKeywords": [
+        "release",
+        "drop"
+      ],
+      "keywords": [
+        "release",
+        "drop",
+        "impact",
+        "falling",
+        "heavy"
+      ]
+    },
+    {
+      "name": "Nocturne Drift",
+      "macro": {
+        "density": -0.12,
+        "sync": -0.04,
+        "rhythm": -0.04
+      },
+      "envelope": "sparse",
+      "length": 1.6,
+      "pulseKeywords": [
+        "night",
+        "drifting"
+      ],
+      "keywords": [
+        "night",
+        "drifting",
+        "soft",
+        "shadowy",
+        "slow"
+      ]
+    },
+    {
+      "name": "Angular Push",
+      "macro": {
+        "density": 0.04,
+        "sync": 0.14,
+        "rhythm": 0.16
+      },
+      "envelope": "alternate",
+      "length": 0.8,
+      "pulseKeywords": [
+        "angular",
+        "off-kilter"
+      ],
+      "keywords": [
+        "angular",
+        "off kilter",
+        "pushing",
+        "sharp",
+        "syncopated"
+      ]
+    },
+    {
+      "name": "Anthem Rise",
+      "macro": {
+        "density": 0.1,
+        "sync": 0.03,
+        "rhythm": 0.08
+      },
+      "envelope": "rise",
+      "length": 0.95,
+      "pulseKeywords": [
+        "anthemic",
+        "wide"
+      ],
+      "keywords": [
+        "anthemic",
+        "rising",
+        "wide",
+        "uplifting",
+        "bold"
+      ]
+    },
+    {
+      "name": "Minimal Loop",
+      "macro": {
+        "density": -0.2,
+        "sync": -0.02,
+        "rhythm": -0.08
+      },
+      "envelope": "sparse",
+      "length": 1.6,
+      "pulseKeywords": [
+        "looped",
+        "minimal"
+      ],
+      "keywords": [
+        "looped",
+        "minimal",
+        "hypnotic",
+        "restrained",
+        "focused"
+      ]
+    },
+    {
+      "name": "Motorik Drive",
+      "macro": {
+        "density": 0.09,
+        "sync": 0.03,
+        "rhythm": 0.13
+      },
+      "envelope": "flat",
+      "length": 0.8,
+      "pulseKeywords": [
+        "motorik",
+        "persistent"
+      ],
+      "keywords": [
+        "motorik",
+        "persistent",
+        "steady",
+        "forward",
+        "locked"
+      ]
+    },
+    {
+      "name": "Arpeggio Bloom",
+      "macro": {
+        "density": 0.12,
+        "sync": 0.05,
+        "rhythm": 0.1
+      },
+      "envelope": "swell",
+      "length": 0.9,
+      "pulseKeywords": [
+        "arpeggiated",
+        "blooming"
+      ],
+      "keywords": [
+        "arpeggiated",
+        "blooming",
+        "bright",
+        "flowing",
+        "rising"
+      ]
+    },
+    {
+      "name": "Blue Note Turn",
+      "macro": {
+        "density": 0.05,
+        "sync": 0.16,
+        "rhythm": 0.14
+      },
+      "envelope": "alternate",
+      "length": 0.95,
+      "pulseKeywords": [
+        "bluesy",
+        "turnaround"
+      ],
+      "keywords": [
+        "bluesy",
+        "turnaround",
+        "colourful",
+        "syncopated",
+        "expressive"
+      ]
+    },
+    {
+      "name": "Power Chord Lift",
+      "macro": {
+        "density": 0.08,
+        "sync": -0.02,
+        "rhythm": 0.1
+      },
+      "envelope": "rise",
+      "length": 0.9,
+      "pulseKeywords": [
+        "powerful",
+        "simple"
+      ],
+      "keywords": [
+        "powerful",
+        "simple",
+        "bold",
+        "rising",
+        "direct"
+      ]
+    },
+    {
+      "name": "Dorian Drift",
+      "macro": {
+        "density": -0.04,
+        "sync": 0.04,
+        "rhythm": 0.05
+      },
+      "envelope": "sparse",
+      "length": 1.35,
+      "pulseKeywords": [
+        "modal",
+        "dorian"
+      ],
+      "keywords": [
+        "modal",
+        "dorian",
+        "drifting",
+        "open",
+        "cool"
+      ]
+    },
+    {
+      "name": "Chromatic Tension",
+      "macro": {
+        "density": 0.02,
+        "sync": 0.1,
+        "rhythm": 0.18
+      },
+      "envelope": "rise",
+      "length": 1,
+      "pulseKeywords": [
+        "chromatic",
+        "uneasy"
+      ],
+      "keywords": [
+        "chromatic",
+        "uneasy",
+        "tense",
+        "dark",
+        "unstable"
+      ]
+    },
+    {
+      "name": "Half-Time Drop",
+      "macro": {
+        "density": -0.08,
+        "sync": 0.04,
+        "rhythm": -0.02
+      },
+      "envelope": "fall",
+      "length": 1.4,
+      "pulseKeywords": [
+        "half-time",
+        "heavy"
+      ],
+      "keywords": [
+        "half time",
+        "heavy",
+        "spacious",
+        "low",
+        "impact"
+      ]
+    },
+    {
+      "name": "Call And Response",
+      "macro": {
+        "density": 0.03,
+        "sync": 0.12,
+        "rhythm": 0.08
+      },
+      "envelope": "alternate",
+      "length": 1.05,
+      "pulseKeywords": [
+        "call-response",
+        "phrased"
+      ],
+      "keywords": [
+        "call response",
+        "phrased",
+        "conversational",
+        "alternating",
+        "playful"
+      ]
+    },
+    {
+      "name": "Staccato Push",
+      "macro": {
+        "density": 0.1,
+        "sync": 0.05,
+        "rhythm": 0.14
+      },
+      "envelope": "flat",
+      "length": 0.65,
+      "pulseKeywords": [
+        "staccato",
+        "urgent"
+      ],
+      "keywords": [
+        "staccato",
+        "urgent",
+        "short",
+        "rhythmic",
+        "pushing"
+      ]
+    },
+    {
+      "name": "Legato Float",
+      "macro": {
+        "density": -0.08,
+        "sync": -0.03,
+        "rhythm": -0.06
+      },
+      "envelope": "swell",
+      "length": 1.75,
+      "pulseKeywords": [
+        "legato",
+        "floating"
+      ],
+      "keywords": [
+        "legato",
+        "floating",
+        "smooth",
+        "soft",
+        "long"
+      ]
+    },
+    {
+      "name": "Syncopated Lift",
+      "macro": {
+        "density": 0.04,
+        "sync": 0.18,
+        "rhythm": 0.12
+      },
+      "envelope": "rise",
+      "length": 0.9,
+      "pulseKeywords": [
+        "syncopated",
+        "lifted"
+      ],
+      "keywords": [
+        "syncopated",
+        "lifted",
+        "rhythmic",
+        "rising",
+        "energetic"
+      ]
+    },
+    {
+      "name": "Suspended Colour",
+      "macro": {
+        "density": -0.02,
+        "sync": 0.02,
+        "rhythm": 0.04
+      },
+      "envelope": "sparse",
+      "length": 1.25,
+      "pulseKeywords": [
+        "suspended",
+        "colourful"
+      ],
+      "keywords": [
+        "suspended",
+        "colourful",
+        "open",
+        "unresolved",
+        "lush"
+      ]
+    },
+    {
+      "name": "Pedal Point",
+      "macro": {
+        "density": -0.04,
+        "sync": -0.02,
+        "rhythm": 0
+      },
+      "envelope": "flat",
+      "length": 1.2,
+      "pulseKeywords": [
+        "anchored",
+        "pedal"
+      ],
+      "keywords": [
+        "anchored",
+        "pedal",
+        "grounded",
+        "steady",
+        "hypnotic"
+      ]
+    },
+    {
+      "name": "Descending Line",
+      "macro": {
+        "density": 0.02,
+        "sync": 0.02,
+        "rhythm": 0.06
+      },
+      "envelope": "fall",
+      "length": 1,
+      "pulseKeywords": [
+        "descending",
+        "resolved"
+      ],
+      "keywords": [
+        "descending",
+        "resolved",
+        "falling",
+        "melodic",
+        "settling"
+      ]
+    }
+  ]
+}

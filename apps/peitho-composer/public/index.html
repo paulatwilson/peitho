@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="/composer-engine.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -134,12 +135,24 @@ body{margin:0;background:#0c0e12}
               <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12.5px;font-weight:600;color:#e9eaee">Peitho-Array</span><span style="font-size:9.5px;color:#7d828c">Algorithmic engine</span></div>
               <sc-if value="{{ engineArraySelected }}" hint-placeholder-val="{{ true }}"><div style="{{ engineCheckStyle }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></sc-if>
             </div>
-            <div style="{{ enginePulseStyle }}">
+            <div onClick="{{ setPulse }}" style="{{ enginePulseStyle }}">
               <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12.5px;font-weight:600;color:#cfd3da">Peitho-Pulse</span><span style="font-size:9.5px;color:#7d828c">LM-based engine</span></div>
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:7.5px;letter-spacing:.08em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace;background:rgba(255,255,255,.07);padding:3px 6px;border-radius:4px">COMING SOON</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7d828c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+              <sc-if value="{{ enginePulseSelected }}" hint-placeholder-val="{{ false }}"><div style="{{ engineCheckStyle }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></sc-if>
             </div>
           </div>
         </div>
+        <sc-if value="{{ showPulseRefinement }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:14px 16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">PULSE REFINEMENT</span><span style="font-size:8.5px;letter-spacing:.08em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">MODEL HINTS</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+            <sc-for list="{{ pulseChips }}" as="chip" hint-placeholder-count="8"><div onClick="{{ chip.remove }}" style="{{ chip.style }}"><span>{{ chip.label }}</span><span style="font-size:10px;color:#7d828c">×</span></div></sc-for>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px">
+            <sc-for list="{{ pulseSuggestions }}" as="chip" hint-placeholder-count="6"><div onClick="{{ chip.add }}" style="{{ chip.style }}"><span style="font-size:10px">+</span><span>{{ chip.label }}</span></div></sc-for>
+          </div>
+          <textarea onInput="{{ pulseTextInput }}" placeholder="Optional free-text refinement..." style="{{ pulseTextStyle }}">{{ pulseText }}</textarea>
+        </div>
+        </sc-if>
         <div style="padding:15px 16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
           <div style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace;margin-bottom:12px">GENERATION PIPELINE</div>
           <div style="display:flex;flex-direction:column;gap:9px">
@@ -330,169 +343,26 @@ body{margin:0;background:#0c0e12}
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#4a90d9&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#4a90d9&quot;,&quot;#e0a44a&quot;,&quot;#5fb98b&quot;,&quot;#c2738a&quot;]},&quot;glow&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
-const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-const HEPT={major:[0,2,4,5,7,9,11],minor:[0,2,3,5,7,8,10]};
-const SCALES={'Pentatonic Major':[0,2,4,7,9],'Pentatonic Minor':[0,3,5,7,10],'Heptatonic Major':[0,2,4,5,7,9,11],'Heptatonic Natural Minor':[0,2,3,5,7,8,10]};
-const KEYS=NOTE_NAMES.slice();
-const SCALE_LIST=['Pentatonic Major','Pentatonic Minor','Heptatonic Major','Heptatonic Natural Minor'];
-const TYPES=['Ballad','Pop','Cinematic','Lo-Fi','Ambient'];
-const SEGMENTS=['Intro','Verse','Pre-Chorus','Chorus','Bridge','Outro'];
-const OPTIONS=['Rousing Crescendo','Moody Wind Down','Gentle Swell','Steady Groove','Sparse Reflection'];
-const DRUM_PATTERNS=['Basic 8th-Note','Four-on-the-Floor','Syncopated','Slow-Burn & 6/8 Fills','Gated-Reverb Drive','Driving 16th Open Hat'];
-const DRUM_REC={
-  'Ballad':['Slow-Burn & 6/8 Fills','Basic 8th-Note'],
-  'Pop':['Four-on-the-Floor','Basic 8th-Note'],
-  'Cinematic':['Gated-Reverb Drive','Slow-Burn & 6/8 Fills'],
-  'Lo-Fi':['Syncopated','Basic 8th-Note'],
-  'Ambient':['Slow-Burn & 6/8 Fills','Syncopated']
-};
-function _genDrums(pat){
-  const K=[],S=[],H=[],O=[]; // kick, snare, closed hat, open hat
-  for(let b=0;b<8;b++){
-    const o=b*16; const fill=(b%4===3);
-    if(pat==='Basic 8th-Note'){
-      K.push(o+0,o+8); S.push(o+4,o+12); for(let i=0;i<16;i+=2)H.push(o+i);
-    } else if(pat==='Four-on-the-Floor'){
-      K.push(o+0,o+4,o+8,o+12); S.push(o+4,o+12); for(let i=0;i<16;i+=2)H.push(o+i); for(let i=2;i<16;i+=4)O.push(o+i);
-    } else if(pat==='Syncopated'){
-      K.push(o+0,o+6,o+10); S.push(o+4,o+12); if(b%2)S.push(o+14); for(let i=0;i<16;i+=2)H.push(o+i); H.push(o+7,o+15);
-    } else if(pat==='Slow-Burn & 6/8 Fills'){
-      K.push(o+0,o+9); S.push(o+6); [0,3,6,9,12,15].forEach(function(i){H.push(o+i);}); if(fill)S.push(o+10,o+12,o+14);
-    } else if(pat==='Gated-Reverb Drive'){
-      K.push(o+0,o+8,o+11); S.push(o+4,o+12); for(let i=0;i<16;i+=2)H.push(o+i);
-    } else if(pat==='Driving 16th Open Hat'){
-      K.push(o+0,o+8); S.push(o+4,o+12); for(let i=0;i<16;i++)H.push(o+i); for(let i=2;i<16;i+=4)O.push(o+i);
-    }
-  }
-  return {kick:K,snare:S,hat:H,open:O};
-}
-
-function _rand(){return (Math.random()*4294967295)>>>0;}
-function _rng(seed){let a=seed>>>0;return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-function _clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-
-function _genChords(key,scale,type){
-  const r=Math.random; const root=NOTE_NAMES.indexOf(key);
-  const isMin=/Minor/.test(scale); const ints=isMin?HEPT.minor:HEPT.major;
-  const lensByType={'Ballad':[2,2,3,4,4],'Pop':[1,1,2,2,2],'Cinematic':[2,3,4,4,2],'Lo-Fi':[1,2,2,2,3],'Ambient':[4,4,3,2]};
-  const extByType={'Ballad':0.6,'Pop':0.18,'Cinematic':0.65,'Lo-Fi':0.5,'Ambient':0.5};
-  const lens=lensByType[type]||[1,1,2,2,2,3,4];
-  const ext=extByType[type]!=null?extByType[type]:0.35;
-  const segs=[]; let rem=16;
-  while(rem>0){let l=lens[Math.floor(r()*lens.length)]; if(l>rem)l=rem; segs.push(l); rem-=l;}
-  let start=0; const out=[];
-  for(const len of segs){
-    const deg=Math.floor(r()*ints.length);
-    const semis=ints[deg];
-    const noteName=NOTE_NAMES[(root+semis)%12];
-    let suf= isMin ? ['m','m7b5','','m7','m7','maj7','7'][deg%7] : ['','m7','m7','add9','7','m7','m7b5'][deg%7];
-    if(r()<ext*0.4) suf=['sus4','add9','9sus4','7'][Math.floor(r()*4)];
-    if(r()>ext){ if(suf==='maj7'||suf==='add9'||suf==='7'||suf==='9sus4')suf=''; else if(suf==='m7')suf='m'; else if(suf==='m7b5')suf='dim'; }
-    const tones=[ 48+semis, 48+ints[(deg+2)%7], 48+ints[(deg+4)%7] ];
-    if(r()<ext) tones.push(60+semis);
-    out.push({name:noteName+suf,len,start,tones});
-    start+=len;
-  }
-  return out;
-}
-
-const HARM={
-  'Pentatonic Major':{h:[0,2,4,5,7,9,11], r:[0,2,4,7,9]},
-  'Pentatonic Minor':{h:[0,2,3,5,7,8,10], r:[0,3,5,7,10]},
-  'Heptatonic Major':{h:[0,2,4,5,7,9,11], r:[0,2,4,5,7,9,11]},
-  'Heptatonic Natural Minor':{h:[0,2,3,5,7,8,10], r:[0,2,3,5,7,8,10]}
-};
-function _chordPool(key,scale){
-  const root=NOTE_NAMES.indexOf(key); const cfg=HARM[scale]||HARM['Heptatonic Major']; const h=cfg.h, n=h.length, tonic=48+root; const out=[];
-  cfg.r.forEach(function(rs){
-    const i=h.indexOf(rs);
-    const third=h[(i+2)%n]+((i+2>=n)?12:0);
-    const fifth=h[(i+4)%n]+((i+4>=n)?12:0);
-    const seventh=h[(i+6)%n]+((i+6>=n)?12:0);
-    const second=h[(i+1)%n]+((i+1>=n)?12:0);
-    const t3=third-rs, t5=fifth-rs, t7=seventh-rs, t2=second-rs;
-    const rn=NOTE_NAMES[(root+rs)%12];
-    let base=''; if(t3===4)base=''; else if(t3===3)base='m'; else if(t3<=2)base='sus2'; else base='sus4';
-    let q5=''; if(t5===6)q5='b5'; else if(t5===8)q5='#5';
-    const tri=[tonic+rs,tonic+third,tonic+fifth];
-    out.push({name:rn+base+q5, tones:tri});
-    if((base===''||base==='m')&&q5===''){
-      let sev=null;
-      if(t7===11) sev=(base===''?'maj7':'m(maj7)');
-      else if(t7===10) sev=(base===''?'7':'m7');
-      if(sev) out.push({name:rn+sev, tones:[tonic+rs,tonic+third,tonic+fifth,tonic+seventh]});
-      out.push({name:rn+base+'add9', tones:[tonic+rs,tonic+third,tonic+fifth,tonic+rs+t2+12]});
-    } else if(q5==='b5'){
-      out.push({name:rn+'m7b5', tones:[tonic+rs,tonic+third,tonic+fifth,tonic+seventh]});
-    }
-  });
-  return out;
-}
-function _scaleMidi(key,scale,lo,hi){const root=NOTE_NAMES.indexOf(key);const ints=SCALES[scale]||SCALES['Heptatonic Major'];const a=[];for(let m=lo;m<=hi;m++){if(ints.indexOf(((m-root)%12+12)%12)>=0)a.push(m);}return a;}
-function _segProfile(seg){return ({'Intro':{den:0.55,reg:-3,len:1.4,sync:-0.10},'Verse':{den:0.85,reg:0,len:1.1,sync:0},'Pre-Chorus':{den:1.05,reg:2,len:0.9,sync:0.12},'Chorus':{den:1.30,reg:4,len:0.8,sync:0.18},'Bridge':{den:0.95,reg:-2,len:1.0,sync:0.10},'Outro':{den:0.55,reg:-4,len:1.5,sync:-0.08}})[seg]||{den:1,reg:0,len:1,sync:0};}
-function _optProfile(opt){switch(opt){
-  case 'Rousing Crescendo':return {env:function(b){return 0.45+b/7*1.0;},lenMul:0.95};
-  case 'Moody Wind Down':return {env:function(b){return 1.25-b/7*0.9;},lenMul:1.3};
-  case 'Gentle Swell':return {env:function(b){return 0.5+Math.sin(b/7*Math.PI)*0.7;},lenMul:1.15};
-  case 'Steady Groove':return {env:function(){return 1;},lenMul:0.85};
-  default:return {env:function(){return 0.62;},lenMul:1.6};
-}}
-function _recommendMacros(type,segment,option,scale){
-  const base=({'Ballad':{d:0.42,s:0.55,y:0.22,r:0.40},'Pop':{d:0.62,s:0.45,y:0.40,r:0.50},'Cinematic':{d:0.50,s:0.60,y:0.25,r:0.55},'Lo-Fi':{d:0.55,s:0.40,y:0.55,r:0.60},'Ambient':{d:0.30,s:0.70,y:0.18,r:0.35}})[type]||{d:0.6,s:0.45,y:0.30,r:0.50};
-  const seg=({'Intro':{d:-0.15,s:-0.05,y:-0.05,r:-0.05},'Verse':{d:0,s:0,y:0,r:0},'Pre-Chorus':{d:0.08,s:-0.05,y:0.05,r:0.05},'Chorus':{d:0.18,s:-0.10,y:0.08,r:0.08},'Bridge':{d:0.0,s:0.05,y:0.05,r:0.10},'Outro':{d:-0.18,s:0.10,y:-0.05,r:-0.05}})[segment]||{d:0,s:0,y:0,r:0};
-  const opt=({'Rousing Crescendo':{d:0.06,y:0.05,r:0.05},'Moody Wind Down':{d:-0.08,y:-0.05,r:0},'Gentle Swell':{d:-0.02,y:0,r:0},'Steady Groove':{d:0.05,y:0.08,r:-0.05},'Sparse Reflection':{d:-0.18,y:-0.08,r:-0.10}})[option]||{d:0,y:0,r:0};
-  const sc=/Pentatonic/.test(scale)?-0.05:0.05;
-  return {density:_clamp(base.d+seg.d+opt.d,0.05,1),split:_clamp(base.s+seg.s,0,1),sync:_clamp(base.y+seg.y+opt.y,0,1),rhythm:_clamp(base.r+seg.r+opt.r+sc,0,1)};
-}
-
-function _genMono(seed,o){
-  const seg=_segProfile(o.segment); const opt=_optProfile(o.option);
-  const lo=o.register[0]+seg.reg, hi=o.register[1]+seg.reg;
-  const rng=_rng(seed); const notes=_scaleMidi(o.key,o.scale,lo,hi);
-  if(!notes.length) return [];
-  const baseDen=Math.max(0.05,o.density*o.sparse);
-  const syncEff=_clamp(o.sync,0,1.2);
-  let idx=Math.floor(rng()*notes.length); const out=[]; let s=0;
-  while(s<128){
-    const bar=Math.floor(s/16); const e=opt.env(bar);
-    const isDown=s%4===0, isBeat=s%2===0;
-    let p=baseDen*e;
-    if(isDown)p*=1.15; else if(isBeat)p*=0.75*(0.6+syncEff); else p*=0.5*(0.3+syncEff)*(0.5+o.rhythm);
-    if(o.counter)p*=0.7;
-    if(rng()<p){
-      idx+=Math.round(rng()*4-2); idx=_clamp(idx,0,notes.length-1);
-      let len=[1,1,2,2,3,4][Math.floor(rng()*6)];
-      len=Math.max(1,Math.round(len*(1.2-o.density*0.4)*seg.len*opt.lenMul));
-      const vel=Math.round(_clamp((isDown?104:isBeat?88:72)*(0.7+0.3*e)+(rng()*16-8),35,122));
-      out.push({step:s,len:len,midi:notes[idx],vel:vel});
-      s+=len;
-    } else s+=1;
-  }
-  return out;
-}
-
-function _wave(notes,bins){const a=new Array(bins).fill(0);for(const n of notes){const b0=Math.floor(n.step/128*bins);const b1=Math.floor((n.step+n.len)/128*bins);for(let b=b0;b<=Math.min(bins-1,b1);b++)a[b]+=1;}let mx=1;for(const v of a)if(v>mx)mx=v;return a.map(function(v,i){const base=v/mx;const jit=base>0?0.16*Math.abs(Math.sin(i*1.7)):0;return Math.min(1,base*0.88+jit);});}
-
-function _vlq(n){const b=[n&0x7f];n>>=7;while(n>0){b.unshift((n&0x7f)|0x80);n>>=7;}return b;}
-function _buildMidi(tempo,tracks){
-  const T=120; const u16=function(n){return [(n>>8)&0xff,n&0xff];}; const u32=function(n){return [(n>>>24)&0xff,(n>>16)&0xff,(n>>8)&0xff,n&0xff];};
-  const chunks=[];
-  const usPB=Math.round(60000000/tempo);
-  let tt=[]; tt=tt.concat(_vlq(0),[0xff,0x51,0x03,(usPB>>16)&0xff,(usPB>>8)&0xff,usPB&0xff],_vlq(0),[0xff,0x2f,0x00]);
-  chunks.push(tt);
-  for(const tr of tracks){
-    const ev=[];
-    for(const n of tr.notes){ev.push({t:n.step*T,s:0x90,a:n.midi,b:(n.vel==null?90:n.vel)});ev.push({t:(n.step+Math.max(1,n.len))*T,s:0x80,a:n.midi,b:0});}
-    ev.sort(function(x,y){return x.t-y.t || x.s-y.s;});
-    let by=[]; let last=0;
-    for(const e of ev){by=by.concat(_vlq(e.t-last),[e.s|tr.channel,e.a,e.b]);last=e.t;}
-    by=by.concat(_vlq(0),[0xff,0x2f,0x00]);
-    chunks.push(by);
-  }
-  let all=[0x4d,0x54,0x68,0x64].concat(u32(6),u16(1),u16(chunks.length),u16(480));
-  for(const c of chunks){all=all.concat([0x4d,0x54,0x72,0x6b],u32(c.length),c);}
-  return new Uint8Array(all);
-}
+const CE=window.PeithoComposerEngine;
+const NOTE_NAMES=CE.NOTE_NAMES.slice();
+const KEYS=CE.KEYS.slice();
+const SCALE_LIST=CE.SCALE_LIST.slice();
+const TYPES=CE.TYPES.slice();
+const SEGMENTS=CE.SEGMENTS.slice();
+const OPTIONS=CE.OPTIONS.slice();
+const DRUM_PATTERNS=CE.DRUM_PATTERNS.slice();
+const DRUM_REC=CE.DRUM_REC;
+function _rand(){return CE.rand();}
+function _clamp(v,a,b){return CE.clamp(v,a,b);}
+function _genDrums(pat){return CE.genDrums(pat);}
+function _genChords(key,scale,type){return CE.genChords(key,scale,type);}
+function _chordPool(key,scale){return CE.chordPool(key,scale);}
+function _scaleMidi(key,scale,lo,hi){return CE.scaleMidi(key,scale,lo,hi);}
+function _recommendMacros(type,segment,option,scale){return CE.recommendMacros(type,segment,option,scale);}
+function _pulseKeywords(type,segment,option){return CE.pulseKeywords(type,segment,option);}
+function _genMono(seed,o){return CE.genMono(seed,o);}
+function _wave(notes,bins){return CE.wave(notes,bins);}
+function _buildMidi(tempo,tracks){return CE.buildMidi(tempo,tracks);}
 function _dl(bytes,name){const blob=new Blob([bytes],{type:'audio/midi'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);}
 
 class Component extends DCLogic {
@@ -503,6 +373,7 @@ class Component extends DCLogic {
     engine:'matrix', view:'grid', bassOnly:false,
     type:'Ballad', segment:'Verse', option:'Rousing Crescendo',
     engineModel:'array', editMode:'note',
+    pulseKeywords:_pulseKeywords('Ballad','Verse','Rousing Crescendo'), pulseText:'',
     zoom:1, vzoom:1, pan:0, collapseLeft:false, collapseTonality:false, collapseChords:false,
     density:0.48, split:0.55, sync:0.27, rhythm:0.40,
     chords:_genChords('E','Pentatonic Major','Ballad'), chordsGen:true, chordsLocked:true,
@@ -532,7 +403,7 @@ class Component extends DCLogic {
   toggleMenu(name){this.setState(function(s){return {openMenu:s.openMenu===name?null:name, openChord:null};});}
   toggleChordMenu(i){this.setState(function(s){return {openChord:s.openChord===i?null:i, openMenu:null};});}
   setChord(i,p){this.setState(function(s){const ch=s.chords.slice();if(ch[i])ch[i]=Object.assign({},ch[i],{name:p.name,tones:p.tones.slice()});return {chords:ch, openChord:null};});}
-  pick(name,val){this.setState(function(s){const ns={openMenu:null};ns[name]=val;if(name==='drumPattern'){ns.drumOverride=null;}if(['key','scale','segment','option','type'].indexOf(name)>=0){ns.melOverride=[null,null,null];ns.ctrOverride=[null,null,null];}if(['type','segment','option','scale'].indexOf(name)>=0){const t=name==='type'?val:s.type,sg=name==='segment'?val:s.segment,op=name==='option'?val:s.option,sc=name==='scale'?val:s.scale;const rec=_recommendMacros(t,sg,op,sc);ns.density=rec.density;ns.split=rec.split;ns.sync=rec.sync;ns.rhythm=rec.rhythm;}if((name==='key'||name==='scale')&&s.chordsGen){ns.chords=_genChords(name==='key'?val:s.key,name==='scale'?val:s.scale,s.type);}return ns;});}
+  pick(name,val){this.setState(function(s){const ns={openMenu:null};ns[name]=val;if(name==='drumPattern'){ns.drumOverride=null;}if(['key','scale','segment','option','type'].indexOf(name)>=0){ns.melOverride=[null,null,null];ns.ctrOverride=[null,null,null];}if(['type','segment','option','scale'].indexOf(name)>=0){const t=name==='type'?val:s.type,sg=name==='segment'?val:s.segment,op=name==='option'?val:s.option,sc=name==='scale'?val:s.scale;const rec=_recommendMacros(t,sg,op,sc);ns.density=rec.density;ns.split=rec.split;ns.sync=rec.sync;ns.rhythm=rec.rhythm;if(name==='type'||name==='segment'||name==='option'){ns.pulseKeywords=_pulseKeywords(t,sg,op);}}if((name==='key'||name==='scale')&&s.chordsGen){ns.chords=_genChords(name==='key'?val:s.key,name==='scale'?val:s.scale,s.type);}return ns;});}
 
   _opts(){const s=this.state;return {density:s.density,sync:s.sync,rhythm:s.rhythm,engine:s.engine,option:s.option,segment:s.segment,key:s.key,scale:s.scale};}
   _melNotes(){const s=this.state;if(s.melOverride[s.activeMel])return s.melOverride[s.activeMel];const ms=s.melSeeds[s.activeMel];return ms!=null?_genMono(ms,Object.assign({},this._opts(),{register:[58,84],sparse:0.6+s.split*0.8})):[];}
@@ -566,6 +437,11 @@ class Component extends DCLogic {
   toggleDrumCell(e,kind){const rect=e.currentTarget.getBoundingClientRect();let fx=_clamp((e.clientX-rect.left)/rect.width,0,1);let step=_clamp(Math.round(fx*128),0,127);const d=this._drums();const nd={kick:d.kick.slice(),snare:d.snare.slice(),hat:d.hat.slice(),open:d.open.slice()};const arr=nd[kind];const at=arr.indexOf(step);if(at>=0)arr.splice(at,1);else arr.push(step);this.setState({drumOverride:nd});}
   drumCellTarget(e){const rect=e.currentTarget.getBoundingClientRect();const fy=(e.clientY-rect.top)/rect.height;const kind=fy<0.36?'hat':(fy<0.62?'snare':'kick');this.toggleDrumCell(e,kind);}
   waveStyles(arr,color){const g=this.glow();return arr.map(function(h){return {style:{flex:'1 1 0',height:(Math.max(h,0.04)*86)+'%',minHeight:'2px',alignSelf:'center',borderRadius:'1px',background:'linear-gradient(180deg,'+color+'ee,'+color+'40)',boxShadow:(g&&h>0.55)?('0 0 6px '+color+'55'):'none'}};});}
+  setPulse(){this.setState(function(s){return {engineModel:'pulse',pulseKeywords:(s.pulseKeywords&&s.pulseKeywords.length)?s.pulseKeywords:_pulseKeywords(s.type,s.segment,s.option)};});}
+  setArray(){this.setState({engineModel:'array'});}
+  addPulseKeyword(label){this.setState(function(s){const cur=s.pulseKeywords||[];return cur.indexOf(label)>=0?null:{pulseKeywords:cur.concat(label)};});}
+  removePulseKeyword(label){this.setState(function(s){return {pulseKeywords:(s.pulseKeywords||[]).filter(function(x){return x!==label;})};});}
+  pulseTextInput(e){this.setState({pulseText:e.currentTarget.value});}
 
   regenChord(i){this.setState(function(s){const one=_genChords(s.key,s.scale,s.type)[0]||{name:'C',tones:[48,52,55]};const ch=s.chords.slice();ch[i]=Object.assign({},ch[i],{name:one.name,tones:one.tones});return {chords:ch};});}
   addChord(){this.setState(function(s){if(s.chords.length>=16)return null;const ch=s.chords.slice();let idx=-1,mx=1;ch.forEach(function(c,i){if(c.len>mx){mx=c.len;idx=i;}});if(idx<0)return null;const c=ch[idx];const one=_genChords(s.key,s.scale,s.type)[0];const half=Math.floor(c.len/2);ch.splice(idx,1,Object.assign({},c,{len:c.len-half}),{name:one.name,len:half,tones:one.tones,start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
@@ -641,15 +517,23 @@ class Component extends DCLogic {
     const dur=(32*60/s.tempo);
     const hx=(s.seed>>>0).toString(16).toUpperCase();
     const padded=('00000000'+hx).slice(-8);
+    const pulseKeys=s.pulseKeywords||[];
+    const defaultPulse=_pulseKeywords(s.type,s.segment,s.option).filter(function(k){return pulseKeys.indexOf(k)<0;});
+    const pulseChipStyle=function(active){return {display:'flex',alignItems:'center',gap:'5px',padding:'5px 8px',borderRadius:'6px',fontSize:'10px',lineHeight:1,cursor:'pointer',background:active?self._rgba(sel,0.16):'#1a1e25',color:active?'#dfe9f6':'#9aa0aa',border:'1px solid '+(active?self._rgba(sel,0.44):'rgba(255,255,255,.08)')};};
 
     return {
       key:s.key, scale:s.scale, tempo:s.tempo, type:s.type, segment:s.segment, option:s.option,
       // engine model
-      engineModel:s.engineModel, engineArraySelected:s.engineModel==='array',
-      setArray:function(){self.setState({engineModel:'array'});},
-      engineArrayStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'pointer',background:self._rgba(sel,0.12),border:'1px solid '+self._rgba(sel,0.55)},
+      engineModel:s.engineModel, engineArraySelected:s.engineModel==='array', enginePulseSelected:s.engineModel==='pulse',
+      setArray:function(){self.setArray();}, setPulse:function(){self.setPulse();},
+      engineArrayStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'pointer',background:s.engineModel==='array'?self._rgba(sel,0.12):'#1a1e25',border:'1px solid '+(s.engineModel==='array'?self._rgba(sel,0.55):'rgba(255,255,255,.06)'),opacity:s.engineModel==='array'?1:0.78},
       engineCheckStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'20px',height:'20px',flex:'none',borderRadius:'50%',background:sel,color:'#fff'},
-      enginePulseStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.06)',opacity:0.6},
+      enginePulseStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'pointer',background:s.engineModel==='pulse'?self._rgba(sel,0.12):'#1a1e25',border:'1px solid '+(s.engineModel==='pulse'?self._rgba(sel,0.55):'rgba(255,255,255,.06)'),opacity:1},
+      showPulseRefinement:s.engineModel==='pulse',
+      pulseText:s.pulseText||'', pulseTextInput:function(e){self.pulseTextInput(e);},
+      pulseTextStyle:{width:'100%',minHeight:'70px',resize:'vertical',display:'block',padding:'9px 10px',borderRadius:'7px',border:'1px solid rgba(255,255,255,.09)',outline:'none',background:'#101319',color:'#cfd3da',fontSize:'11px',lineHeight:1.35,fontFamily:'inherit'},
+      pulseChips:pulseKeys.map(function(k){return {label:k,remove:function(){self.removePulseKeyword(k);},style:pulseChipStyle(true)};}),
+      pulseSuggestions:defaultPulse.slice(0,8).map(function(k){return {label:k,add:function(){self.addPulseKeyword(k);},style:pulseChipStyle(false)};}),
       macroSeed:'Seeded from '+s.type+' · '+s.segment+' · '+s.option,
       // zoom + pan
       matrixContentStyle:matrixContentStyle,

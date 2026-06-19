@@ -138,7 +138,7 @@ The earlier unlicensed Java EMI repository is not part of this project and shoul
 
 | Source | Use In `peitho-array` | Do Not Use For |
 | --- | --- | --- |
-| Peitho-Composer prototype | current practical generator behaviour: scales, chord pools, macro profiles, seeded melody/counter generation, drum patterns, MIDI event shape | hard-coded 8-bar Composer limits |
+| Peitho-Composer prototype | current practical generator behaviour: scales, chord pools, seeded melody/counter generation, drum patterns, MIDI event shape | hard-coded 8-bar Composer limits or product preset catalogues |
 | Scribbletune | pattern strings, rhythm masks, clip-like building blocks, pitch/rhythm separation | replacing Peitho data model |
 | `emi-ts` | motif/signature analysis, SPEAC-style tension labels, phrase recombination, MIDI parser/writer ideas | turning `peitho-array` into an EMI clone |
 | Magenta / MelodyRNN / NoteSequence | conceptual sequence constraints: primer/continuation flow, quantised symbolic events, stepwise melodic bias, stochastic drift control | TensorFlow.js dependency, ML inference, model loading |
@@ -278,49 +278,57 @@ chordPool("C", "major");
 generateChords({
   key: "E",
   scale: "pentatonic-major",
-  type: "Ballad",
   bars: 8,
   seed: 1234,
+  chordLengths: [2, 2, 3, 4, 4],
+  extensionProbability: 0.6,
 });
 ```
 
 `chordPool()` supports Composer chord-menu selection. `generateChords()` extracts the prototype progression behaviour but adds seed support so generated progressions can be repeatable.
 
-This is still prototype-derived. Later rule-set work should replace the loose random degree choice with genre/segment/option-aware progression rules.
+This is still prototype-derived. Product-level presets such as genre, segment, or option should be resolved by the consumer into explicit parameters such as `chordLengths` and `extensionProbability` before calling `peitho-array`.
 
-### Direction Taxonomy And Macros
+### Preset Inputs
 
-Peitho-Composer's initial direction selection should be backed by `peitho-array`, because the same selection drives chord choice, melodic density, rhythmic complexity, and future `peitho-pulse` prompt constraints.
+Peitho-Composer owns its product preset catalogue. Those presets live with the Composer app, not in `peitho-array`.
 
-Current direction axes:
+Composer direction data should be resolved into plain engine inputs:
 
-- Type: Ballad, Pop, Cinematic, Lo-Fi, Ambient, New Wave, Electropop, Classical, Jazz, Synth, Rock, Darkwave.
-- Segment: Intro, Verse, Pre-Chorus, Chorus, Hook, Bridge, Middle-Eight, Breakdown, Outro.
-- Option: Rousing Crescendo, Moody Wind Down, Gentle Swell, Steady Groove, Sparse Reflection, Driving Pulse, Tension Lift, Release Drop, Nocturne Drift, Angular Push, Anthem Rise, Minimal Loop.
+- macro values: `density`, `split`, `sync`, `rhythm`
+- chord bias: `chordLengths`, `extensionProbability`
+- segment profile: density, register shift, note length multiplier, sync offset
+- option profile: envelope name and note length multiplier
+- drum pattern name if the consumer wants built-in drum grids
 
-The public API starts with:
+Example consumer flow:
 
 ```ts
-recommendMacros({
-  type: "Darkwave",
-  segment: "Breakdown",
-  option: "Moody Wind Down",
-  scale: "natural-minor",
+const chords = generateChords({
+  key: "E",
+  scale: "pentatonic-major",
+  bars: 8,
+  seed: 1234,
+  chordLengths: preset.chordLengths,
+  extensionProbability: preset.extensionProbability,
+});
+
+const melody = generateMono({
+  key: "E",
+  scale: "pentatonic-major",
+  seed: 99,
+  register: [58, 84],
+  sparse: 1.1,
+  density: macros.density,
+  split: macros.split,
+  sync: macros.sync,
+  rhythm: macros.rhythm,
+  segmentProfile: preset.segmentProfile,
+  optionProfile: preset.optionProfile,
 });
 ```
 
-It returns bounded macro settings:
-
-```ts
-{
-  density: number;
-  split: number;
-  sync: number;
-  rhythm: number;
-}
-```
-
-Composer uses these values to initialise the interface. `peitho-array` uses them to bias deterministic generation. `peitho-pulse` can use the same selection to constrain planner prompts and repair model output.
+`peitho-array` should stay generic enough that `peitho-pulse`, games, DAW tools, and Composer can all provide their own preset vocabulary.
 
 ### Melodic Motion
 
@@ -385,14 +393,27 @@ It currently provides:
 - configurable pattern shell creation
 - key-to-pitch-class mapping
 - scale-to-MIDI mapping
-- direction taxonomy and macro recommendations
 - chord pool generation
 - seeded chord progression generation
+- seeded melody/counter generation from explicit macro/profile inputs
+- drum grid generation
+- MIDI byte generation
 
 Next implementation step:
 
-1. Add seeded random utilities.
-2. Add rhythm pattern parser.
-3. Extract segment and option profile helpers.
-4. Extract melody/counter generation from `docs/Peitho/Peitho.dc.html`.
-5. Keep Peitho-Composer's 8-bar behaviour as app configuration.
+1. Add rhythm pattern parser.
+2. Add motif and phrase-plan types.
+3. Add rule-based chord progression constraints.
+4. Keep Peitho-Composer's preset catalogue and 8-bar behaviour as app configuration.
+
+## Repair Pass Helpers
+
+`peitho-array` exports small public repair helpers for consumers that receive loose or model-generated notes.
+
+```ts
+export function snapToScale(notes: NoteEvent[], key: string, scale: ScaleInput): NoteEvent[];
+export function quantizeToGrid(notes: NoteEvent[], stepsPerBeat: number): NoteEvent[];
+export function thinDensity(notes: NoteEvent[], density: number, seed: number): NoteEvent[];
+```
+
+`peitho-pulse` can run AI model output through these helpers before returning a `PeithoPattern`.

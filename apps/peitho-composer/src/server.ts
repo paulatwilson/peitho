@@ -1,5 +1,6 @@
 const port = Number(process.env.PORT ?? 3000);
 const root = new URL("../public/", import.meta.url);
+const composerEngineBrowserEntry = new URL("./composer-engine.ts", import.meta.url);
 
 const contentTypes: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -25,6 +26,27 @@ Bun.serve({
   port,
   async fetch(req) {
     const url = new URL(req.url);
+
+    if (url.pathname === "/composer-engine.js") {
+      const result = await Bun.build({
+        entrypoints: [composerEngineBrowserEntry.pathname],
+        target: "browser",
+        format: "iife",
+        minify: false,
+      });
+
+      if (!result.success || !result.outputs[0]) {
+        return new Response("Failed to build Composer engine bundle", { status: 500 });
+      }
+
+      return new Response(await result.outputs[0].text(), {
+        headers: {
+          "content-type": "text/javascript; charset=utf-8",
+          "cache-control": "no-store",
+        },
+      });
+    }
+
     const fileUrl = resolvePath(decodeURIComponent(url.pathname));
     const file = Bun.file(fileUrl);
 

@@ -59,13 +59,216 @@ Those selections initialise:
 - rhythmic complexity
 - future Peitho-Pulse prompt constraints
 
-Current direction axes come from `peitho-array`:
+Current direction axes come from Peitho-Composer preset data:
 
-- Type: Ballad, Pop, Cinematic, Lo-Fi, Ambient, New Wave, Electropop, Classical, Jazz, Synth, Rock, Darkwave.
-- Segment: Intro, Verse, Pre-Chorus, Chorus, Hook, Bridge, Middle-Eight, Breakdown, Outro.
-- Option: Rousing Crescendo, Moody Wind Down, Gentle Swell, Steady Groove, Sparse Reflection, Driving Pulse, Tension Lift, Release Drop, Nocturne Drift, Angular Push, Anthem Rise, Minimal Loop.
+```txt
+apps/peitho-composer/src/direction-presets.json
+```
 
-Peitho-Composer should call `recommendMacros()` from `@peitho/array` whenever Type, Segment, Option, or Scale changes. Later, `@peitho/pulse` should receive the same selection so AI plans and deterministic repair passes share one musical intent.
+- Type: Ballad, Pop, Cinematic, Lo-Fi, Ambient, New Wave, Electropop, Classical, Jazz, Funk, R&B, House, Synth, Folk, Rock, Punk, Post-Rock, Darkwave.
+- Segment: Intro, Verse, Pre-Chorus, Build, Chorus, Hook, Drop, Bridge, Solo, Middle-Eight, Interlude, Breakdown, Outro.
+- Option: Rousing Crescendo, Moody Wind Down, Gentle Swell, Steady Groove, Sparse Reflection, Driving Pulse, Tension Lift, Release Drop, Nocturne Drift, Angular Push, Anthem Rise, Minimal Loop, Motorik Drive, Arpeggio Bloom, Blue Note Turn, Power Chord Lift, Dorian Drift, Chromatic Tension, Half-Time Drop, Call And Response, Staccato Push, Legato Float, Syncopated Lift, Suspended Colour, Pedal Point, Descending Line.
+
+Peitho-Composer should resolve Type, Segment, Option, and Scale into concrete generation parameters before calling an engine. `peitho-array` receives explicit macro values, chord-length bias, extension probability, segment profile, and option envelope. Later, `peitho-pulse` should receive the same resolved preset context so AI plans and deterministic repair passes share one musical intent.
+
+## Direction Preset JSON
+
+Composer preset data is a product-level library. It lives in:
+
+```txt
+apps/peitho-composer/src/direction-presets.json
+```
+
+It does not belong in `peitho-array`. Composer resolves these preset choices into explicit engine parameters, then passes those parameters into `peitho-array` or `peitho-pulse`.
+
+Top-level shape:
+
+```ts
+type DirectionPresetLibrary = {
+  types: DirectionTypePreset[];
+  segments: SegmentPreset[];
+  options: OptionPreset[];
+};
+```
+
+### Type Presets
+
+`types` represent broad musical idioms such as Ballad, New Wave, Jazz, Rock, or Darkwave.
+
+```ts
+type DirectionTypePreset = {
+  name: string;
+  macro: {
+    density: number;
+    split: number;
+    sync: number;
+    rhythm: number;
+  };
+  chordLengths: number[];
+  extensionProbability: number;
+  drumRecommendations: string[];
+  pulseKeywords: string[];
+};
+```
+
+Field meanings:
+
+| Field | Meaning |
+| --- | --- |
+| `name` | UI label and preset id. |
+| `macro.density` | Base note/event density before Segment and Option adjustments. |
+| `macro.split` | Base melody/counter balance. Higher values favour melody. |
+| `macro.sync` | Base syncopation amount. |
+| `macro.rhythm` | Base rhythmic activity/complexity. |
+| `chordLengths` | Weighted half-bar chord segment lengths fed to `peitho-array.generateChords()`. |
+| `extensionProbability` | Chance that generated chords keep/add richer tones. |
+| `drumRecommendations` | Composer UI recommendations. Values should match `peitho-array` drum pattern names. |
+| `pulseKeywords` | Default keyword chips shown when Peitho-Pulse is selected. |
+
+Example:
+
+```json
+{
+  "name": "Darkwave",
+  "macro": { "density": 0.5, "split": 0.55, "sync": 0.34, "rhythm": 0.58 },
+  "chordLengths": [2, 2, 3, 4],
+  "extensionProbability": 0.52,
+  "drumRecommendations": ["Gated-Reverb Drive", "Driving 16th Open Hat"],
+  "pulseKeywords": ["cold", "minor", "shadowy"]
+}
+```
+
+### Segment Presets
+
+`segments` represent song-section roles such as Intro, Verse, Hook, Breakdown, or Middle-Eight.
+
+```ts
+type SegmentPreset = {
+  name: string;
+  macro: {
+    density?: number;
+    split?: number;
+    sync?: number;
+    rhythm?: number;
+  };
+  profile: {
+    density: number;
+    register: number;
+    length: number;
+    sync: number;
+  };
+  pulseKeywords: string[];
+};
+```
+
+Field meanings:
+
+| Field | Meaning |
+| --- | --- |
+| `macro` | Additive adjustment to selected Type macro values. |
+| `profile.density` | Melody/counter generation density multiplier. |
+| `profile.register` | MIDI register shift in semitones. |
+| `profile.length` | Note-length multiplier. |
+| `profile.sync` | Syncopation offset applied during melody/counter generation. |
+| `pulseKeywords` | Default Peitho-Pulse keyword chips contributed by this section role. |
+
+Example:
+
+```json
+{
+  "name": "Breakdown",
+  "macro": { "density": -0.22, "split": 0.14, "sync": 0.04, "rhythm": -0.04 },
+  "profile": { "density": 0.5, "register": -4, "length": 1.45, "sync": 0.05 },
+  "pulseKeywords": ["stripped", "low"]
+}
+```
+
+### Option Presets
+
+`options` represent intent modifiers such as Rousing Crescendo, Motorik Drive, Blue Note Turn, or Chromatic Tension.
+
+```ts
+type OptionPreset = {
+  name: string;
+  macro: {
+    density?: number;
+    sync?: number;
+    rhythm?: number;
+  };
+  envelope: "rise" | "fall" | "swell" | "flat" | "sparse" | "alternate";
+  length: number;
+  pulseKeywords: string[];
+};
+```
+
+Field meanings:
+
+| Field | Meaning |
+| --- | --- |
+| `macro` | Additive adjustment to selected Type and Segment macro values. |
+| `envelope` | Bar-to-bar intensity shape passed to melody/counter generation. |
+| `length` | Note-length multiplier passed to melody/counter generation. |
+| `pulseKeywords` | Default Peitho-Pulse keyword chips contributed by this intent modifier. |
+
+Envelope meanings:
+
+| Envelope | Meaning |
+| --- | --- |
+| `rise` | Builds density/intensity across the 8-bar sketch. |
+| `fall` | Starts stronger, then relaxes. |
+| `swell` | Peaks near the middle. |
+| `flat` | Keeps steady intensity. |
+| `sparse` | Keeps restrained, open phrasing. |
+| `alternate` | Alternates bar emphasis for call/response or angular patterns. |
+
+Example:
+
+```json
+{
+  "name": "Motorik Drive",
+  "macro": { "density": 0.09, "sync": 0.03, "rhythm": 0.13 },
+  "envelope": "flat",
+  "length": 0.8,
+  "pulseKeywords": ["motorik", "persistent"]
+}
+```
+
+### Peitho-Pulse Keyword Chips
+
+When the user selects Peitho-Pulse, Composer should build a default keyword chip set from the selected Type, Segment, and Option:
+
+```ts
+const keywords = unique([
+  ...typePreset.pulseKeywords,
+  ...segmentPreset.pulseKeywords,
+  ...optionPreset.pulseKeywords,
+]);
+```
+
+The user can remove generated chips, add more chips, and optionally add free-text refinement. The final refinement payload should be explicit:
+
+```ts
+type PulseRefinement = {
+  keywords: string[];
+  text?: string;
+};
+```
+
+Default keywords are hints for the model, not hard engine behaviour. `peitho-array` should never depend on these strings.
+
+### Resolution Flow
+
+When Type, Segment, Option, or Scale changes, Composer resolves the preset data like this:
+
+1. Start with selected Type `macro`.
+2. Add selected Segment `macro`.
+3. Add selected Option `macro`.
+4. Apply scale shift: pentatonic scales reduce `rhythm` slightly; heptatonic scales increase it slightly.
+5. Clamp macro values into safe ranges.
+6. Pass `chordLengths` and `extensionProbability` from Type into `peitho-array.generateChords()`.
+7. Pass resolved macro values plus Segment `profile` and Option `envelope`/`length` into `peitho-array.generateMono()`.
+
+`peitho-pulse` should use the same resolved context when planning AI-generated material, then repair model output through `peitho-array` helpers before returning `PeithoPattern`.
 
 ## Prototype Baseline
 
@@ -114,6 +317,63 @@ The prototype workflow is:
 10. Audition through Web Audio.
 11. Export MIDI.
 
+## Peitho-Pulse Refinement UI
+
+The engine selector is interactive:
+
+- `Peitho-Array` keeps the deterministic Composer workflow.
+- `Peitho-Pulse` reveals a refinement panel below the engine selector.
+
+The refinement panel is only visible when `engineModel === "pulse"`. It currently previews the prompt-control surface; it does not yet call the Pulse engine.
+
+When Pulse mode is selected, Composer initialises keyword chips from the current Type, Segment, and Option:
+
+```ts
+ComposerEngine.pulseKeywords(type, segment, option);
+```
+
+Those keywords come from `pulseKeywords` fields in:
+
+```txt
+apps/peitho-composer/src/direction-presets.json
+```
+
+The user can:
+
+- remove generated chips
+- re-add suggested preset chips
+- enter optional free-text refinement
+
+The intended Pulse refinement payload is:
+
+```ts
+type PulseRefinement = {
+  keywords: string[];
+  text?: string;
+};
+```
+
+Composer should send Pulse the resolved preset context and refinement:
+
+```ts
+type PulseComposerContext = {
+  type: string;
+  segment: string;
+  option: string;
+  key: string;
+  scale: string;
+  macros: {
+    density: number;
+    split: number;
+    sync: number;
+    rhythm: number;
+  };
+  refinement: PulseRefinement;
+};
+```
+
+Pulse keywords are model hints, not engine rules. `peitho-array` should only receive concrete symbolic parameters and repair-pass data.
+
 ## Extraction Plan
 
 Peitho-Composer should gradually become thinner as engine logic moves into packages.
@@ -129,14 +389,14 @@ Move deterministic helpers from the prototype into `packages/peitho-array`:
 - scales and keys
 - chord pool (started)
 - chord generation (started)
-- macro recommendations
-- segment and option profiles
+- macro value consumption
+- segment and option profile consumption
 - seeded RNG
 - melody and counter generation
 - drum patterns
 - MIDI writer
 
-The Composer then imports those behaviours instead of owning them.
+The Composer owns product preset data and imports engine behaviours. Preset choices are converted into plain engine parameters before calling `peitho-array` or `peitho-pulse`.
 
 ### Stage 3: Composer App Shell
 
