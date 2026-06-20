@@ -251,3 +251,18 @@ export type MlxRuntimeConfig = {
   modelPath: string;
   quantization: "int4" | "int8" | "fp16";
 };
+
+// ─── Chord progression generator (ChordSeqAI ONNX backend) ───────────────────
+
+export { ChordSeqAIGenerator } from "./chord-seq-ai/generator.ts";
+export type {
+  ChordGenRequest,
+  ChordGenResult,
+  ResolvedControls,
+  ModelVariant,
+  Genre,
+  Decade,
+  ScalePolicy,
+  CadencePolicy,
+  SamplingStrategy,
+} from "./chord-seq-ai/types.ts";

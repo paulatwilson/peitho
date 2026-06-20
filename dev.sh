@@ -14,17 +14,23 @@ if [ ! -d node_modules ]; then
   bun install
 fi
 
+port_available() {
+  PEITHO_PORT_PROBE="$1" bun --eval '
+    const server = Bun.serve({
+      port: Number(process.env.PEITHO_PORT_PROBE),
+      fetch: () => new Response("probe"),
+    });
+    server.stop(true);
+  ' >/dev/null 2>&1
+}
+
 if [ -z "${PORT:-}" ]; then
-  if command -v lsof >/dev/null 2>&1; then
-    for candidate in 43117 43118 43119 43120 43121; do
-      if ! lsof -nP -iTCP:"$candidate" -sTCP:LISTEN >/dev/null 2>&1; then
-        export PORT="$candidate"
-        break
-      fi
-    done
-  else
-    export PORT=43117
-  fi
+  for candidate in 43117 43118 43119 43120 43121; do
+    if port_available "$candidate"; then
+      export PORT="$candidate"
+      break
+    fi
+  done
 fi
 
 if [ -z "${PORT:-}" ]; then
@@ -41,7 +47,10 @@ echo
 DEV_PID=""
 
 start_dev() {
-  bun run --filter peitho-composer dev &
+  (
+    cd "$ROOT_DIR/apps/peitho-composer"
+    exec bun run src/server.ts
+  ) &
   DEV_PID="$!"
 }
 

@@ -3,15 +3,31 @@ import {
   chordPool,
   buildMidi,
   createEmptyPattern,
+  SCALE_INTERVALS,
   generateDrums,
   generateChords,
   generateMono,
+  NOTE_NAMES,
   quantizeToGrid,
   scaleMidi,
   snapToScale,
   thinDensity,
+  type ScaleName,
   waveformBins,
 } from "../src/index";
+
+function chordRootPitchClass(name: string): number {
+  const root = name.match(/^[A-G]#?/)?.[0];
+  const pitchClass = NOTE_NAMES.indexOf(root as (typeof NOTE_NAMES)[number]);
+  if (pitchClass === -1) throw new Error(`Unknown chord root: ${name}`);
+  return pitchClass;
+}
+
+function keyPitchClasses(key: string, scale: ScaleName): Set<number> {
+  const root = NOTE_NAMES.indexOf(key as (typeof NOTE_NAMES)[number]);
+  const harmonicScale = scale === "pentatonic-minor" ? "natural-minor" : scale === "pentatonic-major" ? "major" : scale;
+  return new Set(SCALE_INTERVALS[harmonicScale].map((interval) => (root + interval) % 12));
+}
 
 test("creates configured 8-bar 4/4 pattern shell", () => {
   expect(createEmptyPattern({ bars: 8 })).toMatchObject({
@@ -153,7 +169,7 @@ test("uses seeded weighted movement between chord roles", () => {
     progressionProfile: { start: "tonic" },
   });
 
-  expect(chords.map((chord) => chord.name)).toEqual(["C", "Bdim", "Em", "F", "C", "Am", "Bdim", "Em"]);
+  expect(chords.map((chord) => chord.name)).toEqual(["C", "Em", "Bdim", "Em", "C", "F", "G", "C"]);
 });
 
 test("applies cadence profiles to final chord movement", () => {
@@ -170,34 +186,52 @@ test("applies cadence profiles to final chord movement", () => {
 
   expect(namesForCadence("strong")).toEqual([
     "C",
+    "Em",
     "Bdim",
     "Em",
-    "F",
     "C",
-    "Am",
-    "Bdim",
+    "F",
+    "G",
     "C",
   ]);
   expect(namesForCadence("soft")).toEqual([
     "C",
+    "Em",
     "Bdim",
     "Em",
-    "F",
     "C",
-    "Am",
-    "Am",
+    "F",
+    "F",
     "C",
   ]);
   expect(namesForCadence("loop")).toEqual([
     "C",
+    "Em",
     "Bdim",
     "Em",
-    "F",
     "C",
-    "Am",
-    "Bdim",
     "F",
+    "G",
+    "G",
   ]);
+});
+
+test("uses a major dominant for a strong cadence in minor", () => {
+  const chords = generateChords({
+    key: "A",
+    scale: "natural-minor",
+    bars: 2,
+    seed: 7,
+    chordLengths: [1],
+    extensionProbability: 0,
+    progressionProfile: { start: "tonic", cadence: "strong" },
+  });
+
+  expect(chords.at(-2)).toMatchObject({ name: "E", tones: [64, 68, 71] });
+  expect(chords.at(-1)).toMatchObject({ name: "Am", tones: [57, 60, 64] });
+  expect(chords.every((chord) => chord.tones.every((tone, index) => index === 0 || tone > chord.tones[index - 1]))).toBe(
+    true,
+  );
 });
 
 test("lets tension and repetition nudge chord role weights", () => {
@@ -228,6 +262,50 @@ test("lets tension and repetition nudge chord role weights", () => {
 
   expect(rolePressure(highTension)).toBeGreaterThan(rolePressure(lowTension));
   expect(reuse(highRepetition)).toBeGreaterThan(reuse(lowRepetition));
+});
+
+test("covers progression repeatability, cadences, repetition, and key membership", () => {
+  const base = {
+    key: "E",
+    scale: "major" as const,
+    bars: 8,
+    seed: 707,
+    chordLengths: [1, 2, 3],
+    extensionProbability: 0.4,
+  };
+  const progression = generateChords(base);
+  const strong = generateChords({ ...base, progressionProfile: { start: "tonic", cadence: "strong" } });
+  const loop = generateChords({ ...base, progressionProfile: { start: "tonic", cadence: "loop" } });
+  const lowRepetition = generateChords({ ...base, progressionProfile: { start: "tonic", repetition: 0 } });
+  const highRepetition = generateChords({ ...base, progressionProfile: { start: "tonic", repetition: 1 } });
+  const rootName = (name: string) => name.replace(/m7b5|maj7|add9|dim|sus4|9sus4|m7|m|7/g, "");
+  const repeatedRoots = (names: string[]) =>
+    names.filter((name, index) => index > 0 && rootName(name) === rootName(names[index - 1])).length;
+
+  expect(progression).toEqual(generateChords(base));
+  expect(progression.at(-1)!.start + progression.at(-1)!.len).toBe(16);
+  expect(rootName(strong.at(-1)!.name)).toBe("E");
+  expect(rootName(strong.at(-2)!.name)).toBe("B");
+  expect(["B", "D#"]).toContain(rootName(loop.at(-1)!.name));
+  expect(repeatedRoots(highRepetition.map((chord) => chord.name))).toBeGreaterThan(
+    repeatedRoots(lowRepetition.map((chord) => chord.name)),
+  );
+
+  for (const scale of ["major", "natural-minor", "pentatonic-major", "pentatonic-minor"] as const) {
+    const scalePitchClasses = keyPitchClasses("E", scale);
+    const chords = generateChords({
+      key: "E",
+      scale,
+      bars: 8,
+      seed: 909,
+      chordLengths: [1],
+      extensionProbability: 1,
+      progressionProfile: { start: "tonic" },
+    });
+
+    expect(chords.every((chord) => scalePitchClasses.has(chordRootPitchClass(chord.name)))).toBe(true);
+    expect(chords.every((chord) => chord.tones.every((tone) => scalePitchClasses.has(tone % 12)))).toBe(true);
+  }
 });
 
 test("accepts composer display scale names in engine helpers", () => {

@@ -1,3 +1,5 @@
+export * from "./progression-seeds";
+
 export type ScaleName =
   | "pentatonic-major"
   | "pentatonic-minor"
@@ -46,6 +48,8 @@ export type ProgressionProfile = {
 };
 
 type ChordDegreeRole = "tonic" | "predominant" | "dominant" | "colour";
+
+type HarmonicPhraseRole = "statement" | "preparation" | "extension" | "antecedent" | "consequent";
 
 type ChordDegreeMetadata = {
   degree: number;
@@ -148,25 +152,25 @@ const HEPTATONIC_INTERVALS = {
 const MAJOR_DEGREE_ROLES: ChordDegreeRole[] = [
   "tonic",
   "predominant",
-  "tonic",
+  "colour",
   "predominant",
   "dominant",
-  "colour",
+  "tonic",
   "dominant",
 ];
 
 const MINOR_DEGREE_ROLES: ChordDegreeRole[] = [
   "tonic",
+  "predominant",
   "colour",
-  "tonic",
   "predominant",
   "dominant",
-  "colour",
+  "tonic",
   "dominant",
 ];
 
-const MAJOR_DEGREE_SUFFIXES = ["", "m7", "m7", "add9", "7", "m7", "m7b5"] as const;
-const MINOR_DEGREE_SUFFIXES = ["m", "m7b5", "", "m7", "m7", "maj7", "7"] as const;
+const MAJOR_DEGREE_SUFFIXES = ["", "m", "m", "", "", "m", "dim"] as const;
+const MINOR_DEGREE_SUFFIXES = ["m", "dim", "", "m", "m", "", ""] as const;
 
 const ROLE_TRANSITION_WEIGHTS: Record<ChordDegreeRole, Record<ChordDegreeRole, number>> = {
   tonic: {
@@ -193,6 +197,15 @@ const ROLE_TRANSITION_WEIGHTS: Record<ChordDegreeRole, Record<ChordDegreeRole, n
     dominant: 0.95,
     colour: 0.45,
   },
+};
+
+// SPEAC phrase roles supply a larger tension arc around Scribbletune's T-P-D functional flow.
+const PHRASE_ROLE_WEIGHTS: Record<HarmonicPhraseRole, Record<ChordDegreeRole, number>> = {
+  statement: { tonic: 1.7, predominant: 0.65, dominant: 0.55, colour: 0.9 },
+  preparation: { tonic: 0.6, predominant: 1.7, dominant: 0.8, colour: 1 },
+  extension: { tonic: 0.8, predominant: 1, dominant: 1.15, colour: 1.35 },
+  antecedent: { tonic: 0.45, predominant: 0.8, dominant: 1.8, colour: 1 },
+  consequent: { tonic: 1.8, predominant: 0.6, dominant: 0.5, colour: 0.8 },
 };
 
 export const SCALE_INTERVALS: Record<ScaleName, number[]> = {
@@ -357,11 +370,25 @@ function pickWeightedDegree(candidates: ChordDegreeMetadata[], weights: number[]
   return candidates.at(-1)!.degree;
 }
 
+function harmonicPhraseRole(
+  index: number,
+  finalIndex: number,
+  cadence: Required<ProgressionProfile>["cadence"],
+): HarmonicPhraseRole {
+  if (index === 0) return "statement";
+  if ((cadence === "strong" || cadence === "soft") && index === finalIndex) return "consequent";
+  if (cadence === "strong" && index === finalIndex - 1) return "antecedent";
+  if (cadence === "soft" && index === finalIndex - 1) return "preparation";
+  return (["statement", "preparation", "extension", "antecedent"] as const)[index % 4];
+}
+
 function weightedDegree(
   degrees: ChordDegreeMetadata[],
   previous: ChordDegreeMetadata | null,
   rng: () => number,
   profile: Required<ProgressionProfile>,
+  phraseRole: HarmonicPhraseRole,
+  motifReference: ChordDegreeMetadata | null,
   allowedRoles?: ChordDegreeRole[],
 ): number {
   const candidates = allowedRoles ? degrees.filter((degree) => allowedRoles.includes(degree.role)) : degrees;
@@ -371,11 +398,13 @@ function weightedDegree(
 
   const weights = candidates.map((degree) => {
     const roleWeight = ROLE_TRANSITION_WEIGHTS[previous.role][degree.role];
+    const phraseWeight = PHRASE_ROLE_WEIGHTS[phraseRole][degree.role];
     const tensionWeight =
       degree.role === "dominant" || degree.role === "colour" ? 0.75 + tension : 1.25 - tension * 0.5;
-    const repeatWeight = degree.degree === previous.degree ? 0.65 + repetition * 1.35 : 1;
-    const rootWeight = degree.degree === 0 ? 0.8 + repetition * 0.55 : 1;
-    return roleWeight * tensionWeight * repeatWeight * rootWeight;
+    const repeatWeight = degree.degree === previous.degree ? 0.35 + repetition * 5.65 : 1;
+    const motifWeight = degree.degree === motifReference?.degree ? 0.5 + repetition * 4.5 : 1;
+    const rootWeight = degree.degree === 0 ? 0.7 + repetition * 1.3 : 1;
+    return roleWeight * phraseWeight * tensionWeight * repeatWeight * motifWeight * rootWeight;
   });
 
   return pickWeightedDegree(candidates, weights, rng);
@@ -390,18 +419,24 @@ function loopCadenceDegree(
 ): number {
   const tension = clamp(profile.tension, 0, 1);
   const repetition = clamp(profile.repetition, 0, 1);
+  const returningDegrees = degrees.filter((degree) => {
+    if (degree.degree === opening.degree) return false;
+    if (opening.role === "tonic") return degree.role === "dominant";
+    return ROLE_TRANSITION_WEIGHTS[degree.role][opening.role] >= 1;
+  });
+  const candidates = returningDegrees.length > 0 ? returningDegrees : degrees.filter((degree) => degree !== opening);
 
-  const weights = degrees.map((degree) => {
+  const weights = candidates.map((degree) => {
     const fromPrevious = previous ? ROLE_TRANSITION_WEIGHTS[previous.role][degree.role] : 1;
     const toOpening = ROLE_TRANSITION_WEIGHTS[degree.role][opening.role];
     const tensionWeight =
       degree.role === "dominant" || degree.role === "colour" ? 0.75 + tension : 1.25 - tension * 0.5;
     const repeatWeight = degree.degree === previous?.degree ? 0.65 + repetition * 1.35 : 1;
-    const openingWeight = degree.degree === opening.degree ? 0.5 + repetition * 0.7 : 1;
-    return fromPrevious * toOpening * tensionWeight * repeatWeight * openingWeight;
+    const openingWeight = degree.degree === opening.degree ? 0.15 + repetition * 0.5 : 1;
+    return fromPrevious * toOpening * toOpening * tensionWeight * repeatWeight * openingWeight;
   });
 
-  return pickWeightedDegree(degrees, weights, rng);
+  return pickWeightedDegree(candidates, weights, rng);
 }
 
 function cadenceDegree(
@@ -411,18 +446,30 @@ function cadenceDegree(
   previous: ChordDegreeMetadata | null,
   opening: ChordDegreeMetadata | null,
   profile: Required<ProgressionProfile>,
+  phraseRole: HarmonicPhraseRole,
+  motifReference: ChordDegreeMetadata | null,
   rng: () => number,
 ): number | null {
   if (profile.cadence === "none") return null;
 
   if (profile.cadence === "strong") {
     if (index === finalIndex) return 0;
-    if (index === finalIndex - 1) return weightedDegree(degrees, previous, rng, profile, ["dominant"]);
+    if (index === finalIndex - 1) return 4;
   }
 
   if (profile.cadence === "soft") {
     if (index === finalIndex) return 0;
-    if (index === finalIndex - 1) return weightedDegree(degrees, previous, rng, profile, ["predominant", "colour"]);
+    if (index === finalIndex - 1) {
+      return weightedDegree(
+        degrees,
+        previous,
+        rng,
+        profile,
+        phraseRole,
+        motifReference,
+        ["predominant", "colour"],
+      );
+    }
   }
 
   if (profile.cadence === "loop" && index === finalIndex && opening) {
@@ -430,6 +477,18 @@ function cadenceDegree(
   }
 
   return null;
+}
+
+function stackedScaleTone(tonic: number, harmony: readonly number[], degree: number, stackOffset: number): number {
+  const scaleIndex = degree + stackOffset;
+  return tonic + harmony[scaleIndex % harmony.length] + Math.floor(scaleIndex / harmony.length) * 12;
+}
+
+function seventhSuffix(triadSuffix: string, root: number, seventh: number): string {
+  if (triadSuffix === "dim") return "m7b5";
+  const interval = seventh - root;
+  if (triadSuffix === "m") return interval === 11 ? "m(maj7)" : "m7";
+  return interval === 11 ? "maj7" : "7";
 }
 
 export function chordPool(key: string, scale: ScaleInput): ChordTemplate[] {
@@ -511,9 +570,12 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
   let start = 0;
   let previousDegree: ChordDegreeMetadata | null = null;
   let openingDegree: ChordDegreeMetadata | null = null;
+  const degreeHistory: ChordDegreeMetadata[] = [];
   const finalSegmentIndex = segments.length - 1;
 
   return segments.map((len, index) => {
+    const phraseRole = harmonicPhraseRole(index, finalSegmentIndex, progressionProfile.cadence);
+    const motifReference = degreeHistory.at(-4) ?? degreeHistory.at(-2) ?? null;
     const cadence = cadenceDegree(
       index,
       finalSegmentIndex,
@@ -521,37 +583,44 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
       previousDegree,
       openingDegree,
       progressionProfile,
+      phraseRole,
+      motifReference,
       rng,
     );
     const degree =
       cadence ??
       (index === 0 && progressionProfile.start === "tonic"
         ? 0
-        : weightedDegree(degrees, previousDegree, rng, progressionProfile));
+        : weightedDegree(degrees, previousDegree, rng, progressionProfile, phraseRole, motifReference));
     const degreeMeta = degrees[degree];
     if (index === 0) openingDegree = degreeMeta;
     previousDegree = degreeMeta;
+    degreeHistory.push(degreeMeta);
     const semitone = degreeMeta.semitone;
     const noteName = NOTE_NAMES[(root + semitone) % 12];
     let suffix = degreeMeta.suffix;
-
-    if (rng() < extensionProbability * 0.4) {
-      suffix = ["sus4", "add9", "9sus4", "7"][Math.floor(rng() * 4)];
-    }
-
-    if (rng() > extensionProbability) {
-      if (suffix === "maj7" || suffix === "add9" || suffix === "7" || suffix === "9sus4") suffix = "";
-      else if (suffix === "m7") suffix = "m";
-      else if (suffix === "m7b5") suffix = "dim";
-    }
-
+    const tonic = 48 + root;
     const tones = [
-      48 + semitone,
-      48 + harmony[(degree + 2) % harmony.length],
-      48 + harmony[(degree + 4) % harmony.length],
+      stackedScaleTone(tonic, harmony, degree, 0),
+      stackedScaleTone(tonic, harmony, degree, 2),
+      stackedScaleTone(tonic, harmony, degree, 4),
     ];
+    const isMinorStrongDominant =
+      (scaleName === "natural-minor" || scaleName === "pentatonic-minor") &&
+      progressionProfile.cadence === "strong" &&
+      index === finalSegmentIndex - 1 &&
+      degree === 4;
 
-    if (rng() < extensionProbability) tones.push(60 + semitone);
+    if (isMinorStrongDominant) {
+      tones[1] += 1;
+      suffix = "";
+    }
+
+    if (rng() < extensionProbability) {
+      const seventh = stackedScaleTone(tonic, harmony, degree, 6);
+      tones.push(seventh);
+      suffix = seventhSuffix(suffix, tones[0], seventh);
+    }
 
     const chord = { name: `${noteName}${suffix}`, len, start, tones };
     start += len;

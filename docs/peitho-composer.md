@@ -88,6 +88,7 @@ type DirectionPresetLibrary = {
   types: DirectionTypePreset[];
   segments: SegmentPreset[];
   options: OptionPreset[];
+  chordDirections: ChordDirectionLibrary;
 };
 ```
 
@@ -98,6 +99,10 @@ type DirectionPresetLibrary = {
 ```ts
 type DirectionTypePreset = {
   name: string;
+  pulseConditions: {
+    genres: PulseGenre[];
+    defaultDecade?: PulseDecade;
+  };
   macro: {
     density: number;
     split: number;
@@ -116,6 +121,8 @@ Field meanings:
 | Field | Meaning |
 | --- | --- |
 | `name` | UI label and preset id. |
+| `pulseConditions.genres` | Explicit translation from the Composer Type to ChordSeqAI-supported genres. |
+| `pulseConditions.defaultDecade` | Optional era default for strongly era-specific Types; users may override it in Pulse mode. |
 | `macro.density` | Base note/event density before Segment and Option adjustments. |
 | `macro.split` | Base melody/counter balance. Higher values favour melody. |
 | `macro.sync` | Base syncopation amount. |
@@ -130,6 +137,7 @@ Example:
 ```json
 {
   "name": "Darkwave",
+  "pulseConditions": { "genres": ["Darkwave", "Electronic"], "defaultDecade": 1980 },
   "macro": { "density": 0.5, "split": 0.55, "sync": 0.34, "rhythm": 0.58 },
   "chordLengths": [2, 2, 3, 4],
   "extensionProbability": 0.52,
@@ -137,6 +145,33 @@ Example:
   "pulseKeywords": ["cold", "minor", "shadowy"]
 }
 ```
+
+### Pulse Model Conditions
+
+Composer Types are the user-facing style vocabulary. Users should not have to choose the same genre again when selecting Peitho-Pulse.
+
+Each Type therefore supplies structured ChordSeqAI conditions through `pulseConditions`. Composer passes these model-supported values to Pulse separately from free-form `pulseKeywords`:
+
+```ts
+ComposerEngine.pulseConditions("Darkwave");
+// { genres: ["Darkwave", "Electronic"], defaultDecade: 1980 }
+```
+
+Examples:
+
+| Composer Type | Pulse genres | Default decade |
+| --- | --- | --- |
+| Cinematic | Soundtrack | none |
+| Lo-Fi | Hip Hop, Electronic | 2010 |
+| New Wave | Electronic, Pop | 1980 |
+| Funk | R&B, Funk & Soul | 1970 |
+| House | Electronic, Disco | 1990 |
+| Post-Rock | Rock, Experimental | 1990 |
+| Darkwave | Darkwave, Electronic | 1980 |
+
+Only genre labels supported by the ChordSeqAI conditioning vector are valid. `defaultDecade` is omitted for broad Types such as Classical, Jazz, Folk, Rock, and Pop rather than forcing an arbitrary era.
+
+When Pulse-specific controls are added to the frontend, the resolved genres should appear as editable chips and the decade as an optional Era selector. Array ignores both fields.
 
 ### Segment Presets
 
@@ -235,22 +270,29 @@ Example:
 
 ### Peitho-Pulse Keyword Chips
 
-When the user selects Peitho-Pulse, Composer should build a default keyword chip set from the selected Type, Segment, and Option:
+When the user selects Peitho-Pulse, Composer builds a default keyword chip set from the selected Type, Segment, Option, and Scale:
 
 ```ts
 const keywords = unique([
   ...typePreset.pulseKeywords,
   ...segmentPreset.pulseKeywords,
   ...optionPreset.pulseKeywords,
+  ...scaleProfile.pulseKeywords,
 ]);
 ```
 
-The user can remove generated chips, add more chips, and optionally add free-text refinement. The final refinement payload should be explicit:
+Before deduplication, the selected Scale profile replaces incompatible mood terms contributed by other presets. For example, `uplifting` remains for a major Rousing Crescendo, becomes `defiant` in pentatonic minor, and becomes `yearning` in natural minor. Natural minor also contributes `minor` and `melancholic`.
+
+Composer also derives one complete, deduplicated catalogue from every `pulseKeywords` entry in the preset file. The refinement control displays two lists:
+
+- **Selected** contains the active Type, Segment, and Option defaults plus any user additions.
+- **Available** contains every catalogue keyword not currently selected.
+
+Clicking a chip moves it between the lists. Reset restores the current Type, Segment, and Option defaults. Refinement is deliberately chip-only so Composer controls remain predictable and can be translated into structured engine inputs.
 
 ```ts
 type PulseRefinement = {
   keywords: string[];
-  text?: string;
 };
 ```
 
@@ -265,8 +307,10 @@ When Type, Segment, Option, or Scale changes, Composer resolves the preset data 
 3. Add selected Option `macro`.
 4. Apply scale shift: pentatonic scales reduce `rhythm` slightly; heptatonic scales increase it slightly.
 5. Clamp macro values into safe ranges.
-6. Pass `chordLengths` and `extensionProbability` from Type into `peitho-array.generateChords()`.
+6. Resolve Type, Segment, and Option into `chordLengths`, `extensionProbability`, and `progressionProfile` before calling `peitho-array.generateChords()`.
 7. Pass resolved macro values plus Segment `profile` and Option `envelope`/`length` into `peitho-array.generateMono()`.
+8. Resolve scale-aware Pulse keywords, including contextual replacements, whenever Type, Segment, Option, or Scale changes.
+9. When Pulse is selected, pass the Type's structured `pulseConditions` separately from editable keyword refinement.
 
 `peitho-pulse` should use the same resolved context when planning AI-generated material, then repair model output through `peitho-array` helpers before returning `PeithoPattern`.
 
@@ -329,27 +373,22 @@ The refinement panel is only visible when `engineModel === "pulse"`. It currentl
 When Pulse mode is selected, Composer initialises keyword chips from the current Type, Segment, and Option:
 
 ```ts
-ComposerEngine.pulseKeywords(type, segment, option);
+ComposerEngine.pulseKeywords(type, segment, option, scale);
 ```
 
-Those keywords come from `pulseKeywords` fields in:
+Those keywords come from `pulseKeywords` fields and `scaleProfiles` in:
 
 ```txt
 apps/peitho-composer/src/direction-presets.json
 ```
 
-The user can:
-
-- remove generated chips
-- re-add suggested preset chips
-- enter optional free-text refinement
+The user can move chips between the complete **Selected** and **Available** lists. Removing a chip makes it available; adding an available chip selects it. Reset restores the current preset defaults. No free-text refinement is accepted.
 
 The intended Pulse refinement payload is:
 
 ```ts
 type PulseRefinement = {
   keywords: string[];
-  text?: string;
 };
 ```
 
@@ -367,6 +406,10 @@ type PulseComposerContext = {
     split: number;
     sync: number;
     rhythm: number;
+  };
+  pulseConditions: {
+    genres: PulseGenre[];
+    decade?: PulseDecade;
   };
   refinement: PulseRefinement;
 };

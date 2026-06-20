@@ -287,7 +287,7 @@ generateChords({
 
 `chordPool()` supports Composer chord-menu selection. `generateChords()` extracts the prototype progression behaviour but adds seed support so generated progressions can be repeatable.
 
-This is still prototype-derived. Product-level presets such as genre, segment, or option should be resolved by the consumer into explicit parameters such as `chordLengths` and `extensionProbability` before calling `peitho-array`.
+This is still prototype-derived. Product-level presets such as genre, segment, or option are resolved by the consumer into explicit parameters such as `chordLengths`, `extensionProbability`, and `progressionProfile` before calling `peitho-array`.
 
 ### Immediate Chord Progression TODO
 
@@ -312,7 +312,7 @@ Use this as the first working checklist:
   - higher `tension` should favour dominant/colour roles
   - higher `repetition` should reuse previous/root material more often
 - [x] Confirm package boundary stays clean: Composer passes resolved numbers/strings; `peitho-array` has no Ballad, Darkwave, Drop, Motorik, or other product preset names.
-- [ ] Add focused tests:
+- [x] Add focused tests:
   - seeded output is repeatable
   - generated chords fill requested bars
   - strong cadence ends on tonic
@@ -322,11 +322,103 @@ Use this as the first working checklist:
 
 Useful reference ideas for this slice:
 
-- Scribbletune: small pattern/sequence vocabulary and light deterministic helpers.
-- `emi-ts`: reuse/motif thinking and avoiding unrelated random events.
+- [x] Scribbletune: tonic -> predominant -> dominant functional progression flow.
+- [x] `emi-ts`: SPEAC-style statement/preparation/extension/antecedent/consequent tension arc.
+- [x] `emi-ts`: reuse earlier phrase-position material instead of only repeating the previous chord.
+- [x] Keep both ideas seeded and Peitho-native; no external runtime objects or dependencies.
 - Magenta: repair/constraint mindset for symbolic sequences, not model code.
 
-Stop point for this slice: `generateChords()` produces more coherent progressions with tests, without changing Composer UI and without adding heavyweight dependencies.
+The implementation is conceptually adapted from the two MIT references above; no source module was copied. It also builds ascending tertian voicings and uses a major V for strong minor cadences.
+
+Stop point before Magenta: `generateChords()` now includes the approved Scribbletune and `emi-ts` ideas, with focused tests and no Composer UI changes.
+
+The weighted generator remains a fallback. It is not the final source of progression quality; the curated seed bank below will become the primary starting point once Pulse has generated and the team has auditioned enough candidates.
+
+### Progression Seed Bank Contract
+
+`peitho-pulse` produces candidates during development. `peitho-array` owns the static runtime bank and the deterministic quality gate.
+
+```text
+ChordSeqAI in peitho-pulse
+    -> candidate progressions
+    -> peitho-array normalise, validate, score and deduplicate
+    -> human audition and curation
+    -> progression-seeds.json
+    -> deterministic selection and key transposition at runtime
+```
+
+Files:
+
+- `packages/peitho-array/src/progression-seeds.schema.json`: shared JSON Schema for Pulse output and the final bank
+- `packages/peitho-array/src/progression-seeds.json`: versioned bank target; empty until curated candidates are accepted
+- `packages/peitho-array/src/progression-seeds.ts`: Roman conversion, validation, scoring, deduplication and deterministic selection
+
+Version 1 seed shape:
+
+```json
+{
+  "degrees": ["i", "VI", "III", "VII"],
+  "mode": "minor",
+  "cadence": "loop",
+  "tension": 0.65,
+  "repetition": 0.4,
+  "source": {
+    "provider": "chord-seq-ai",
+    "model": "conditional_medium",
+    "modelVersion": "1.0.0",
+    "seed": 42,
+    "conditions": {
+      "genres": ["Darkwave"],
+      "decade": 1980
+    }
+  }
+}
+```
+
+Roman tokens use an optional accidental, degree `I..VII` or `i..vii`, and optional diminished or augmented marker: `bII`, `#iv°`, `V`, `vi`, `III+`. Inversions and extensions are deliberately removed during normalisation; the seed captures harmonic movement while Peitho controls voicing and colour.
+
+Pentatonic major uses the major harmonic mode for seed conversion; pentatonic minor uses minor. Conversion round-trips are tested across all 12 keys in both modes.
+
+Default quality gate:
+
+- 3 to 16 chord events
+- at least 3 distinct degrees for 4 to 7 events, or 4 for 8 or more
+- no more than 2 consecutive uses of one degree
+- no degree occupying more than 55% of the progression
+- at least 60% functional transitions
+- ending must satisfy the declared strong, soft, or loop cadence
+- `minimal` and `pedal` tags can explicitly relax repetition limits
+- complete model, version, condition, and generation-seed provenance
+
+Exported helpers:
+
+```ts
+chordSymbolsToRoman(chords, key, mode);
+romanToChordSymbols(degrees, key, mode);
+validateProgressionSeed(seed, constraints);
+dedupeProgressionSeeds(seeds);
+curateProgressionSeeds(seeds, constraints);
+selectProgressionSeed(seeds, query);
+```
+
+Responsibilities:
+
+- Pulse generates broad candidate material and records provenance.
+- Array converts to key-relative degrees, rejects repetition/cadence failures, removes transposed duplicates, and selects accepted seeds repeatably.
+- Composer continues to resolve product names into generic profiles; product names do not enter the Array bank.
+- Humans audition the highest-scoring candidates before the generated file becomes a runtime asset.
+
+Status:
+
+- [x] Shared versioned schema and TypeScript types
+- [x] Chord-symbol to Roman-degree normalisation
+- [x] Roman-degree transposition back to chord symbols
+- [x] Diversity, repetition, functional movement, and cadence validation
+- [x] Scoring, transposition deduplication, and deterministic profile selection
+- [ ] Pulse candidate generator and bulk export
+- [ ] First generated corpus and listening review
+- [ ] Curated seeds committed to `progression-seeds.json`
+- [ ] `generateChords()` switched from weighted fallback to seed-first generation
 
 ### Preset Inputs
 
@@ -335,7 +427,7 @@ Peitho-Composer owns its product preset catalogue. Those presets live with the C
 Composer direction data should be resolved into plain engine inputs:
 
 - macro values: `density`, `split`, `sync`, `rhythm`
-- chord bias: `chordLengths`, `extensionProbability`
+- chord bias: `chordLengths`, `extensionProbability`, `start`, `cadence`, `tension`, `repetition`
 - segment profile: density, register shift, note length multiplier, sync offset
 - option profile: envelope name and note length multiplier
 - drum pattern name if the consumer wants built-in drum grids
@@ -350,6 +442,7 @@ const chords = generateChords({
   seed: 1234,
   chordLengths: preset.chordLengths,
   extensionProbability: preset.extensionProbability,
+  progressionProfile: preset.progressionProfile,
 });
 
 const melody = generateMono({
@@ -368,6 +461,17 @@ const melody = generateMono({
 ```
 
 `peitho-array` should stay generic enough that `peitho-pulse`, games, DAW tools, and Composer can all provide their own preset vocabulary.
+
+Peitho-Composer stores its chord translation rules in `apps/peitho-composer/src/direction-presets.json`:
+
+- type defaults provide the base `ProgressionProfile`
+- segment modifiers shift tension, repetition, harmonic rhythm, extensions, and cadence
+- option modifiers apply the final local direction
+- Composer clamps the resolved values, scales `chordLengths`, then passes only generic values to `generateChords()`
+
+Cadence overrides resolve option first, then segment, then type. Tension and repetition shifts are additive and clamped to `0..1`. Chord-length scales are multiplicative; extension shifts are additive and clamped to `0..1`.
+
+This makes combinations meaningfully different. For example, Ballad + Verse + Rousing Crescendo resolves to shorter harmonic rhythm, richer extensions, rising tension, and a strong cadence. Ballad + Verse + Driving Pulse resolves to higher repetition, leaner extensions, shorter repeated changes, and a loop cadence.
 
 ### Melodic Motion
 
@@ -438,12 +542,7 @@ It currently provides:
 - drum grid generation
 - MIDI byte generation
 
-Next implementation step:
-
-1. Add the minimal `ProgressionProfile` input described above.
-2. Add internal degree-role metadata.
-3. Replace random degree selection with seeded weighted movement.
-4. Add cadence tests before expanding motifs or rhythm grammar.
+The immediate weighted-progression checklist and the progression-seed quality gate are implemented. Runtime seed-first generation waits for the Pulse corpus and listening review.
 
 ## Repair Pass Helpers
 

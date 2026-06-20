@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://peitho.dev/schemas/progression-seeds.v1.json",
+  "title": "Peitho progression seed library",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "seeds"],
+  "properties": {
+    "version": { "const": 1 },
+    "seeds": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/seed" }
+    }
+  },
+  "$defs": {
+    "seed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["degrees", "mode", "cadence", "tension", "repetition", "source"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "degrees": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 16,
+          "items": { "type": "string", "pattern": "^[b#]?(?:VII|III|II|VI|IV|V|I|vii|iii|ii|vi|iv|v|i)[°+]?$" }
+        },
+        "mode": { "enum": ["major", "minor"] },
+        "cadence": { "enum": ["none", "soft", "strong", "loop"] },
+        "tension": { "type": "number", "minimum": 0, "maximum": 1 },
+        "repetition": { "type": "number", "minimum": 0, "maximum": 1 },
+        "harmonicRhythm": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "tags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "modelVersion", "seed"],
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "seed": { "type": "integer" },
+        "conditions": { "type": "object" }
+      }
+    }
+  }
+}

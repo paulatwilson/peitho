@@ -143,14 +143,15 @@ body{margin:0;background:#0c0e12}
         </div>
         <sc-if value="{{ showPulseRefinement }}" hint-placeholder-val="{{ false }}">
         <div style="padding:14px 16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">PULSE REFINEMENT</span><span style="font-size:8.5px;letter-spacing:.08em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">MODEL HINTS</span></div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">PULSE REFINEMENT</span><span onClick="{{ resetPulseKeywords }}" style="font-size:8.5px;letter-spacing:.08em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace;cursor:pointer">RESET</span></div>
+          <div style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace;margin-bottom:7px">SELECTED · {{ pulseSelectedCount }}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px;margin-bottom:13px">
             <sc-for list="{{ pulseChips }}" as="chip" hint-placeholder-count="8"><div onClick="{{ chip.remove }}" style="{{ chip.style }}"><span>{{ chip.label }}</span><span style="font-size:10px;color:#7d828c">×</span></div></sc-for>
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px">
-            <sc-for list="{{ pulseSuggestions }}" as="chip" hint-placeholder-count="6"><div onClick="{{ chip.add }}" style="{{ chip.style }}"><span style="font-size:10px">+</span><span>{{ chip.label }}</span></div></sc-for>
+          <div style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace;margin-bottom:7px">AVAILABLE · {{ pulseAvailableCount }}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow-y:auto;padding-right:3px">
+            <sc-for list="{{ pulseAvailable }}" as="chip" hint-placeholder-count="12"><div onClick="{{ chip.add }}" style="{{ chip.style }}"><span style="font-size:10px">+</span><span>{{ chip.label }}</span></div></sc-for>
           </div>
-          <textarea onInput="{{ pulseTextInput }}" placeholder="Optional free-text refinement..." style="{{ pulseTextStyle }}">{{ pulseText }}</textarea>
         </div>
         </sc-if>
         <div style="padding:15px 16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
@@ -352,14 +353,15 @@ const SEGMENTS=CE.SEGMENTS.slice();
 const OPTIONS=CE.OPTIONS.slice();
 const DRUM_PATTERNS=CE.DRUM_PATTERNS.slice();
 const DRUM_REC=CE.DRUM_REC;
+const PULSE_KEYWORDS=CE.PULSE_KEYWORDS.slice();
 function _rand(){return CE.rand();}
 function _clamp(v,a,b){return CE.clamp(v,a,b);}
 function _genDrums(pat){return CE.genDrums(pat);}
-function _genChords(key,scale,type){return CE.genChords(key,scale,type);}
+function _genChords(key,scale,type,segment,option){return CE.genChords(key,scale,type,segment,option);}
 function _chordPool(key,scale){return CE.chordPool(key,scale);}
 function _scaleMidi(key,scale,lo,hi){return CE.scaleMidi(key,scale,lo,hi);}
 function _recommendMacros(type,segment,option,scale){return CE.recommendMacros(type,segment,option,scale);}
-function _pulseKeywords(type,segment,option){return CE.pulseKeywords(type,segment,option);}
+function _pulseKeywords(type,segment,option,scale){return CE.pulseKeywords(type,segment,option,scale);}
 function _genMono(seed,o){return CE.genMono(seed,o);}
 function _wave(notes,bins){return CE.wave(notes,bins);}
 function _buildMidi(tempo,tracks){return CE.buildMidi(tempo,tracks);}
@@ -373,10 +375,10 @@ class Component extends DCLogic {
     engine:'matrix', view:'grid', bassOnly:false,
     type:'Ballad', segment:'Verse', option:'Rousing Crescendo',
     engineModel:'array', editMode:'note',
-    pulseKeywords:_pulseKeywords('Ballad','Verse','Rousing Crescendo'), pulseText:'',
+    pulseKeywords:_pulseKeywords('Ballad','Verse','Rousing Crescendo','Pentatonic Major'),
     zoom:1, vzoom:1, pan:0, collapseLeft:false, collapseTonality:false, collapseChords:false,
     density:0.48, split:0.55, sync:0.27, rhythm:0.40,
-    chords:_genChords('E','Pentatonic Major','Ballad'), chordsGen:true, chordsLocked:true,
+    chords:_genChords('E','Pentatonic Major','Ballad','Verse','Rousing Crescendo'), chordsGen:true, chordsLocked:true,
     melSeeds:[_rand(),null,null], activeMel:0, melodyLocked:true, melOverride:[null,null,null],
     ctrSeeds:[_rand(),null,null], activeCtr:0, ctrOverride:[null,null,null],
     drumOverride:null,
@@ -403,7 +405,16 @@ class Component extends DCLogic {
   toggleMenu(name){this.setState(function(s){return {openMenu:s.openMenu===name?null:name, openChord:null};});}
   toggleChordMenu(i){this.setState(function(s){return {openChord:s.openChord===i?null:i, openMenu:null};});}
   setChord(i,p){this.setState(function(s){const ch=s.chords.slice();if(ch[i])ch[i]=Object.assign({},ch[i],{name:p.name,tones:p.tones.slice()});return {chords:ch, openChord:null};});}
-  pick(name,val){this.setState(function(s){const ns={openMenu:null};ns[name]=val;if(name==='drumPattern'){ns.drumOverride=null;}if(['key','scale','segment','option','type'].indexOf(name)>=0){ns.melOverride=[null,null,null];ns.ctrOverride=[null,null,null];}if(['type','segment','option','scale'].indexOf(name)>=0){const t=name==='type'?val:s.type,sg=name==='segment'?val:s.segment,op=name==='option'?val:s.option,sc=name==='scale'?val:s.scale;const rec=_recommendMacros(t,sg,op,sc);ns.density=rec.density;ns.split=rec.split;ns.sync=rec.sync;ns.rhythm=rec.rhythm;if(name==='type'||name==='segment'||name==='option'){ns.pulseKeywords=_pulseKeywords(t,sg,op);}}if((name==='key'||name==='scale')&&s.chordsGen){ns.chords=_genChords(name==='key'?val:s.key,name==='scale'?val:s.scale,s.type);}return ns;});}
+  pick(name,val){this.setState(function(s){
+    const ns={openMenu:null};ns[name]=val;
+    const affectsDirection=['key','scale','segment','option','type'].indexOf(name)>=0;
+    const t=name==='type'?val:s.type,sg=name==='segment'?val:s.segment,op=name==='option'?val:s.option,sc=name==='scale'?val:s.scale,k=name==='key'?val:s.key;
+    if(name==='drumPattern'){ns.drumOverride=null;}
+    if(affectsDirection){ns.melOverride=[null,null,null];ns.ctrOverride=[null,null,null];}
+    if(['type','segment','option','scale'].indexOf(name)>=0){const rec=_recommendMacros(t,sg,op,sc);ns.density=rec.density;ns.split=rec.split;ns.sync=rec.sync;ns.rhythm=rec.rhythm;ns.pulseKeywords=_pulseKeywords(t,sg,op,sc);}
+    if(affectsDirection&&s.chordsGen){ns.chords=_genChords(k,sc,t,sg,op);}
+    return ns;
+  });}
 
   _opts(){const s=this.state;return {density:s.density,sync:s.sync,rhythm:s.rhythm,engine:s.engine,option:s.option,segment:s.segment,key:s.key,scale:s.scale};}
   _melNotes(){const s=this.state;if(s.melOverride[s.activeMel])return s.melOverride[s.activeMel];const ms=s.melSeeds[s.activeMel];return ms!=null?_genMono(ms,Object.assign({},this._opts(),{register:[58,84],sparse:0.6+s.split*0.8})):[];}
@@ -437,18 +448,18 @@ class Component extends DCLogic {
   toggleDrumCell(e,kind){const rect=e.currentTarget.getBoundingClientRect();let fx=_clamp((e.clientX-rect.left)/rect.width,0,1);let step=_clamp(Math.round(fx*128),0,127);const d=this._drums();const nd={kick:d.kick.slice(),snare:d.snare.slice(),hat:d.hat.slice(),open:d.open.slice()};const arr=nd[kind];const at=arr.indexOf(step);if(at>=0)arr.splice(at,1);else arr.push(step);this.setState({drumOverride:nd});}
   drumCellTarget(e){const rect=e.currentTarget.getBoundingClientRect();const fy=(e.clientY-rect.top)/rect.height;const kind=fy<0.36?'hat':(fy<0.62?'snare':'kick');this.toggleDrumCell(e,kind);}
   waveStyles(arr,color){const g=this.glow();return arr.map(function(h){return {style:{flex:'1 1 0',height:(Math.max(h,0.04)*86)+'%',minHeight:'2px',alignSelf:'center',borderRadius:'1px',background:'linear-gradient(180deg,'+color+'ee,'+color+'40)',boxShadow:(g&&h>0.55)?('0 0 6px '+color+'55'):'none'}};});}
-  setPulse(){this.setState(function(s){return {engineModel:'pulse',pulseKeywords:(s.pulseKeywords&&s.pulseKeywords.length)?s.pulseKeywords:_pulseKeywords(s.type,s.segment,s.option)};});}
+  setPulse(){this.setState({engineModel:'pulse'});}
   setArray(){this.setState({engineModel:'array'});}
   addPulseKeyword(label){this.setState(function(s){const cur=s.pulseKeywords||[];return cur.indexOf(label)>=0?null:{pulseKeywords:cur.concat(label)};});}
   removePulseKeyword(label){this.setState(function(s){return {pulseKeywords:(s.pulseKeywords||[]).filter(function(x){return x!==label;})};});}
-  pulseTextInput(e){this.setState({pulseText:e.currentTarget.value});}
+  resetPulseKeywords(){this.setState(function(s){return {pulseKeywords:_pulseKeywords(s.type,s.segment,s.option,s.scale)};});}
 
-  regenChord(i){this.setState(function(s){const one=_genChords(s.key,s.scale,s.type)[0]||{name:'C',tones:[48,52,55]};const ch=s.chords.slice();ch[i]=Object.assign({},ch[i],{name:one.name,tones:one.tones});return {chords:ch};});}
-  addChord(){this.setState(function(s){if(s.chords.length>=16)return null;const ch=s.chords.slice();let idx=-1,mx=1;ch.forEach(function(c,i){if(c.len>mx){mx=c.len;idx=i;}});if(idx<0)return null;const c=ch[idx];const one=_genChords(s.key,s.scale,s.type)[0];const half=Math.floor(c.len/2);ch.splice(idx,1,Object.assign({},c,{len:c.len-half}),{name:one.name,len:half,tones:one.tones,start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
+  regenChord(i){this.setState(function(s){const one=_genChords(s.key,s.scale,s.type,s.segment,s.option)[0]||{name:'C',tones:[48,52,55]};const ch=s.chords.slice();ch[i]=Object.assign({},ch[i],{name:one.name,tones:one.tones});return {chords:ch};});}
+  addChord(){this.setState(function(s){if(s.chords.length>=16)return null;const ch=s.chords.slice();let idx=-1,mx=1;ch.forEach(function(c,i){if(c.len>mx){mx=c.len;idx=i;}});if(idx<0)return null;const c=ch[idx];const one=_genChords(s.key,s.scale,s.type,s.segment,s.option)[0];const half=Math.floor(c.len/2);ch.splice(idx,1,Object.assign({},c,{len:c.len-half}),{name:one.name,len:half,tones:one.tones,start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
   splitChord(i){this.setState(function(s){const c=s.chords[i];if(!c||c.len<2)return null;const ch=s.chords.slice();const a=Math.ceil(c.len/2),b=c.len-a;ch.splice(i,1,{name:c.name,len:a,tones:c.tones.slice(),start:0},{name:c.name,len:b,tones:c.tones.slice(),start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
   mergeChord(i){this.setState(function(s){const c=s.chords[i],n=s.chords[i+1];if(!c||!n||c.name!==n.name)return null;const ch=s.chords.slice();ch.splice(i,2,{name:c.name,len:c.len+n.len,tones:c.tones.slice(),start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
   clearAll(){this.setState({chords:[],chordsGen:false,chordsLocked:false,melSeeds:[null,null,null],melodyLocked:false,ctrSeeds:[null,null,null]});}
-  genChords(){this.setState(function(s){return {chords:_genChords(s.key,s.scale,s.type),chordsGen:true,chordsLocked:true};});}
+  genChords(){this.setState(function(s){return {chords:_genChords(s.key,s.scale,s.type,s.segment,s.option),chordsGen:true,chordsLocked:true};});}
   toggleLockChords(){this.setState(function(s){return s.chordsGen?{chordsLocked:!s.chordsLocked}:null;});}
   genMel(){this.setState(function(s){if(!s.chordsLocked)return null;const m=s.melSeeds.slice();m[s.activeMel]=_rand();const o=s.melOverride.slice();o[s.activeMel]=null;return {melSeeds:m,melOverride:o,melodyLocked:true};});}
   regenMel(){this.setState(function(s){const m=s.melSeeds.slice();m[s.activeMel]=_rand();const o=s.melOverride.slice();o[s.activeMel]=null;return {melSeeds:m,melOverride:o};});}
@@ -518,7 +529,7 @@ class Component extends DCLogic {
     const hx=(s.seed>>>0).toString(16).toUpperCase();
     const padded=('00000000'+hx).slice(-8);
     const pulseKeys=s.pulseKeywords||[];
-    const defaultPulse=_pulseKeywords(s.type,s.segment,s.option).filter(function(k){return pulseKeys.indexOf(k)<0;});
+    const availablePulse=PULSE_KEYWORDS.filter(function(k){return pulseKeys.indexOf(k)<0;});
     const pulseChipStyle=function(active){return {display:'flex',alignItems:'center',gap:'5px',padding:'5px 8px',borderRadius:'6px',fontSize:'10px',lineHeight:1,cursor:'pointer',background:active?self._rgba(sel,0.16):'#1a1e25',color:active?'#dfe9f6':'#9aa0aa',border:'1px solid '+(active?self._rgba(sel,0.44):'rgba(255,255,255,.08)')};};
 
     return {
@@ -530,10 +541,10 @@ class Component extends DCLogic {
       engineCheckStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'20px',height:'20px',flex:'none',borderRadius:'50%',background:sel,color:'#fff'},
       enginePulseStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'pointer',background:s.engineModel==='pulse'?self._rgba(sel,0.12):'#1a1e25',border:'1px solid '+(s.engineModel==='pulse'?self._rgba(sel,0.55):'rgba(255,255,255,.06)'),opacity:1},
       showPulseRefinement:s.engineModel==='pulse',
-      pulseText:s.pulseText||'', pulseTextInput:function(e){self.pulseTextInput(e);},
-      pulseTextStyle:{width:'100%',minHeight:'70px',resize:'vertical',display:'block',padding:'9px 10px',borderRadius:'7px',border:'1px solid rgba(255,255,255,.09)',outline:'none',background:'#101319',color:'#cfd3da',fontSize:'11px',lineHeight:1.35,fontFamily:'inherit'},
       pulseChips:pulseKeys.map(function(k){return {label:k,remove:function(){self.removePulseKeyword(k);},style:pulseChipStyle(true)};}),
-      pulseSuggestions:defaultPulse.slice(0,8).map(function(k){return {label:k,add:function(){self.addPulseKeyword(k);},style:pulseChipStyle(false)};}),
+      pulseAvailable:availablePulse.map(function(k){return {label:k,add:function(){self.addPulseKeyword(k);},style:pulseChipStyle(false)};}),
+      pulseSelectedCount:String(pulseKeys.length), pulseAvailableCount:String(availablePulse.length),
+      resetPulseKeywords:function(){self.resetPulseKeywords();},
       macroSeed:'Seeded from '+s.type+' · '+s.segment+' · '+s.option,
       // zoom + pan
       matrixContentStyle:matrixContentStyle,

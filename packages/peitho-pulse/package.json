@@ -14,8 +14,9 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@peitho/array": "workspace:*",
     "@magenta/music": "^1.23.1",
-    "@tensorflow/tfjs": "^4.22.0"
+    "@peitho/array": "workspace:*",
+    "@tensorflow/tfjs": "^4.22.0",
+    "onnxruntime-node": "^1.27.0"
   }
 }

@@ -151,7 +151,7 @@ Each response feeds the next call. Pulse returns a full `PeithoPattern` each tim
 | --- | --- | --- |
 | Magenta.js (`@magenta/music`) | **Stage 1 — active.** ImprovRNN for chord-conditioned melody and counter. DrumsRNN for beat generation. TF.js runtime. | adding ML inference to `peitho-array`; audio generation |
 | `peitho-array` | repair passes (`snapToScale`, `quantizeToGrid`, `thinDensity`), shared types (`NoteEvent`, `ChordEvent`, `PeithoPattern`), seeded generation as fallback | stochastic model inference; Composer-specific presets |
-| TyTorch / libtorch | **Stage 2 — future.** Load PyTorch-format symbolic MIDI models (e.g. MMM) without Python. Replaces TF.js backend if Bun compatibility confirmed. | Stage 1 work |
+| TyTorch / libtorch | **Stage 2 — future.** Load TyTorch-format symbolic MIDI models (e.g. MMM) without Python. Replaces TF.js backend if Bun compatibility confirmed. | Stage 1 work |
 | MLX (Apple Silicon) | **Stage 3 — future.** Native Apple Silicon inference. Replaces TF.js and TyTorch when model conversion is ready. | Stage 1–2 work |
 | ACE-Step 1.5 LM planner | **Future consideration.** Text-to-structure planning layer. Feeds `PulseRequest.prompt` if a text-conditioned model is added. Not a melody generator — audio path is out of scope. | primary note generation; Python runtime |
 
@@ -172,6 +172,14 @@ Key concepts used by Pulse:
 
 `@magenta/music` is a `peitho-pulse` dependency only. It must not enter `peitho-array`.
 
+## TyTorch Reference
+
+Reference: `https://github.com/astrohackerlabs/tytorch`
+
+TyTorch is the TypeScript runtime for loading and running symbolic MIDI models with TyTorch weights. No Python in the runtime path. Node.js 24+ required — Bun compatibility to be confirmed.
+
+Used in Stage 2 as `TytorchPulsePlanner` for models not covered by Magenta (e.g. MMM, Anticipatory Music Transformer).
+
 ## Staging
 
 ### Stage 1 — Magenta.js (active)
@@ -188,7 +196,7 @@ Checkpoints load from Google storage by default. Local checkpoint path can be pa
 
 ### Stage 2 — TyTorch / libtorch (future)
 
-Evaluate loading PyTorch-format MIDI models (e.g. MMM multi-track transformer) via TyTorch TypeScript bindings to libtorch. No Python in runtime. Node.js 24+ required — Bun compatibility to be confirmed.
+Evaluate loading TyTorch-format MIDI models (e.g. MMM multi-track transformer) via TyTorch TypeScript bindings to libtorch. No Python in runtime. Node.js 24+ required — Bun compatibility to be confirmed.
 
 Outcome: if viable, implement `TytorchPulsePlanner` as an alternative to `MagentaPulsePlanner`.
 
@@ -379,6 +387,142 @@ Awaiting `validatePattern()` export from `peitho-array`.
 
 AI output compiles to the same event format as deterministic generation. The app should not care whether material came from `peitho-array` alone or from `peitho-pulse`.
 
+## ChordSeqAI Reference
+
+Reference:
+
+```txt
+https://github.com/PetrIvan/chord-seq-ai-app   — app + deployed ONNX models
+https://github.com/StudentTraineeCenter/chord-seq-ai — training code + PyTorch weights
+```
+
+Licence:
+
+```txt
+MIT (Student Trainee Center, 2023)
+```
+
+ChordSeqAI provides seven pre-trained ONNX models for autoregressive chord sequence generation. It is used exclusively as **development tooling** to build `progression-seeds.json` — a static chord progression seed bank consumed by `peitho-array`. It does not enter the runtime pipeline.
+
+### Models
+
+| Model file | Size | Conditioning |
+| --- | --- | --- |
+| `recurrent_net.onnx` | 1.4 MB | none |
+| `transformer_small.onnx` | 4.5 MB | none |
+| `transformer_medium.onnx` | 9.4 MB | none |
+| `transformer_large.onnx` | 18 MB | none |
+| `conditional_small.onnx` | 4.6 MB | genre + decade |
+| `conditional_medium.onnx` | 9.6 MB | genre + decade |
+| `conditional_large.onnx` | 18 MB | genre + decade |
+
+Primary candidate: **Conditional Transformer Medium** — genre conditioning at 9.6 MB. Benchmark all seven before locking in.
+
+### Chord vocabulary
+
+1,033 unique chord tokens (0–1032). Covers triads, 7ths, 9ths–13ths, suspended, augmented, slash chords, and all inversions. Bidirectional deterministic mapping defined in `token_to_chord.ts`. Max sequence length: 255 chords.
+
+### Conditioning
+
+The Conditional Transformer accepts a 28-dim style vector: 20 genres (multi-hot, sum-normalised) + 8 decades (one-hot).
+
+**Genres (20):** Rock, Folk, Pop, Soundtrack, R&B/Funk/Soul, Country, Jazz, Experimental, Religious Music, Reggae & Ska, Hip Hop, Electronic, Comedy, Metal, Blues, World Music, Disco, Classical, New Age, Darkwave.
+
+**Decades (8):** 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020.
+
+Composer Types map explicitly to supported genres through `direction-presets.json` → `pulseConditions`. `pulseKeywords` remain separate free-form model hints and must not be parsed to infer ChordSeqAI genres. Composer resolves the structured genres and optional default decade before calling the generator.
+
+### Limitations
+
+- **No duration output.** Training ignored chord durations; consecutive duplicates are merged. Durations must be assigned by a post-pass using the `harmonic-rhythm` profile.
+- **No built-in seed.** Inference uses multinomial sampling. Determinism requires a seeded JS PRNG (mulberry32) wrapping the softmax output.
+- **Decade conditioning is coarse.** Genre conditioning is the primary quality lever.
+
+### Useful areas
+
+- Autoregressive next-chord prediction (input: sequence so far → output: next chord probabilities)
+- Genre/decade style conditioning via `AdaptiveLayerNorm`
+- Temperature scaling for tension control
+- Batch generation of multiple candidates in one pass
+- Pre-exported ONNX weights — no training required
+
+### Avoid
+
+- Using ChordSeqAI in the real-time `peitho-pulse` runtime — it is dev tooling only
+- Expecting duration information from model output
+- Treating decade conditioning as a precise style control
+
+### Training data
+
+"A collection of publicly available datasets mixed with data scraped from music banks." Chord progressions are not copyright-protectable (music theory, not creative expression). Model weights are MIT licensed with no additional restrictions. All Python training dependencies (PyTorch, music21, pandas) are BSD.
+
+### Runtime
+
+`onnxruntime-node` CPU backend. No WebGPU required for CLI use. Bun N-API compatibility needs a smoke test; fall back to Node.js 24+ if needed. Model files are not checked into git — downloaded by a setup script into `packages/peitho-pulse/models/`.
+
+## ChordSeqAI Staging
+
+### Stage 1: Benchmark (next)
+
+Run all seven ONNX models on identical inputs. Measure:
+
+- Latency (ms per candidate, target: <2 s)
+- Harmonic coherence (% of degree transitions valid in target scale)
+- Variety (unique progressions across N candidates from same seed)
+- Conditioning fidelity (does Jazz conditioning differ from Metal?)
+- Determinism (same seed → same sequence across 3 runs)
+
+Output: model recommendation with data.
+
+### Stage 2: CLI seed generator
+
+Build `packages/peitho-pulse/src/cli/generate-seeds.ts`.
+
+Inputs: mode/key, chord count, cadence, tension, repetition, harmonic-rhythm profile, genre, decade, seed, candidate count.
+
+Pipeline:
+
+1. Encode style vector from genre + decade inputs
+2. Run Conditional Transformer autoregressively until chord count reached
+3. Assign durations via harmonic-rhythm post-pass
+4. Convert chord names → Roman degree notation relative to key
+5. Remove transposition duplicates
+6. Return candidates in neutral format (see Output Format below)
+
+Output format per candidate:
+
+```json
+{
+  "degrees": ["i", "VI", "III", "VII"],
+  "mode": "minor",
+  "cadence": "loop",
+  "tension": 0.65,
+  "repetition": 0.4,
+  "source": {
+    "provider": "chord-seq-ai",
+    "model": "conditional_medium",
+    "modelVersion": "1.0.0",
+    "seed": 42,
+    "conditions": {
+      "genres": ["Jazz", "Classical"],
+      "decade": 1980
+    }
+  }
+}
+```
+
+### Stage 3: Bulk generation
+
+Run the CLI across Composer's Type × Segment × Option combinations (up to 6,084 combinations). Curate output into `progression-seeds.json` for `peitho-array`.
+
+### Stage 4: Tests
+
+- Deterministic output (same seed → same sequence)
+- Valid chord tokens (all tokens within 0–1032)
+- Candidate count matches requested count
+- Roman-degree conversion correct for all 12 keys × 4 scales
+- Duplicate removal (transposition-normalised)
+
 ## Model Candidates
 
 All models we want to evaluate and integrate. Goal: best of all worlds — use the right model for each pipeline step. No Python in runtime.
@@ -389,11 +533,12 @@ All models we want to evaluate and integrate. Goal: best of all worlds — use t
 | DrumsRNN | Magenta / Google | Beats — pattern continuation | TF.js | Stage 1, active |
 | MusicVAE | Magenta / Google | Style variation / interpolation between takes | TF.js | Evaluate after Stage 1 |
 | MusicTransformer | Magenta / Google | Melody — high-quality, GiantMIDI trained | TF.js / TyTorch | Evaluate vs ImprovRNN |
-| MMM (Multi-Track Music Machine) | Huggingface | Counter-melody — multi-track, chord-conditioned | TyTorch (PyTorch weights) | Stage 2 candidate |
-| Anticipatory Music Transformer | Stanford | Counter-melody — MIDI infilling, chord-aware | TyTorch (PyTorch weights) | Stage 2 candidate |
+| MMM (Multi-Track Music Machine) | Huggingface | Counter-melody — multi-track, chord-conditioned | TyTorch (TyTorch weights) | Stage 2 candidate |
+| Anticipatory Music Transformer | Stanford | Counter-melody — MIDI infilling, chord-aware | TyTorch (TyTorch weights) | Stage 2 candidate |
 | ABC Notation LMs | Huggingface | LM planning — text prompt → ABC notation → notes | MLX / TyTorch | Stage 3 candidate |
 | emi-ts SPEAC | `paulatwilson/emi-ts` | Counter-melody — structural phrase grammar, call-and-response | Bun, zero deps | Integrate after Stage 1 |
 | ACE-Step 1.5 LM planner | `ace-step/ACE-Step-1.5` | LM planning — structure/blueprint from text prompt | MLX / native | Stage 4 |
+| ChordSeqAI (Conditional Transformer) | `PetrIvan/chord-seq-ai-app` | Chords — seed bank generation; genre/style-conditioned | onnxruntime-node (dev tooling only) | Stage 2 candidate |
 
 ### Runtime priority
 
@@ -446,3 +591,5 @@ Next steps:
 2. Enable the Pulse engine button in `apps/peitho-composer/public/index.html`.
 3. Download and serve Magenta checkpoints locally (remove Google storage dependency).
 4. Implement `TytorchPulsePlanner` once Bun compatibility with TyTorch is confirmed (Stage 2).
+5. Benchmark all seven ChordSeqAI ONNX models (ChordSeqAI Stage 1).
+6. Build `generate-seeds.ts` CLI and produce first `progression-seeds.json` draft (ChordSeqAI Stage 2).
