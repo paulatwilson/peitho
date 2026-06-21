@@ -327,6 +327,7 @@ body{margin:0;background:#0c0e12}
               <div style="display:flex;align-items:center;gap:6px">
                 <div onClick="{{ regenAllChords }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
                 <div onClick="{{ midiChords }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+                <div onClick="{{ openArpModal }}" style="{{ arpBtnStyle }}" title="Arpeggiator"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h3v-4H3z"/><path d="M8 20h3v-8H8z"/><path d="M13 20h3v-12H13z"/><path d="M18 20h3v-16H18z"/></svg></div>
               </div>
               <div onClick="{{ instr_chords.toggleMenu }}" style="{{ instr_chords.btnStyle }}"><span style="font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9aa0aa">{{ instr_chords.instrName }}</span><span style="font-size:8px;color:#5f646e">▾</span></div>
             </div>
@@ -453,6 +454,23 @@ body{margin:0;background:#0c0e12}
 
   </div>
 
+  <sc-if value="{{ arpModalOpen }}" hint-placeholder-val="{{ false }}"><div style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:flex;align-items:center;justify-content:center" onClick="{{ cancelArpModal }}"><div style="background:#181c22;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:22px 24px;width:560px;max-width:96vw;box-shadow:0 32px 80px rgba(0,0,0,.7)" onClick="{{ arpModalStop }}">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="width:26px;height:26px;border-radius:7px;background:rgba(111,147,184,.2);border:1px solid rgba(111,147,184,.4);display:flex;align-items:center;justify-content:center;color:#6f93b8"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h3v-4H3z"/><path d="M8 20h3v-8H8z"/><path d="M13 20h3v-12H13z"/><path d="M18 20h3v-16H18z"/></svg></div><span style="font-size:14px;font-weight:600;letter-spacing:.02em">Arpeggiator</span></div>
+      <div onClick="{{ cancelArpModal }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:#21262f;cursor:pointer;color:#8a8f99"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+    </div>
+    <div style="display:flex;gap:20px;margin-bottom:18px;flex-wrap:wrap">
+      <div><div style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace;margin-bottom:7px">TIME</div><div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px"><div onClick="{{ setArpTime16n }}" style="{{ arpTime16nStyle }}">1/16</div><div onClick="{{ setArpTime8n }}" style="{{ arpTime8nStyle }}">1/8</div><div onClick="{{ setArpTime4n }}" style="{{ arpTime4nStyle }}">1/4</div></div></div>
+      <div><div style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace;margin-bottom:7px">STEPS</div><div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px"><div onClick="{{ setArpSteps3 }}" style="{{ arpSteps3Style }}">3</div><div onClick="{{ setArpSteps4 }}" style="{{ arpSteps4Style }}">4</div><div onClick="{{ setArpSteps5 }}" style="{{ arpSteps5Style }}">5</div><div onClick="{{ setArpSteps6 }}" style="{{ arpSteps6Style }}">6</div></div></div>
+      <div><div style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace;margin-bottom:7px">TYPE</div><div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px"><div onClick="{{ setArpTypeStraight }}" style="{{ arpTypeStraightStyle }}">Straight</div><div onClick="{{ setArpTypeLooped }}" style="{{ arpTypeLoopedStyle }}">Looped</div></div></div>
+    </div>
+    <div style="margin-bottom:18px"><div style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace;margin-bottom:8px">STYLE</div><div style="display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow-y:auto;padding:2px"><sc-for list="{{ arpStyleItems }}" as="ap" hint-placeholder-count="6"><div onClick="{{ ap.pick }}" style="{{ ap.style }}"><svg width="32" height="24" viewBox="{{ ap.svgVB }}" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;overflow:visible"><polyline points="{{ ap.svgPts }}"/></svg></div></sc-for></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid rgba(255,255,255,.07)">
+      <div onClick="{{ toggleArpPreview }}" style="{{ arpPreviewStyle }}"><sc-if value="{{ arpPreviewing }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></sc-if><sc-if value="{{ arpNotPreviewing }}" hint-placeholder-val="{{ true }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg></sc-if><span style="font-size:12px;font-weight:600;letter-spacing:.04em">{{ arpPreviewLabel }}</span></div>
+      <div style="display:flex;gap:8px"><div onClick="{{ turnOffArp }}" style="display:flex;align-items:center;gap:6px;padding:9px 16px;background:#1a1e25;border:1px solid rgba(255,255,255,.1);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:#9aa0aa">Turn Off</div><div onClick="{{ acceptArpModal }}" style="display:flex;align-items:center;gap:6px;padding:9px 16px;background:#6f93b8;border:1px solid transparent;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:#fff">Accept</div></div>
+    </div>
+  </div></div></sc-if>
+
   <sc-if value="{{ anyMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeMenus }}" style="position:fixed;inset:0;z-index:50"></div></sc-if>
 </div>
 </x-dc>
@@ -486,6 +504,10 @@ function _genMono(seed,o){return CE.genMono(seed,o);}
 function _wave(notes,bins){return CE.wave(notes,bins);}
 function _buildMidi(tempo,tracks){return CE.buildMidi(tempo,tracks);}
 function _dl(bytes,name){const blob=new Blob([bytes],{type:'audio/midi'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);}
+function _arpPermute(arr){const used=[],perms=[];function go(a){if(perms.length>=24)return;for(let i=0;i<a.length;i++){if(perms.length>=24)return;const ch=a.splice(i,1)[0];used.push(ch);if(a.length===0)perms.push(used.slice());go(a);a.splice(i,0,ch);used.pop();}}go(arr.slice());return perms;}
+function _arpLoop(perms){return perms.map(function(p){const a=p.slice();for(let x=1;x<p.length-1;x++)a.push(p[p.length-1-x]);return a;});}
+function _arpPatterns(steps){const arr=[];for(let i=0;i<steps;i++)arr.push(i);const st=_arpPermute(arr);return {straight:st,looped:_arpLoop(st)};}
+function _arpNotes(chords,steps,type,style,timeMode){if(!chords.length)return[];const ss=timeMode==='8n'?2:timeMode==='4n'?4:1;const pats=_arpPatterns(steps);const patterns=pats[type]||pats.straight;const pat=patterns[Math.min(style,patterns.length-1)];const out=[];for(const c of chords){const tones=c.tones||[];if(!tones.length)continue;const ext=[];for(let i=0;i<steps;i++)ext.push(tones[i%tones.length]+Math.floor(i/tones.length)*12);const s0=c.start*8,s1=s0+c.len*8;let pos=s0,pi=0;while(pos<s1){const ni=pat[pi%pat.length];const nl=Math.min(ss,s1-pos);if(nl>=1)out.push({step:Math.round(pos),len:Math.round(nl),midi:ext[ni]});pos+=ss;pi++;}}return out;}
 
 class Component extends DCLogic {
   phRef = React.createRef();
@@ -512,7 +534,8 @@ class Component extends DCLogic {
     solo:{chord:false,bass:false,mel:false,ctr:false,drums:false},
     openMenu:null, openChord:null, drumPattern:'Basic 8th-Note', playing:false, loop:true, seed:0x9F3AC71E,
     instruments:{chords:'String Ensemble',melody:'Electric Piano 1',bass:'Acoustic Bass',counter:'Acoustic Piano',drumsKit:'Acoustic'},
-    openInstrMenu:null, instrMenuPos:null
+    openInstrMenu:null, instrMenuPos:null,
+    arpOn:false, arpSteps:3, arpType:'straight', arpStyle:0, arpTimeMode:'16n', arpModalOpen:false, arpSnapshot:null
   };
   componentWillUnmount(){this._pause();if(this.ctx){try{this.ctx.close();}catch(e){}}}
   componentDidMount(){this._ensureAudio();}
@@ -554,7 +577,8 @@ class Component extends DCLogic {
   computeNotes(){
     const s=this.state;
     const chord=[];
-    for(const c of s.chords){for(const m of c.tones){chord.push({step:c.start*8,len:c.len*8,midi:m});}}
+    if((s.arpOn||s.arpModalOpen)&&s.chords.length){for(const n of _arpNotes(s.chords,s.arpSteps,s.arpType,s.arpStyle,s.arpTimeMode))chord.push(n);}
+    else{for(const c of s.chords){for(const m of c.tones){chord.push({step:c.start*8,len:c.len*8,midi:m});}}}
     const mel=this._melNotes(); const ctr=this._ctrNotes();
     const bass=[]; for(const c of s.chords){const pc=((c.tones&&c.tones[0])||48)%12;bass.push({step:c.start*8,len:c.len*8,midi:36+pc});}
     return {chord:chord,mel:mel,ctr:ctr,bass:bass};
@@ -661,6 +685,14 @@ class Component extends DCLogic {
   setInstrument(voice,name){if(this.ctx)SoundfontPlayer.load(this.ctx,name);this.setState(function(s){const i=Object.assign({},s.instruments);i[voice]=name;return {instruments:i,openInstrMenu:null,instrMenuPos:null};});}
   setDrumsKit(kit){if(this.ctx)SoundfontPlayer.load(this.ctx,kit);this.setState(function(s){const i=Object.assign({},s.instruments);i.drumsKit=kit;return {instruments:i};});}
   resetInstruments(){this.setState({instruments:{chords:'String Ensemble',melody:'Electric Piano 1',bass:'Acoustic Bass',counter:'Acoustic Piano',drumsKit:'Acoustic'}});}
+  openArpModal(){this.setState(function(s){return {arpModalOpen:true,openMenu:null,openChord:null,openInstrMenu:null,instrMenuPos:null,arpSnapshot:{on:s.arpOn,steps:s.arpSteps,type:s.arpType,style:s.arpStyle,timeMode:s.arpTimeMode}};});}
+  cancelArpModal(){this.setState(function(s){const snap=s.arpSnapshot||{};return {arpModalOpen:false,arpOn:!!snap.on,arpSteps:snap.steps||3,arpType:snap.type||'straight',arpStyle:snap.style||0,arpTimeMode:snap.timeMode||'16n',arpSnapshot:null};});}
+  acceptArpModal(){this.setState({arpModalOpen:false,arpOn:true,arpSnapshot:null});}
+  turnOffArp(){this.setState({arpModalOpen:false,arpOn:false,arpSnapshot:null});}
+  setArpSteps(v){this.setState({arpSteps:v,arpStyle:0});}
+  setArpType(v){this.setState({arpType:v,arpStyle:0});}
+  setArpStyle(v){this.setState({arpStyle:v});}
+  setArpTimeMode(v){this.setState({arpTimeMode:v});}
 
   menuItems(name,list,current){const self=this;const sel=this.sel();return list.map(function(v){const a=v===current;return {label:v,pick:function(){self.pick(name,v);},style:{padding:'8px 12px',fontSize:'12.5px',cursor:'pointer',borderRadius:'6px',whiteSpace:'nowrap',color:a?'#e9eaee':'#9aa0aa',background:a?self._rgba(sel,0.16):'transparent',fontWeight:a?600:400}};});}
   tabItems(seeds,active,color,kind){const self=this;return [0,1,2].map(function(i){const filled=seeds[i]!=null;const isA=i===active;return {label:'V'+(i+1),pick:function(){kind==='mel'?self.pickMel(i):self.pickCtr(i);},style:{padding:'4px 9px',fontSize:'10px',borderRadius:'5px',cursor:'pointer',fontFamily:'ui-monospace,Menlo,monospace',letterSpacing:'.04em',background:isA?self._rgba(color,0.18):'transparent',color:isA?color:(filled?'#cfd3da':'#5f646e'),border:'1px solid '+(isA?self._rgba(color,0.6):'rgba(255,255,255,.08)')}};});}
@@ -885,7 +917,39 @@ class Component extends DCLogic {
       // footer
       exportMidi:function(){self.exportMidi();},
       exportBtnStyle:{display:'flex',alignItems:'center',gap:'10px',padding:'13px 22px',borderRadius:'9px',cursor:'pointer',background:sel,color:'#fff',fontSize:'12px',fontWeight:700},
-      seedHex:'0x'+padded.slice(0,4)+'·'+padded.slice(4), scrambleSeed:function(){self.scrambleSeed();}
+      seedHex:'0x'+padded.slice(0,4)+'·'+padded.slice(4), scrambleSeed:function(){self.scrambleSeed();},
+      // arpeggiator
+      arpModalOpen:s.arpModalOpen,
+      openArpModal:function(){self.openArpModal();},
+      cancelArpModal:function(){self.cancelArpModal();},
+      acceptArpModal:function(){self.acceptArpModal();},
+      turnOffArp:function(){self.turnOffArp();},
+      arpModalStop:function(e){e.stopPropagation();},
+      arpBtnStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'26px',height:'26px',background:s.arpOn?self._rgba('#6f93b8',0.2):'#1a1e25',border:'1px solid '+(s.arpOn?'rgba(111,147,184,.5)':'rgba(255,255,255,.08)'),borderRadius:'6px',cursor:'pointer',color:s.arpOn?'#6f93b8':'#9aa0aa'},
+      setArpTime16n:function(){self.setArpTimeMode('16n');},
+      setArpTime8n:function(){self.setArpTimeMode('8n');},
+      setArpTime4n:function(){self.setArpTimeMode('4n');},
+      arpTime16nStyle:segBtn(s.arpTimeMode==='16n'),
+      arpTime8nStyle:segBtn(s.arpTimeMode==='8n'),
+      arpTime4nStyle:segBtn(s.arpTimeMode==='4n'),
+      setArpSteps3:function(){self.setArpSteps(3);},
+      setArpSteps4:function(){self.setArpSteps(4);},
+      setArpSteps5:function(){self.setArpSteps(5);},
+      setArpSteps6:function(){self.setArpSteps(6);},
+      arpSteps3Style:segBtn(s.arpSteps===3),
+      arpSteps4Style:segBtn(s.arpSteps===4),
+      arpSteps5Style:segBtn(s.arpSteps===5),
+      arpSteps6Style:segBtn(s.arpSteps===6),
+      setArpTypeStraight:function(){self.setArpType('straight');},
+      setArpTypeLooped:function(){self.setArpType('looped');},
+      arpTypeStraightStyle:segBtn(s.arpType==='straight'),
+      arpTypeLoopedStyle:segBtn(s.arpType==='looped'),
+      arpStyleItems:(function(){const pats=_arpPatterns(s.arpSteps);const list=(pats[s.arpType]||pats.straight);return list.map(function(pat,i){const active=i===s.arpStyle;const hi=Math.max.apply(null,pat);const sp=2;const vbW=(pat.length+1)*sp;const vbH=hi*sp+sp*2;const pts=pat.map(function(v,j){return ((j+1)*sp)+','+(vbH-v*sp-sp);}).join(' ');return {pick:function(){self.setArpStyle(i);},style:{display:'flex',alignItems:'center',justifyContent:'center',padding:'6px',borderRadius:'6px',cursor:'pointer',background:active?self._rgba(C1,0.18):'#1a1e25',border:'1px solid '+(active?self._rgba(C1,0.5):'rgba(255,255,255,.07)'),color:active?C1:'#5f646e'},svgVB:'0 0 '+vbW+' '+vbH,svgPts:pts};});})(),
+      arpPreviewing:s.playing,
+      arpNotPreviewing:!s.playing,
+      arpPreviewLabel:s.playing?'Stop':'Preview',
+      arpPreviewStyle:{display:'flex',alignItems:'center',gap:'8px',padding:'9px 14px',background:s.playing?self._rgba(sel,0.16):'#1a1e25',border:'1px solid '+(s.playing?self._rgba(sel,0.4):'rgba(255,255,255,.1)'),borderRadius:'8px',cursor:'pointer',color:s.playing?sel:'#cfd3da'},
+      toggleArpPreview:function(){self.togglePlay();}
     };
   }
 }
