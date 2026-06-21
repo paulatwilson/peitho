@@ -125,12 +125,19 @@ function motifReuseScore(degrees: string[]): number {
 
 // Safety: if all logits ended up at -Infinity (over-constrained), fall back
 // to blocking only special tokens and the immediate previous chord.
-function ensureValidLogits(logits: Float32Array, lastToken: number | undefined): void {
+function ensureValidLogits(
+  logits: Float32Array,
+  lastToken: number | undefined,
+  scaleMask?: Float32Array | null,
+): void {
   if (logits.some(v => v > -Infinity)) return;
   logits.fill(0);
   logits[START_TOKEN] = -Infinity;
   logits[END_TOKEN] = -Infinity;
   if (lastToken != null && lastToken < VOCAB_SIZE) logits[lastToken] = -Infinity;
+  // Even in the over-constrained fallback, keep scale restriction so out-of-key
+  // chords never appear just because repeat-suppression blocked everything else.
+  if (scaleMask) addMask(logits, scaleMask);
 }
 
 type SessionCache = { session: ort.InferenceSession; variant: ModelVariant };
@@ -141,10 +148,7 @@ export class ChordSeqAIGenerator {
 
   constructor(modelsDir?: string) {
     const dir = dirname(fileURLToPath(import.meta.url));
-    this.modelsDir = modelsDir ?? join(
-      dir,
-      "../../../../.contrib/chord-progression-ai/chord-seq-ai-app/public/models",
-    );
+    this.modelsDir = modelsDir ?? join(dir, "../../models");
   }
 
   private async session(model: ModelVariant): Promise<ort.InferenceSession> {
@@ -199,7 +203,16 @@ export class ChordSeqAIGenerator {
     };
 
     // ── Build static masks ──────────────────────────────────────────────────
-    const scaleMask = scalePolicy !== "chromatic" ? buildScaleMask(key, mode) : null;
+    // strict mask: all chord tones must be in scale
+    // root mask: root PC in scale only — used at cadential positions in "cadential" mode
+    const strictScaleMask = (scalePolicy === "strict" || scalePolicy === "cadential")
+      ? buildScaleMask(key, mode, true) : null;
+    const rootScaleMask = scalePolicy !== "chromatic"
+      ? buildScaleMask(key, mode, false) : null;
+    // last 2 positions relax to root-only so borrowed/dominant chords can resolve
+    const scaleCadentialPositions = scalePolicy === "cadential"
+      ? new Set([chordCount - 1, chordCount - 2].filter(p => p >= 0))
+      : new Set<number>();
     const cadenceMasks = cadencePolicy === "repair"
       ? buildCadenceMasks(key, mode, cadence, chordCount)
       : [];
@@ -253,21 +266,23 @@ export class ChordSeqAIGenerator {
         // Suppress repeats
         applyRepeatSuppression(logits, tokens, repetitionWindow, repetitionPenalty, allowImmediateRepeat);
 
-        // Scale masking
-        if (scaleMask) {
-          const isCadentialPos = cadenceMaskAtPos.has(pos);
-          // strict: always mask; cadential: only mask non-cadential positions
-          if (scalePolicy === "strict" || !isCadentialPos) {
-            addMask(logits, scaleMask);
-          }
+        // Scale masking:
+        //   strict    → strict mask always
+        //   cadential → strict mask except last 2 positions; root-only there
+        let activeMask: Float32Array | null = null;
+        if (scalePolicy === "strict") {
+          activeMask = strictScaleMask;
+        } else if (scalePolicy === "cadential") {
+          activeMask = scaleCadentialPositions.has(pos) ? rootScaleMask : strictScaleMask;
         }
+        if (activeMask) addMask(logits, activeMask);
 
         // Cadence enforcement (repair policy)
         const cMask = cadenceMaskAtPos.get(pos);
         if (cMask) addMask(logits, cMask);
 
-        // Safety: if over-constrained, relax to minimum valid state
-        ensureValidLogits(logits, tokens.at(-1));
+        // Safety: if over-constrained, fall back to root-in-scale minimum
+        ensureValidLogits(logits, tokens.at(-1), rootScaleMask);
 
         // Sample
         let next: number;

@@ -2,6 +2,13 @@
 
 **Full system documentation lives in [`docs/PEITHO.md`](./docs/PEITHO.md). Read it before editing.**
 
+## Running the app
+```bash
+./dev.sh          # starts on first free port in 43117-43121; prints URL
+                  # rs + enter → restart, q + enter → quit
+```
+Do NOT run `bun apps/peitho-composer/src/server.ts` directly — it defaults to port 3000 and bypasses the port-selection logic.
+
 ## What this is
 Peitho-Composer is an 8-bar generative MIDI composition surface. The original
 prototype is **`docs/Peitho/Peitho.dc.html`** and should stay reference-only.
@@ -43,7 +50,10 @@ The working Composer copy is **`apps/peitho-composer/public/index.html`**.
 - No persistence — refresh resets everything.
 - Audio is a basic Web Audio synth for **auditioning only**; the exported MIDI is
   the real deliverable.
-- `Peitho-Pulse` (LM engine) is a disabled stub; `Peitho-Array` is this build.
+- `Peitho-Pulse` chord generation is **live**: engine selector in the UI POSTs to `/pulse/chords`
+  → `ChordSeqAIGenerator` (ONNX, `conditional_medium` by default) → returns ranked `ProgressionSeed`
+  candidates → `chordsFromProgressionSeed` converts to `ChordEvent[]`. Models live in
+  `packages/peitho-pulse/models/*.onnx` (gitignored — copy from `.contrib` or download separately).
 
 ## Files
 - `apps/peitho-composer/public/index.html` — the working Composer app copy.

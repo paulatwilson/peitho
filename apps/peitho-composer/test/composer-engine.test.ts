@@ -58,17 +58,118 @@ test("every Type maps to supported Pulse model conditions", () => {
   for (const preset of directionPresets.types) {
     expect(preset.pulseConditions.genres.length).toBeGreaterThan(0);
     expect(preset.pulseConditions.genres.every((genre) => supportedGenres.has(genre))).toBe(true);
-    if ("defaultDecade" in preset.pulseConditions && preset.pulseConditions.defaultDecade != null) {
-      expect(supportedDecades.has(preset.pulseConditions.defaultDecade)).toBe(true);
-    }
+    expect(supportedDecades.has(preset.pulseConditions.defaultDecade)).toBe(true);
   }
 
-  expect(ComposerEngine.pulseConditions("Cinematic")).toEqual({ genres: ["Soundtrack"] });
+  expect(ComposerEngine.pulseConditions("Cinematic")).toEqual({ genres: ["Soundtrack"], defaultDecade: 2000 });
   expect(ComposerEngine.pulseConditions("Darkwave")).toEqual({
     genres: ["Darkwave", "Electronic"],
     defaultDecade: 1980,
   });
-  expect(ComposerEngine.pulseConditions("Unknown Type")).toEqual({ genres: ["Pop", "Folk"] });
+  expect(ComposerEngine.pulseConditions("Unknown Type")).toEqual({
+    genres: ["Pop", "Folk"],
+    defaultDecade: 1970,
+  });
+});
+
+test("every Type supplies one supported default Pulse decade", () => {
+  expect(
+    Object.fromEntries(
+      ComposerEngine.TYPES.map((type) => [type, ComposerEngine.pulseConditions(type).defaultDecade]),
+    ),
+  ).toEqual({
+    Ballad: 1970,
+    Pop: 2010,
+    Cinematic: 2000,
+    "Lo-Fi": 2010,
+    Ambient: 1990,
+    "New Wave": 1980,
+    Electropop: 2010,
+    Classical: 1950,
+    Jazz: 1960,
+    Funk: 1970,
+    "R&B": 2000,
+    House: 1990,
+    Synth: 1980,
+    Folk: 1960,
+    Rock: 1970,
+    Punk: 1970,
+    "Post-Rock": 1990,
+    Darkwave: 1980,
+  });
+});
+
+test("Composer sends the selected decade and Type genres to ChordSeqAI", () => {
+  const request = ComposerEngine.pulseChordRequest(
+    "D",
+    "Heptatonic Natural Minor",
+    "Darkwave",
+    "Build",
+    "Chromatic Tension",
+    2000,
+    42,
+  );
+
+  expect(request).toMatchObject({
+    key: "D",
+    mode: "natural-minor",
+    bars: 8,
+    model: "conditional_medium",
+    genres: ["Darkwave", "Electronic"],
+    decade: 2000,
+    seed: 42,
+  });
+  expect(request.tension).toBeGreaterThan(0.5);
+  expect(request.cadence).toBe("none");
+});
+
+test("Composer locks Peitho-Array to lightweight chord policy", () => {
+  const request = ComposerEngine.arrayChordRequest(
+    "E",
+    "Pentatonic Minor",
+    "Darkwave",
+    "Verse",
+    "Rousing Crescendo",
+    16,
+    42,
+  );
+
+  expect(request).toMatchObject({
+    key: "E",
+    mode: "pentatonic-minor",
+    chordCount: 16,
+    model: "conditional_small",
+    candidateCount: 2,
+    cadencePolicy: "reject",
+    scalePolicy: "strict",
+    allowImmediateRepeat: false,
+    genres: ["Darkwave", "Electronic"],
+    decade: 1980,
+    seed: 42,
+  });
+  expect(() =>
+    ComposerEngine.arrayChordRequest("E", "Pentatonic Minor", "Darkwave", "Verse", "Rousing Crescendo", 12 as 8, 42),
+  ).toThrow("Peitho-Array chord count must be 8 or 16");
+});
+
+test("Composer converts a Pulse progression seed into chord-lane events", () => {
+  const chords = ComposerEngine.chordsFromProgressionSeed(
+    {
+      degrees: ["i", "VI", "III", "VII"],
+      mode: "minor",
+      cadence: "loop",
+      tension: 0.5,
+      repetition: 0.5,
+      harmonicRhythm: [4, 4, 4, 4],
+      source: { provider: "test", model: "fixture", modelVersion: "1", seed: 1 },
+    },
+    "A",
+  );
+
+  expect(chords.map((chord) => chord.name)).toEqual(["Am", "F", "C", "G"]);
+  expect(chords.reduce((sum, chord) => sum + chord.len, 0)).toBe(16);
+  expect(chords.map((chord) => chord.start)).toEqual([0, 4, 8, 12]);
+  expect(chords.every((chord) => chord.tones.length === 3)).toBe(true);
 });
 
 test("composer converts preset choices into bounded engine macros", () => {

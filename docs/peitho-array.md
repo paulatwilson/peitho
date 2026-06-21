@@ -1,6 +1,29 @@
 # peitho-array
 
-`peitho-array` is the deterministic TypeScript engine that powers algorithmic music generation for Peitho systems. It is not Peitho-Composer itself. It is a reusable engine module that can be embedded in different products, games, tools, DAW utilities, and browser experiments.
+`peitho-array` is Peitho's lightweight browser and React Native music runtime. It combines deterministic composition/repair with an optional small client-side chord model for websites, games, tools, and adaptive music systems.
+
+## Current Runtime Architecture
+
+The Array/Pulse boundary is defined by deployment weight:
+
+- `peitho-array`: small, nimble, frontend-led, offline-capable runtime.
+- `peitho-pulse`: full AI workhorse for local machines and API deployments.
+
+Array's chord-model profile is fixed:
+
+| Control | Array value |
+| --- | --- |
+| Model | `conditional_small` |
+| Tries | `2` |
+| Ending Style | `reject` (`Free`) |
+| Chord Palette | `strict` (`In Key`) |
+| Chord Count | `8` or `16` |
+| Immediate repeats | disabled |
+| Genre, decade, tension, repetition, cadence, harmonic rhythm | resolved from Composer presets; no expert overrides |
+
+The ONNX model is loaded client-side from object storage, cached, and executed in a worker through ONNX Runtime Web. WebGPU is preferred; WASM is the fallback. React Native uses a native ONNX runtime adapter behind the same request/result contract.
+
+The weighted deterministic generator remains the no-model fallback. Both paths produce Peitho-native `ProgressionSeed`/`ChordEvent` data and use the same validation and repair functions.
 
 ## Role
 
@@ -13,9 +36,10 @@
 - rhythm masks and pattern grammars
 - melodic movement constraints
 - voice-leading rules
+- lightweight client-side chord inference
 - symbolic MIDI-ready output
 
-It does not own product limits, UI state, audio rendering, persistence, or model inference.
+It does not own UI state, audio rendering, persistence, full-size models, server inference, or broad AI arrangement planning.
 
 ## Relationship To Peitho-Composer
 
@@ -141,9 +165,9 @@ The earlier unlicensed Java EMI repository is not part of this project and shoul
 | Peitho-Composer prototype | current practical generator behaviour: scales, chord pools, seeded melody/counter generation, drum patterns, MIDI event shape | hard-coded 8-bar Composer limits or product preset catalogues |
 | Scribbletune | pattern strings, rhythm masks, clip-like building blocks, pitch/rhythm separation | replacing Peitho data model |
 | `emi-ts` | motif/signature analysis, SPEAC-style tension labels, phrase recombination, MIDI parser/writer ideas | turning `peitho-array` into an EMI clone |
-| Magenta / MelodyRNN / NoteSequence | conceptual sequence constraints: primer/continuation flow, quantised symbolic events, stepwise melodic bias, stochastic drift control | TensorFlow.js dependency, ML inference, model loading |
+| Magenta / MelodyRNN / NoteSequence | conceptual sequence constraints: primer/continuation flow, quantised symbolic events, stepwise melodic bias, stochastic drift control | full melody/arrangement model loading |
 
-Default rule: if a part makes the engine lighter, clearer, more deterministic, or more musically coherent, use it. If it adds runtime weight, model dependencies, or app-specific assumptions, keep it out of `peitho-array`.
+Default rule: keep Array suitable for browser/game runtime budgets. Small optional model adapters are allowed; full models, app-specific presets, and workhorse planning stay outside Array.
 
 ### EMI TypeScript Reference
 
@@ -232,7 +256,7 @@ Useful areas to evaluate for Peitho:
 
 Integration rule:
 
-Do not add TensorFlow.js or Magenta model checkpoints to `peitho-array`. Any ML-backed planner belongs in `peitho-pulse`. `peitho-array` may use Magenta-inspired constraints and sequence vocabulary only where they improve deterministic algorithmic generation.
+Do not add full Magenta model checkpoints to `peitho-array`. Array may run the approved small ONNX chord model; melody, arrangement, and full-model planning belong in `peitho-pulse`.
 
 ## Planned Engine Areas
 
@@ -291,7 +315,7 @@ This is still prototype-derived. Product-level presets such as genre, segment, o
 
 ### Immediate Chord Progression TODO
 
-Keep this work small. The first useful target is nicer chord progressions for Peitho-Composer, still deterministic and lightweight. Do not add AI, model inference, TensorFlow.js, Magenta checkpoints, or broad EMI-style analysis here.
+Historical note: this checklist predates the lightweight ONNX decision. Array now permits the fixed small chord model described in **Current Runtime Architecture**; TensorFlow.js, Magenta checkpoints, and broad AI planning remain out of scope.
 
 Use this as the first working checklist:
 
@@ -332,11 +356,11 @@ The implementation is conceptually adapted from the two MIT references above; no
 
 Stop point before Magenta: `generateChords()` now includes the approved Scribbletune and `emi-ts` ideas, with focused tests and no Composer UI changes.
 
-The weighted generator remains a fallback. It is not the final source of progression quality; the curated seed bank below will become the primary starting point once Pulse has generated and the team has auditioned enough candidates.
+The weighted generator and curated seed bank are fallback paths. Primary Array chord generation is the fixed `conditional_small` client runtime described above.
 
 ### Progression Seed Bank Contract
 
-`peitho-pulse` produces candidates during development. `peitho-array` owns the static runtime bank and the deterministic quality gate.
+The static seed bank is now fallback/test data, not Array's primary chord source. Array can generate live with its small model and still owns the deterministic quality gate.
 
 ```text
 ChordSeqAI in peitho-pulse
@@ -542,7 +566,7 @@ It currently provides:
 - drum grid generation
 - MIDI byte generation
 
-The immediate weighted-progression checklist and the progression-seed quality gate are implemented. Runtime seed-first generation waits for the Pulse corpus and listening review.
+The weighted fallback, exact `8`/`16` chord counts, fixed lightweight runtime policy, and progression-seed quality gate are implemented. Browser ONNX adapter integration remains.
 
 ## Repair Pass Helpers
 

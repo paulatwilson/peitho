@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import {
+  ARRAY_CHORD_RUNTIME_PROFILE,
   chordPool,
   buildMidi,
   createEmptyPattern,
@@ -15,6 +16,17 @@ import {
   type ScaleName,
   waveformBins,
 } from "../src/index";
+
+test("defines locked lightweight chord runtime policy", () => {
+  expect(ARRAY_CHORD_RUNTIME_PROFILE).toEqual({
+    model: "conditional_small",
+    candidateCount: 2,
+    cadencePolicy: "reject",
+    scalePolicy: "strict",
+    chordCounts: [8, 16],
+    allowImmediateRepeat: false,
+  });
+});
 
 function chordRootPitchClass(name: string): number {
   const root = name.match(/^[A-G]#?/)?.[0];
@@ -156,6 +168,16 @@ test("accepts progression profile input for chord generation", () => {
   );
   expect(chords[0]?.name.startsWith("E")).toBe(true);
   expect(chords.reduce((sum, chord) => sum + chord.len, 0)).toBe(16);
+});
+
+test("generates exact lightweight chord counts", () => {
+  for (const chordCount of ARRAY_CHORD_RUNTIME_PROFILE.chordCounts) {
+    const options = { key: "C", scale: "major" as const, bars: 8, seed: 99, chordCount };
+    const chords = generateChords(options);
+    expect(chords).toHaveLength(chordCount);
+    expect(chords.reduce((sum, chord) => sum + chord.len, 0)).toBe(16);
+    expect(chords).toEqual(generateChords(options));
+  }
 });
 
 test("uses seeded weighted movement between chord roles", () => {

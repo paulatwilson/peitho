@@ -2,7 +2,7 @@
   "name": "@peitho/array",
   "version": "0.0.0",
   "license": "MIT",
-  "description": "Deterministic TypeScript music engine for Peitho systems",
+  "description": "Lightweight browser and React Native music runtime for Peitho systems",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

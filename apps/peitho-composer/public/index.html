@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="/composer-engine.js"></script>
+<script src="/soundfont-player.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -96,6 +97,7 @@ body{margin:0;background:#0c0e12}
       <div style="display:flex;gap:4px;height:62px">
         <sc-for list="{{ chordCells }}" as="c" hint-placeholder-count="10">
           <div style="{{ c.style }}">
+            <div style="{{ c.ragDot }}" title="{{ c.ragTitle }}"></div>
             <div onClick="{{ c.openMenu }}" style="display:flex;align-items:center;gap:4px;cursor:pointer"><span style="font-size:12.5px;color:#e9eaee;font-weight:500">{{ c.name }}</span><span style="font-size:8px;color:#6b7280">▾</span></div>
             <span style="position:absolute;bottom:5px;left:7px;font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace">{{ c.lenLabel }}</span>
             <div style="position:absolute;bottom:5px;right:6px;display:flex;align-items:center;gap:4px">
@@ -117,6 +119,101 @@ body{margin:0;background:#0c0e12}
           </div>
         </div>
       </sc-if>
+      <sc-if value="{{ showPulseChordAdvanced }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">
+        <div style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:10px">
+          <div onClick="{{ toggleChordAdvanced }}" style="{{ chordAdvancedChevron }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+          <span onClick="{{ toggleChordAdvanced }}" style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace;cursor:pointer">CHORD PARAMETERS</span>
+          <div style="flex:1"></div>
+          <span onClick="{{ resetChordAdvanced }}" style="font-size:8.5px;letter-spacing:.08em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace;cursor:pointer">RESET</span>
+        </div>
+        <sc-if value="{{ chordAdvancedOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+          <div style="position:relative">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">DECADE</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipDecade.show }}" onMouseLeave="{{ tipDecade.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipDecade.open }}"><div style="{{ tipDecade.boxStyle }}">{{ tipDecade.text }}</div></sc-if></div></div>
+            <div onClick="{{ toggleDecade }}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;min-width:72px"><span style="font-size:11px;color:#dfe9f6">{{ pulseDecade }}</span><span style="font-size:8px;color:#6b7280">▾</span></div>
+            <sc-if value="{{ open_decade }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:100%;left:0;right:0;margin-top:5px;background:#21262f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px;box-shadow:0 16px 40px rgba(0,0,0,.5);z-index:60"><sc-for list="{{ decadeItems }}" as="it" hint-placeholder-count="8"><div onClick="{{ it.pick }}" style="{{ it.style }}">{{ it.label }}</div></sc-for></div></sc-if>
+          </div>
+          <div style="min-width:120px;flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="display:flex;align-items:center;gap:4px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">TENSION</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipTension.show }}" onMouseLeave="{{ tipTension.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipTension.open }}"><div style="{{ tipTension.boxStyle }}">{{ tipTension.text }}</div></sc-if></div></div><span style="font-size:10px;color:#e9eaee;font-family:ui-monospace,Menlo,monospace">{{ pulseChordTensionStr }}</span></div>
+            <div onPointerDown="{{ startChordTension }}" style="position:relative;height:16px;cursor:pointer;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:3px;background:rgba(255,255,255,.08)"></div><div style="{{ pulseChordTensionFill }}"></div><div style="{{ pulseChordTensionHandle }}"></div></div>
+          </div>
+          <div style="min-width:120px;flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="display:flex;align-items:center;gap:4px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">REPETITION</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipRepetition.show }}" onMouseLeave="{{ tipRepetition.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipRepetition.open }}"><div style="{{ tipRepetition.boxStyle }}">{{ tipRepetition.text }}</div></sc-if></div></div><span style="font-size:10px;color:#e9eaee;font-family:ui-monospace,Menlo,monospace">{{ pulseChordRepetitionStr }}</span></div>
+            <div onPointerDown="{{ startChordRepetition }}" style="position:relative;height:16px;cursor:pointer;display:flex;align-items:center"><div style="position:absolute;left:0;right:0;height:4px;border-radius:3px;background:rgba(255,255,255,.08)"></div><div style="{{ pulseChordRepetitionFill }}"></div><div style="{{ pulseChordRepetitionHandle }}"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">CADENCE</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipCadence.show }}" onMouseLeave="{{ tipCadence.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipCadence.open }}"><div style="{{ tipCadence.boxStyle }}">{{ tipCadence.text }}</div></sc-if></div></div>
+            <div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px">
+              <div onClick="{{ setCadenceNone }}" style="{{ cadenceBtnNone }}">None</div>
+              <div onClick="{{ setCadenceSoft }}" style="{{ cadenceBtnSoft }}">Soft</div>
+              <div onClick="{{ setCadenceStrong }}" style="{{ cadenceBtnStrong }}">Strong</div>
+              <div onClick="{{ setCadenceLoop }}" style="{{ cadenceBtnLoop }}">Loop</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">CHORD SPEED</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipHarmonicRhythm.show }}" onMouseLeave="{{ tipHarmonicRhythm.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipHarmonicRhythm.open }}"><div style="{{ tipHarmonicRhythm.boxStyle }}">{{ tipHarmonicRhythm.text }}</div></sc-if></div></div>
+            <div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px">
+              <div onClick="{{ setHRPreset }}" style="{{ hrBtnPreset }}">Preset</div>
+              <div onClick="{{ setHRSlow }}" style="{{ hrBtnSlow }}">Slow</div>
+              <div onClick="{{ setHRMedium }}" style="{{ hrBtnMedium }}">Med</div>
+              <div onClick="{{ setHRFast }}" style="{{ hrBtnFast }}">Fast</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">CHORD PALETTE</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipScalePolicy.show }}" onMouseLeave="{{ tipScalePolicy.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipScalePolicy.open }}"><div style="{{ tipScalePolicy.boxStyle }}">{{ tipScalePolicy.text }}</div></sc-if></div></div>
+            <div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px">
+              <div onClick="{{ setSPStrict }}" style="{{ spBtnStrict }}">In Key</div>
+              <div onClick="{{ setSPCadential }}" style="{{ spBtnCadential }}">Mostly In Key</div>
+              <div onClick="{{ setSPChromatic }}" style="{{ spBtnChromatic }}">Open</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">CHORD COUNT</span></div>
+            <div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px">
+              <div onClick="{{ setCCAuto }}" style="{{ ccBtnAuto }}">Auto</div>
+              <div onClick="{{ setCC4 }}" style="{{ ccBtn4 }}">4</div>
+              <div onClick="{{ setCC6 }}" style="{{ ccBtn6 }}">6</div>
+              <div onClick="{{ setCC8 }}" style="{{ ccBtn8 }}">8</div>
+              <div onClick="{{ setCC12 }}" style="{{ ccBtn12 }}">12</div>
+              <div onClick="{{ setCC16 }}" style="{{ ccBtn16 }}">16</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">AI MODEL</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipModel.show }}" onMouseLeave="{{ tipModel.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipModel.open }}"><div style="{{ tipModel.boxStyle }}">{{ tipModel.text }}</div></sc-if></div></div>
+            <div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px">
+              <div onClick="{{ setModelFast }}" style="{{ modelBtnFast }}">Fast</div>
+              <div onClick="{{ setModelStd }}" style="{{ modelBtnStd }}">Standard</div>
+              <div onClick="{{ setModelDeep }}" style="{{ modelBtnDeep }}">Deep</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">TRIES</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipCandidates.show }}" onMouseLeave="{{ tipCandidates.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipCandidates.open }}"><div style="{{ tipCandidates.boxStyle }}">{{ tipCandidates.text }}</div></sc-if></div></div>
+            <div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px">
+              <div onClick="{{ setCCand2 }}" style="{{ ccandBtn2 }}">2</div>
+              <div onClick="{{ setCCand4 }}" style="{{ ccandBtn4 }}">4</div>
+              <div onClick="{{ setCCand6 }}" style="{{ ccandBtn6 }}">6</div>
+              <div onClick="{{ setCCand8 }}" style="{{ ccandBtn8 }}">8</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><span style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace">ENDING STYLE</span><div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipCadencePolicy.show }}" onMouseLeave="{{ tipCadencePolicy.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipCadencePolicy.open }}"><div style="{{ tipCadencePolicy.boxStyle }}">{{ tipCadencePolicy.text }}</div></sc-if></div></div>
+            <div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px">
+              <div onClick="{{ setCPRepair }}" style="{{ cpBtnRepair }}">Guided</div>
+              <div onClick="{{ setCPReject }}" style="{{ cpBtnReject }}">Free</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding-top:16px">
+            <div onClick="{{ toggleAllowImmediateRepeat }}" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <div style="{{ allowRepeatBoxStyle }}"></div>
+              <div><div style="font-size:11px;color:#9aa0aa">Allow Repeats</div><div style="font-size:8.5px;color:#5f646e;font-family:ui-monospace,Menlo,monospace;letter-spacing:.02em">same chord back to back</div></div>
+            </div>
+            <div style="position:relative;display:inline-flex"><div onMouseEnter="{{ tipAllowRepeat.show }}" onMouseLeave="{{ tipAllowRepeat.hide }}" style="{{ tipIconStyle }}">i</div><sc-if value="{{ tipAllowRepeat.open }}"><div style="{{ tipAllowRepeat.boxStyle }}">{{ tipAllowRepeat.text }}</div></sc-if></div>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
       </sc-if>
     </div>
 
@@ -132,7 +229,7 @@ body{margin:0;background:#0c0e12}
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">ENGINE MODEL</span><span style="font-size:8.5px;letter-spacing:.08em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">PICK ONE</span></div>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div onClick="{{ setArray }}" style="{{ engineArrayStyle }}">
-              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12.5px;font-weight:600;color:#e9eaee">Peitho-Array</span><span style="font-size:9.5px;color:#7d828c">Algorithmic engine</span></div>
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12.5px;font-weight:600;color:#e9eaee">Peitho-Array</span><span style="font-size:9.5px;color:#7d828c">Lightweight runtime</span></div>
               <sc-if value="{{ engineArraySelected }}" hint-placeholder-val="{{ true }}"><div style="{{ engineCheckStyle }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></sc-if>
             </div>
             <div onClick="{{ setPulse }}" style="{{ enginePulseStyle }}">
@@ -140,10 +237,20 @@ body{margin:0;background:#0c0e12}
               <sc-if value="{{ enginePulseSelected }}" hint-placeholder-val="{{ false }}"><div style="{{ engineCheckStyle }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></sc-if>
             </div>
           </div>
+          <sc-if value="{{ showArrayProfile }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.06)">
+            <div style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace;margin-bottom:7px">CHORD COUNT</div>
+            <div style="display:flex;gap:2px;padding:3px;background:#1a1e25;border:1px solid rgba(255,255,255,.07);border-radius:7px;width:max-content">
+              <div onClick="{{ setArrayCC8 }}" style="{{ arrayCC8Style }}">8</div>
+              <div onClick="{{ setArrayCC16 }}" style="{{ arrayCC16Style }}">16</div>
+            </div>
+          </div>
+          </sc-if>
         </div>
         <sc-if value="{{ showPulseRefinement }}" hint-placeholder-val="{{ false }}">
         <div style="padding:14px 16px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">PULSE REFINEMENT</span><span onClick="{{ resetPulseKeywords }}" style="font-size:8.5px;letter-spacing:.08em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace;cursor:pointer">RESET</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><span style="font-size:9px;letter-spacing:.16em;color:#5f646e;font-family:ui-monospace,Menlo,monospace">PULSE REFINEMENT</span><span onClick="{{ resetPulseRefinement }}" style="font-size:8.5px;letter-spacing:.08em;color:#9aa0aa;font-family:ui-monospace,Menlo,monospace;cursor:pointer">RESET</span></div>
+          <sc-if value="{{ showPulseError }}" hint-placeholder-val="{{ false }}"><div style="margin:-3px 0 12px;padding:7px 9px;border-radius:6px;background:rgba(194,115,138,.12);border:1px solid rgba(194,115,138,.32);font-size:9.5px;line-height:1.35;color:#d9a4b5">{{ pulseError }}</div></sc-if>
           <div style="font-size:8.5px;letter-spacing:.12em;color:#7d828c;font-family:ui-monospace,Menlo,monospace;margin-bottom:7px">SELECTED · {{ pulseSelectedCount }}</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px;margin-bottom:13px">
             <sc-for list="{{ pulseChips }}" as="chip" hint-placeholder-count="8"><div onClick="{{ chip.remove }}" style="{{ chip.style }}"><span>{{ chip.label }}</span><span style="font-size:10px;color:#7d828c">×</span></div></sc-for>
@@ -159,7 +266,7 @@ body{margin:0;background:#0c0e12}
           <div style="display:flex;flex-direction:column;gap:9px">
             <div style="display:flex;align-items:center;gap:11px;padding:11px;background:#1a1e25;border:1px solid rgba(255,255,255,.06);border-radius:9px">
               <div style="width:24px;height:24px;flex:none;border-radius:7px;background:#6f93b8;color:#0c0e12;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</div>
-              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">Generate Chords</div><div style="font-size:9.5px;color:#5f646e">harmonic skeleton</div></div>
+              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600">Generate Chords</div><div style="font-size:9.5px;color:#5f646e">{{ step1Hint }}</div></div>
               <div onClick="{{ genChords }}" style="{{ step1GenStyle }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
               <div onClick="{{ toggleLockChords }}" style="{{ lockChordsStyle }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
             </div>
@@ -221,6 +328,7 @@ body{margin:0;background:#0c0e12}
                 <div onClick="{{ regenAllChords }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
                 <div onClick="{{ midiChords }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
               </div>
+              <div onClick="{{ instr_chords.toggleMenu }}" style="{{ instr_chords.btnStyle }}"><span style="font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9aa0aa">{{ instr_chords.instrName }}</span><span style="font-size:8px;color:#5f646e">▾</span></div>
             </div>
             <div style="{{ ms_chord.areaStyle }}">
               <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ chordRows }}" as="r" hint-placeholder-count="8"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
@@ -242,6 +350,7 @@ body{margin:0;background:#0c0e12}
               <div style="display:flex;align-items:center;gap:6px">
                 <div onClick="{{ midiBass }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa" title="Export bass MIDI"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
               </div>
+              <div onClick="{{ instr_bass.toggleMenu }}" style="{{ instr_bass.btnStyle }}"><span style="font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9aa0aa">{{ instr_bass.instrName }}</span><span style="font-size:8px;color:#5f646e">▾</span></div>
             </div>
             <div style="{{ ms_bass.areaStyle }}">
               <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ bassRows }}" as="r" hint-placeholder-count="6"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
@@ -264,6 +373,7 @@ body{margin:0;background:#0c0e12}
                 <div onClick="{{ regenMel }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
                 <div onClick="{{ midiMel }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
               </div>
+              <div onClick="{{ instr_mel.toggleMenu }}" style="{{ instr_mel.btnStyle }}"><span style="font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9aa0aa">{{ instr_mel.instrName }}</span><span style="font-size:8px;color:#5f646e">▾</span></div>
             </div>
             <div style="{{ ms_mel.areaStyle }}">
               <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ melRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
@@ -286,6 +396,7 @@ body{margin:0;background:#0c0e12}
                 <div onClick="{{ regenCtr }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></svg></div>
                 <div onClick="{{ midiCtr }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
               </div>
+              <div onClick="{{ instr_ctr.toggleMenu }}" style="{{ instr_ctr.btnStyle }}"><span style="font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9aa0aa">{{ instr_ctr.instrName }}</span><span style="font-size:8px;color:#5f646e">▾</span></div>
             </div>
             <div style="{{ ms_ctr.areaStyle }}">
               <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ ctrRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
@@ -303,7 +414,7 @@ body{margin:0;background:#0c0e12}
           <div style="{{ laneStyle }}">
             <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:8px">
               <div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:3px;background:#c2738a;box-shadow:0 0 6px #c2738a"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">Drums</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ ms_drums.toggleM }}" style="{{ ms_drums.mStyle }}" title="Mute">M</div><div onClick="{{ ms_drums.toggleS }}" style="{{ ms_drums.sStyle }}" title="Solo">S</div></div></div>
-              <span style="font-size:9px;color:#5f646e;font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em">{{ drumPattern }}</span>
+              <div style="display:flex;gap:2px;padding:2px;background:#21262f;border:1px solid rgba(255,255,255,.07);border-radius:5px"><div onClick="{{ setDrumKitAcoustic }}" style="{{ drumKitAcousticStyle }}" title="Acoustic">Ac</div><div onClick="{{ setDrumKitElectronic }}" style="{{ drumKitElectronicStyle }}" title="Electronic">El</div><div onClick="{{ setDrumKitBrushes }}" style="{{ drumKitBrushesStyle }}" title="Brushes">Br</div></div>
               <div style="display:flex;align-items:center;gap:6px">
                 <div onClick="{{ midiDrums }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa" title="Export drum MIDI"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
               </div>
@@ -327,6 +438,8 @@ body{margin:0;background:#0c0e12}
         <sc-if value="{{ showPan }}" hint-placeholder-val="{{ false }}"><div style="display:flex;margin-top:8px;padding-left:178px"><div onPointerDown="{{ startPan }}" style="position:relative;flex:1;height:10px;background:#101319;border:1px solid rgba(255,255,255,.06);border-radius:5px;cursor:pointer"><div style="{{ panThumbStyle }}"></div></div></div></sc-if>
       </div>
     </div>
+
+    <sc-if value="{{ instrOverlayOpen }}" hint-placeholder-val="{{ false }}"><div style="{{ instrOverlayStyle }}"><sc-for list="{{ instrOverlayItems }}" as="it" hint-placeholder-count="10"><sc-if value="{{ it.isHeader }}"><span style="{{ it.style }}">{{ it.label }}</span></sc-if><sc-if value="{{ it.isDivider }}"><div style="{{ it.style }}"></div></sc-if><sc-if value="{{ it.isItem }}"><div onClick="{{ it.pick }}" style="{{ it.style }}">{{ it.label }}</div></sc-if></sc-for></div></sc-if>
 
     <!-- ============ FOOTER ============ -->
     <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:#14171d;border:1px solid rgba(255,255,255,.07);border-radius:11px">
@@ -354,14 +467,21 @@ const OPTIONS=CE.OPTIONS.slice();
 const DRUM_PATTERNS=CE.DRUM_PATTERNS.slice();
 const DRUM_REC=CE.DRUM_REC;
 const PULSE_KEYWORDS=CE.PULSE_KEYWORDS.slice();
+const PULSE_DECADES=CE.PULSE_DECADES.slice();
 function _rand(){return CE.rand();}
 function _clamp(v,a,b){return CE.clamp(v,a,b);}
 function _genDrums(pat){return CE.genDrums(pat);}
-function _genChords(key,scale,type,segment,option){return CE.genChords(key,scale,type,segment,option);}
+function _genChords(key,scale,type,segment,option,seed,chordCount){return CE.genChords(key,scale,type,segment,option,seed,chordCount);}
 function _chordPool(key,scale){return CE.chordPool(key,scale);}
 function _scaleMidi(key,scale,lo,hi){return CE.scaleMidi(key,scale,lo,hi);}
 function _recommendMacros(type,segment,option,scale){return CE.recommendMacros(type,segment,option,scale);}
 function _pulseKeywords(type,segment,option,scale){return CE.pulseKeywords(type,segment,option,scale);}
+function _pulseConditions(type){return CE.pulseConditions(type);}
+function _chordDirection(t,sg,op){return CE.chordDirection(t,sg,op);}
+function _chordTypeDefault(t){return CE.chordTypeDefault(t);}
+function _pulseChordRequest(key,scale,type,segment,option,decade,seed,overrides){return CE.pulseChordRequest(key,scale,type,segment,option,decade,seed,overrides);}
+function _chordsFromProgressionSeed(seed,key){return CE.chordsFromProgressionSeed(seed,key);}
+function _chordRagStatus(name,key,scale){return CE.chordRagStatus(name,key,scale);}
 function _genMono(seed,o){return CE.genMono(seed,o);}
 function _wave(notes,bins){return CE.wave(notes,bins);}
 function _buildMidi(tempo,tracks){return CE.buildMidi(tempo,tracks);}
@@ -374,19 +494,28 @@ class Component extends DCLogic {
     key:'E', scale:'Pentatonic Major', tempo:120,
     engine:'matrix', view:'grid', bassOnly:false,
     type:'Ballad', segment:'Verse', option:'Rousing Crescendo',
-    engineModel:'array', editMode:'note',
+    engineModel:'array', editMode:'note', arrayChordCount:8,
     pulseKeywords:_pulseKeywords('Ballad','Verse','Rousing Crescendo','Pentatonic Major'),
+    pulseDecade:_pulseConditions('Ballad').defaultDecade,
+    pulseGenerating:false, pulseError:null,
     zoom:1, vzoom:1, pan:0, collapseLeft:false, collapseTonality:false, collapseChords:false,
     density:0.48, split:0.55, sync:0.27, rhythm:0.40,
-    chords:_genChords('E','Pentatonic Major','Ballad','Verse','Rousing Crescendo'), chordsGen:true, chordsLocked:true,
-    melSeeds:[_rand(),null,null], activeMel:0, melodyLocked:true, melOverride:[null,null,null],
-    ctrSeeds:[_rand(),null,null], activeCtr:0, ctrOverride:[null,null,null],
+    chords:[], chordsGen:false, chordsLocked:false,
+    melSeeds:[null,null,null], activeMel:0, melodyLocked:false, melOverride:[null,null,null],
+    ctrSeeds:[null,null,null], activeCtr:0, ctrOverride:[null,null,null],
     drumOverride:null,
+    pulseChordTension:0.35, pulseChordRepetition:0.5, pulseChordCadence:'soft',
+    pulseHarmonicRhythm:'preset', pulseScalePolicy:'cadential', pulseAllowImmediateRepeat:false, pulseChordCount:0,
+    pulseModel:'conditional_medium', pulseCandidateCount:4, pulseCadencePolicy:'repair',
+    showChordAdvanced:false, openTooltip:null,
     mute:{chord:false,bass:false,mel:false,ctr:false,drums:false},
     solo:{chord:false,bass:false,mel:false,ctr:false,drums:false},
-    openMenu:null, openChord:null, drumPattern:'Basic 8th-Note', playing:false, loop:true, seed:0x9F3AC71E
+    openMenu:null, openChord:null, drumPattern:'Basic 8th-Note', playing:false, loop:true, seed:0x9F3AC71E,
+    instruments:{chords:'String Ensemble',melody:'Electric Piano 1',bass:'Acoustic Bass',counter:'Acoustic Piano',drumsKit:'Acoustic'},
+    openInstrMenu:null, instrMenuPos:null
   };
   componentWillUnmount(){this._pause();if(this.ctx){try{this.ctx.close();}catch(e){}}}
+  componentDidMount(){this._ensureAudio();}
 
   sel(){ return this.props.accent || '#4a90d9'; }
   glow(){ return this.props.glow!==false; }
@@ -410,9 +539,11 @@ class Component extends DCLogic {
     const affectsDirection=['key','scale','segment','option','type'].indexOf(name)>=0;
     const t=name==='type'?val:s.type,sg=name==='segment'?val:s.segment,op=name==='option'?val:s.option,sc=name==='scale'?val:s.scale,k=name==='key'?val:s.key;
     if(name==='drumPattern'){ns.drumOverride=null;}
+    if(name==='type'){ns.pulseDecade=_pulseConditions(t).defaultDecade;}
+    if(name==='pulseDecade'&&s.engineModel==='pulse'){ns.chordsGen=false;ns.chordsLocked=false;}
     if(affectsDirection){ns.melOverride=[null,null,null];ns.ctrOverride=[null,null,null];}
     if(['type','segment','option','scale'].indexOf(name)>=0){const rec=_recommendMacros(t,sg,op,sc);ns.density=rec.density;ns.split=rec.split;ns.sync=rec.sync;ns.rhythm=rec.rhythm;ns.pulseKeywords=_pulseKeywords(t,sg,op,sc);}
-    if(affectsDirection&&s.chordsGen){ns.chords=_genChords(k,sc,t,sg,op);}
+    if(affectsDirection&&s.engineModel==='pulse'){ns.chordsGen=false;ns.chordsLocked=false;const dir=_chordDirection(t,sg,op);ns.pulseChordTension=dir.progressionProfile.tension;ns.pulseChordRepetition=dir.progressionProfile.repetition;ns.pulseChordCadence=dir.progressionProfile.cadence;ns.pulseScalePolicy=dir.scalePolicy;ns.pulseHarmonicRhythm='preset';ns.pulseModel=dir.model;ns.pulseCandidateCount=dir.candidateCount;ns.pulseCadencePolicy=dir.cadencePolicy;}
     return ns;
   });}
 
@@ -448,18 +579,44 @@ class Component extends DCLogic {
   toggleDrumCell(e,kind){const rect=e.currentTarget.getBoundingClientRect();let fx=_clamp((e.clientX-rect.left)/rect.width,0,1);let step=_clamp(Math.round(fx*128),0,127);const d=this._drums();const nd={kick:d.kick.slice(),snare:d.snare.slice(),hat:d.hat.slice(),open:d.open.slice()};const arr=nd[kind];const at=arr.indexOf(step);if(at>=0)arr.splice(at,1);else arr.push(step);this.setState({drumOverride:nd});}
   drumCellTarget(e){const rect=e.currentTarget.getBoundingClientRect();const fy=(e.clientY-rect.top)/rect.height;const kind=fy<0.36?'hat':(fy<0.62?'snare':'kick');this.toggleDrumCell(e,kind);}
   waveStyles(arr,color){const g=this.glow();return arr.map(function(h){return {style:{flex:'1 1 0',height:(Math.max(h,0.04)*86)+'%',minHeight:'2px',alignSelf:'center',borderRadius:'1px',background:'linear-gradient(180deg,'+color+'ee,'+color+'40)',boxShadow:(g&&h>0.55)?('0 0 6px '+color+'55'):'none'}};});}
-  setPulse(){this.setState({engineModel:'pulse'});}
+  setPulse(){const s=this.state;const dir=_chordDirection(s.type,s.segment,s.option);this.setState({engineModel:'pulse',pulseChordTension:dir.progressionProfile.tension,pulseChordRepetition:dir.progressionProfile.repetition,pulseChordCadence:dir.progressionProfile.cadence,pulseScalePolicy:dir.scalePolicy,pulseHarmonicRhythm:'preset',pulseModel:dir.model,pulseCandidateCount:dir.candidateCount,pulseCadencePolicy:dir.cadencePolicy,chordsGen:false,chordsLocked:false});}
   setArray(){this.setState({engineModel:'array'});}
+  setArrayChordCount(value){this.setState({arrayChordCount:value,chordsGen:false,chordsLocked:false});}
   addPulseKeyword(label){this.setState(function(s){const cur=s.pulseKeywords||[];return cur.indexOf(label)>=0?null:{pulseKeywords:cur.concat(label)};});}
   removePulseKeyword(label){this.setState(function(s){return {pulseKeywords:(s.pulseKeywords||[]).filter(function(x){return x!==label;})};});}
-  resetPulseKeywords(){this.setState(function(s){return {pulseKeywords:_pulseKeywords(s.type,s.segment,s.option,s.scale)};});}
+  resetPulseRefinement(){this.setState(function(s){return {pulseKeywords:_pulseKeywords(s.type,s.segment,s.option,s.scale)};});}
+  resetChordAdvanced(){const s=this.state;const dir=_chordDirection(s.type,s.segment,s.option);this.setState({pulseChordTension:dir.progressionProfile.tension,pulseChordRepetition:dir.progressionProfile.repetition,pulseChordCadence:dir.progressionProfile.cadence,pulseScalePolicy:dir.scalePolicy,pulseHarmonicRhythm:'preset',pulseAllowImmediateRepeat:false,pulseChordCount:0,pulseModel:dir.model,pulseCandidateCount:dir.candidateCount,pulseCadencePolicy:dir.cadencePolicy,pulseDecade:_pulseConditions(s.type).defaultDecade});}
+  toggleChordAdvanced(){this.setState(function(s){return {showChordAdvanced:!s.showChordAdvanced};});}
+  setPulseCadence(v){this.setState({pulseChordCadence:v,openMenu:null});}
+  setPulseScalePolicy(v){this.setState({pulseScalePolicy:v,openMenu:null});}
+  setPulseHarmonicRhythm(v){this.setState({pulseHarmonicRhythm:v});}
+  setPulseChordCount(v){this.setState({pulseChordCount:v});}
+  setPulseModel(v){this.setState({pulseModel:v});}
+  setPulseCandidateCount(v){this.setState({pulseCandidateCount:v});}
+  setPulseCadencePolicy(v){this.setState({pulseCadencePolicy:v});}
+  toggleAllowImmediateRepeat(){this.setState(function(s){return {pulseAllowImmediateRepeat:!s.pulseAllowImmediateRepeat};});}
 
   regenChord(i){this.setState(function(s){const one=_genChords(s.key,s.scale,s.type,s.segment,s.option)[0]||{name:'C',tones:[48,52,55]};const ch=s.chords.slice();ch[i]=Object.assign({},ch[i],{name:one.name,tones:one.tones});return {chords:ch};});}
   addChord(){this.setState(function(s){if(s.chords.length>=16)return null;const ch=s.chords.slice();let idx=-1,mx=1;ch.forEach(function(c,i){if(c.len>mx){mx=c.len;idx=i;}});if(idx<0)return null;const c=ch[idx];const one=_genChords(s.key,s.scale,s.type,s.segment,s.option)[0];const half=Math.floor(c.len/2);ch.splice(idx,1,Object.assign({},c,{len:c.len-half}),{name:one.name,len:half,tones:one.tones,start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
   splitChord(i){this.setState(function(s){const c=s.chords[i];if(!c||c.len<2)return null;const ch=s.chords.slice();const a=Math.ceil(c.len/2),b=c.len-a;ch.splice(i,1,{name:c.name,len:a,tones:c.tones.slice(),start:0},{name:c.name,len:b,tones:c.tones.slice(),start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
   mergeChord(i){this.setState(function(s){const c=s.chords[i],n=s.chords[i+1];if(!c||!n||c.name!==n.name)return null;const ch=s.chords.slice();ch.splice(i,2,{name:c.name,len:c.len+n.len,tones:c.tones.slice(),start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
   clearAll(){this.setState({chords:[],chordsGen:false,chordsLocked:false,melSeeds:[null,null,null],melodyLocked:false,ctrSeeds:[null,null,null]});}
-  genChords(){this.setState(function(s){return {chords:_genChords(s.key,s.scale,s.type,s.segment,s.option),chordsGen:true,chordsLocked:true};});}
+  async genChords(){
+    const s=this.state;
+    if(s.engineModel==='array'){this.setState({chords:_genChords(s.key,s.scale,s.type,s.segment,s.option,CE.rand(),s.arrayChordCount),chordsGen:true,chordsLocked:true,pulseError:null});return;}
+    this.setState({pulseGenerating:true,pulseError:null});
+    try{
+      const hrMap={slow:[4,4,3,2],medium:[2,2,2,2],fast:[1,1,1,2]};
+      const overrides={tension:s.pulseChordTension,repetition:s.pulseChordRepetition,cadence:s.pulseChordCadence,chordLengths:s.pulseHarmonicRhythm!=='preset'?hrMap[s.pulseHarmonicRhythm]:undefined,chordCount:s.pulseChordCount||undefined,model:s.pulseModel,candidateCount:s.pulseCandidateCount,cadencePolicy:s.pulseCadencePolicy,scalePolicy:s.pulseScalePolicy,allowImmediateRepeat:s.pulseAllowImmediateRepeat};
+      const request=_pulseChordRequest(s.key,s.scale,s.type,s.segment,s.option,s.pulseDecade,CE.rand(),overrides);
+      const response=await fetch('/pulse/chords',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(request)});
+      const result=await response.json();
+      if(!response.ok)throw new Error(result.error||'Pulse chord generation failed');
+      const candidate=result.candidates&&result.candidates[0];
+      if(!candidate)throw new Error('Pulse returned no valid chord progression');
+      this.setState({chords:_chordsFromProgressionSeed(candidate.progressionSeed,s.key),chordsGen:true,chordsLocked:true,pulseGenerating:false,pulseError:null});
+    }catch(error){this.setState({pulseGenerating:false,pulseError:error&&error.message?error.message:String(error)});}
+  }
   toggleLockChords(){this.setState(function(s){return s.chordsGen?{chordsLocked:!s.chordsLocked}:null;});}
   genMel(){this.setState(function(s){if(!s.chordsLocked)return null;const m=s.melSeeds.slice();m[s.activeMel]=_rand();const o=s.melOverride.slice();o[s.activeMel]=null;return {melSeeds:m,melOverride:o,melodyLocked:true};});}
   regenMel(){this.setState(function(s){const m=s.melSeeds.slice();m[s.activeMel]=_rand();const o=s.melOverride.slice();o[s.activeMel]=null;return {melSeeds:m,melOverride:o};});}
@@ -483,17 +640,15 @@ class Component extends DCLogic {
   toggleMute(name){this.setState(function(s){const m=Object.assign({},s.mute);m[name]=!m[name];return {mute:m};});}
   toggleSolo(name){this.setState(function(s){const so=Object.assign({},s.solo);so[name]=!so[name];return {solo:so};});}
 
-  _ensureAudio(){if(this.ctx)return;const AC=window.AudioContext||window.webkitAudioContext;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=0.45;this.master.connect(this.ctx.destination);}
-  _voice(time,midi,durSec,opts){const ctx=this.ctx;const freq=440*Math.pow(2,(midi-69)/12);const o=ctx.createOscillator();o.type=opts.type||'triangle';o.frequency.value=freq;const g=ctx.createGain();const peak=opts.gain||0.15;g.gain.setValueAtTime(0.0001,time);g.gain.linearRampToValueAtTime(peak,time+0.01);g.gain.exponentialRampToValueAtTime(0.0001,time+Math.max(0.06,durSec));o.connect(g);g.connect(this.master);o.start(time);o.stop(time+Math.max(0.06,durSec)+0.03);}
-  _noise(time,dur,gain,freq){const ctx=this.ctx;const n=Math.max(1,Math.floor(ctx.sampleRate*dur));const buf=ctx.createBuffer(1,n,ctx.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;const src=ctx.createBufferSource();src.buffer=buf;const f=ctx.createBiquadFilter();f.type='highpass';f.frequency.value=freq;const g=ctx.createGain();g.gain.setValueAtTime(gain,time);g.gain.exponentialRampToValueAtTime(0.0001,time+dur);src.connect(f);f.connect(g);g.connect(this.master);src.start(time);src.stop(time+dur);}
-  _drumVoice(time,kind){const ctx=this.ctx;if(kind==='kick'){const o=ctx.createOscillator();const g=ctx.createGain();o.frequency.setValueAtTime(150,time);o.frequency.exponentialRampToValueAtTime(48,time+0.12);g.gain.setValueAtTime(0.9,time);g.gain.exponentialRampToValueAtTime(0.0001,time+0.2);o.connect(g);g.connect(this.master);o.start(time);o.stop(time+0.22);}else if(kind==='snare'){this._noise(time,0.18,0.45,1400);const o=ctx.createOscillator();const g=ctx.createGain();o.type='triangle';o.frequency.value=190;g.gain.setValueAtTime(0.35,time);g.gain.exponentialRampToValueAtTime(0.0001,time+0.12);o.connect(g);g.connect(this.master);o.start(time);o.stop(time+0.14);}else{this._noise(time,kind==='open'?0.16:0.045,0.22,8000);}}
+  _ensureAudio(){if(this.ctx)return;const AC=window.AudioContext||window.webkitAudioContext;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=0.45;this.master.connect(this.ctx.destination);const s=this.state.instruments;const ctx=this.ctx;['chords','melody','bass','counter'].forEach(function(v){SoundfontPlayer.load(ctx,s[v]);});SoundfontPlayer.load(ctx,s.drumsKit);}
+  _drumNote(kind){return {kick:36,snare:38,hat:42,open:46}[kind]||36;}
   _stepDur(){return (60/this.state.tempo)/4;}
   _loopLen(){return 128*this._stepDur();}
   _elapsedSteps(){return (performance.now()-this._t0)/1000/this._stepDur();}
   _play(){this._ensureAudio();if(this.ctx.state==='suspended'){this.ctx.resume();}this._notesCache=this.computeNotes();this._drumCache=this._drums();this._t0=performance.now();this._lastStep=-1;this._running=true;const self=this;this.sched=setInterval(function(){self._scheduler();},16);this._raf=requestAnimationFrame(function(){self._tick();});}
   _pause(){this._running=false;if(this.sched){clearInterval(this.sched);this.sched=null;}if(this._raf){cancelAnimationFrame(this._raf);this._raf=null;}}
   _scheduler(){if(!this._running||!this.ctx)return;const nowStep=Math.floor(this._elapsedSteps());while(this._lastStep<nowStep){this._lastStep++;const loopStep=((this._lastStep%128)+128)%128;if(loopStep===0&&this._lastStep>0){if(!this.state.loop){this._pause();this.setState({playing:false});return;}this._notesCache=this.computeNotes();this._drumCache=this._drums();}this._scheduleStep(loopStep,this.ctx.currentTime+0.02);}}
-  _scheduleStep(step,time){const sd=this._stepDur();const n=this._notesCache;const d=this._drumCache;const self=this;if(this.ctx.state==='suspended')return;const play=function(arr,name,opts){if(!self._audible(name))return;for(const nt of arr){if(nt.step===step){const v=(nt.vel==null?90:nt.vel)/95;self._voice(time,nt.midi,Math.max(1,nt.len)*sd*0.92,Object.assign({},opts,{gain:opts.gain*v}));}}};play(n.chord,'chord',{type:'sawtooth',gain:0.05});play(n.bass,'bass',{type:'triangle',gain:0.20});play(n.mel,'mel',{type:'square',gain:0.10});play(n.ctr,'ctr',{type:'triangle',gain:0.09});if(this._audible('drums')){['kick','snare','hat','open'].forEach(function(k){if(d[k]&&d[k].indexOf(step)>=0)self._drumVoice(time,k);});}}
+  _scheduleStep(step,time){const sd=this._stepDur();const n=this._notesCache;const d=this._drumCache;const self=this;const ctx=this.ctx;const master=this.master;const instr=this.state.instruments;if(ctx.state==='suspended')return;const play=function(arr,voice,label){if(!self._audible(voice))return;for(const nt of arr){if(nt.step===step){const vel=nt.vel==null?90:nt.vel;const dur=Math.max(1,nt.len)*sd*0.92;SoundfontPlayer.play(ctx,master,label,nt.midi,time,dur,vel);}}};play(n.chord,'chord',instr.chords);play(n.bass,'bass',instr.bass);play(n.mel,'mel',instr.melody);play(n.ctr,'ctr',instr.counter);if(this._audible('drums')){['kick','snare','hat','open'].forEach(function(k){if(d[k]&&d[k].indexOf(step)>=0){SoundfontPlayer.play(ctx,master,instr.drumsKit,self._drumNote(k),time,0.25,100);}});}}
   _tick(){if(!this._running)return;let pos=this._elapsedSteps()/128;pos=pos-Math.floor(pos);const z=this.state.zoom,pn=this.state.pan;let x=(pos*z-pn*(z-1))*100;if(this.phRef&&this.phRef.current){this.phRef.current.style.left=x+'%';this.phRef.current.style.opacity=(x<-1||x>101)?'0':(this.state.playing?'1':'0.22');}const self=this;this._raf=requestAnimationFrame(function(){self._tick();});}
   togglePlay(){const willPlay=!this.state.playing;this.setState({playing:willPlay});if(willPlay)this._play();else this._pause();}
   zoomBy(d){this.setState(function(s){const z=_clamp(Math.round((s.zoom+d)*2)/2,1,4);return {zoom:z,pan:z<=1?0:s.pan};});}
@@ -502,6 +657,10 @@ class Component extends DCLogic {
   toggleLeft(){this.setState(function(s){return {collapseLeft:!s.collapseLeft};});}
   toggleTonality(){this.setState(function(s){return {collapseTonality:!s.collapseTonality};});}
   toggleChords(){this.setState(function(s){return {collapseChords:!s.collapseChords};});}
+  openInstrMenuAt(e,voice){const rect=e.currentTarget.getBoundingClientRect();const dropH=240;const y=rect.bottom+4+dropH>window.innerHeight?Math.max(4,rect.top-4-dropH):rect.bottom+4;this.setState(function(s){if(s.openInstrMenu===voice)return {openInstrMenu:null,instrMenuPos:null};return {openInstrMenu:voice,instrMenuPos:{x:rect.left,y:y,w:Math.max(rect.width,180)},openMenu:null,openChord:null};});}
+  setInstrument(voice,name){if(this.ctx)SoundfontPlayer.load(this.ctx,name);this.setState(function(s){const i=Object.assign({},s.instruments);i[voice]=name;return {instruments:i,openInstrMenu:null,instrMenuPos:null};});}
+  setDrumsKit(kit){if(this.ctx)SoundfontPlayer.load(this.ctx,kit);this.setState(function(s){const i=Object.assign({},s.instruments);i.drumsKit=kit;return {instruments:i};});}
+  resetInstruments(){this.setState({instruments:{chords:'String Ensemble',melody:'Electric Piano 1',bass:'Acoustic Bass',counter:'Acoustic Piano',drumsKit:'Acoustic'}});}
 
   menuItems(name,list,current){const self=this;const sel=this.sel();return list.map(function(v){const a=v===current;return {label:v,pick:function(){self.pick(name,v);},style:{padding:'8px 12px',fontSize:'12.5px',cursor:'pointer',borderRadius:'6px',whiteSpace:'nowrap',color:a?'#e9eaee':'#9aa0aa',background:a?self._rgba(sel,0.16):'transparent',fontWeight:a?600:400}};});}
   tabItems(seeds,active,color,kind){const self=this;return [0,1,2].map(function(i){const filled=seeds[i]!=null;const isA=i===active;return {label:'V'+(i+1),pick:function(){kind==='mel'?self.pickMel(i):self.pickCtr(i);},style:{padding:'4px 9px',fontSize:'10px',borderRadius:'5px',cursor:'pointer',fontFamily:'ui-monospace,Menlo,monospace',letterSpacing:'.04em',background:isA?self._rgba(color,0.18):'transparent',color:isA?color:(filled?'#cfd3da':'#5f646e'),border:'1px solid '+(isA?self._rgba(color,0.6):'rgba(255,255,255,.08)')}};});}
@@ -515,6 +674,9 @@ class Component extends DCLogic {
     const handle=function(pct){return {position:'absolute',left:pct+'%',top:'50%',transform:'translate(-50%,-50%)',width:'14px',height:'14px',borderRadius:'50%',background:'#e9eaee',boxShadow:'0 1px 4px rgba(0,0,0,.6)'};};
     const gridStyle={position:'absolute',inset:0,background:'repeating-linear-gradient(90deg,transparent 0 calc(6.25% - 1px),rgba(255,255,255,.025) calc(6.25% - 1px) 6.25%),repeating-linear-gradient(90deg,transparent 0 calc(12.5% - 1px),rgba(255,255,255,.06) calc(12.5% - 1px) 12.5%)'};
     const segV=function(active){return {whiteSpace:'nowrap',padding:'7px 15px',borderRadius:'6px',fontSize:'12px',fontWeight:600,cursor:'pointer',letterSpacing:'.02em',background:active?self._rgba(sel,0.16):'transparent',color:active?sel:'#8a8f99',border:'1px solid '+(active?self._rgba(sel,0.5):'transparent')};};
+    const segBtn=function(active){return {padding:'5px 9px',borderRadius:'5px',fontSize:'10px',fontWeight:600,cursor:'pointer',letterSpacing:'.03em',fontFamily:'ui-monospace,Menlo,monospace',background:active?self._rgba(sel,0.16):'transparent',color:active?sel:'#6b7280',border:'1px solid '+(active?self._rgba(sel,0.4):'transparent')};};
+    const tipIconStyle={width:'13px',height:'13px',borderRadius:'50%',background:'rgba(255,255,255,.07)',border:'1px solid rgba(255,255,255,.14)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'8px',fontFamily:'serif',fontWeight:700,color:'#5f646e',cursor:'default',flexShrink:0,lineHeight:1,userSelect:'none'};
+    const tip=function(key,text){const isOpen=s.openTooltip===key;return {show:function(){self.setState({openTooltip:key});},hide:function(){self.setState({openTooltip:null});},open:isOpen,text:text,boxStyle:{position:'absolute',bottom:'calc(100% + 6px)',left:'50%',transform:'translateX(-50%)',background:'#21262f',border:'1px solid rgba(255,255,255,.13)',borderRadius:'8px',padding:'9px 11px',fontSize:'11px',color:'#cfd3da',lineHeight:1.5,width:'210px',zIndex:80,whiteSpace:'normal',boxShadow:'0 10px 28px rgba(0,0,0,.65)',pointerEvents:'none'}};};
     const genBtn=function(enabled){return {display:'flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',flex:'none',borderRadius:'7px',cursor:enabled?'pointer':'default',background:enabled?sel:'#1a1e25',color:enabled?'#fff':'#3f444c',border:'1px solid '+(enabled?'transparent':'rgba(255,255,255,.06)'),opacity:enabled?1:0.55,pointerEvents:enabled?'auto':'none'};};
     const lockBtn=function(on){return {display:'flex',alignItems:'center',justifyContent:'center',width:'30px',height:'30px',flex:'none',borderRadius:'7px',cursor:'pointer',background:on?self._rgba(sel,0.16):'#1a1e25',color:on?sel:'#5f646e',border:'1px solid '+(on?self._rgba(sel,0.5):'rgba(255,255,255,.06)')};};
     const anySolo=['chord','bass','mel','ctr','drums'].some(function(k){return s.solo[k];});
@@ -537,14 +699,67 @@ class Component extends DCLogic {
       // engine model
       engineModel:s.engineModel, engineArraySelected:s.engineModel==='array', enginePulseSelected:s.engineModel==='pulse',
       setArray:function(){self.setArray();}, setPulse:function(){self.setPulse();},
+      showArrayProfile:s.engineModel==='array', setArrayCC8:function(){self.setArrayChordCount(8);}, setArrayCC16:function(){self.setArrayChordCount(16);},
+      arrayCC8Style:segBtn(s.arrayChordCount===8), arrayCC16Style:segBtn(s.arrayChordCount===16),
       engineArrayStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'pointer',background:s.engineModel==='array'?self._rgba(sel,0.12):'#1a1e25',border:'1px solid '+(s.engineModel==='array'?self._rgba(sel,0.55):'rgba(255,255,255,.06)'),opacity:s.engineModel==='array'?1:0.78},
       engineCheckStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'20px',height:'20px',flex:'none',borderRadius:'50%',background:sel,color:'#fff'},
       enginePulseStyle:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px',padding:'11px 12px',borderRadius:'9px',cursor:'pointer',background:s.engineModel==='pulse'?self._rgba(sel,0.12):'#1a1e25',border:'1px solid '+(s.engineModel==='pulse'?self._rgba(sel,0.55):'rgba(255,255,255,.06)'),opacity:1},
       showPulseRefinement:s.engineModel==='pulse',
+      pulseDecade:String(s.pulseDecade), toggleDecade:function(){self.toggleMenu('decade');}, open_decade:s.openMenu==='decade',
+      decadeItems:this.menuItems('pulseDecade',PULSE_DECADES,s.pulseDecade),
+      showPulseError:!!s.pulseError, pulseError:s.pulseError||'',
       pulseChips:pulseKeys.map(function(k){return {label:k,remove:function(){self.removePulseKeyword(k);},style:pulseChipStyle(true)};}),
       pulseAvailable:availablePulse.map(function(k){return {label:k,add:function(){self.addPulseKeyword(k);},style:pulseChipStyle(false)};}),
       pulseSelectedCount:String(pulseKeys.length), pulseAvailableCount:String(availablePulse.length),
-      resetPulseKeywords:function(){self.resetPulseKeywords();},
+      resetPulseRefinement:function(){self.resetPulseRefinement();},
+      // chord advanced (pulse-only)
+      showPulseChordAdvanced:s.engineModel==='pulse',
+      chordAdvancedOpen:s.showChordAdvanced,
+      toggleChordAdvanced:function(){self.toggleChordAdvanced();},
+      resetChordAdvanced:function(){self.resetChordAdvanced();},
+      chordAdvancedChevron:{display:'flex',color:'#8a8f99',transform:s.showChordAdvanced?'none':'rotate(-90deg)',transition:'transform .15s'},
+      pulseChordTensionStr:s.pulseChordTension.toFixed(2),
+      pulseChordTensionFill:fill(s.pulseChordTension*100),
+      pulseChordTensionHandle:handle(s.pulseChordTension*100),
+      startChordTension:function(e){self.startSlider(e,'pulseChordTension',0,1,0.01);},
+      pulseChordRepetitionStr:s.pulseChordRepetition.toFixed(2),
+      pulseChordRepetitionFill:fill(s.pulseChordRepetition*100),
+      pulseChordRepetitionHandle:handle(s.pulseChordRepetition*100),
+      startChordRepetition:function(e){self.startSlider(e,'pulseChordRepetition',0,1,0.01);},
+      cadenceBtnNone:segBtn(s.pulseChordCadence==='none'), cadenceBtnSoft:segBtn(s.pulseChordCadence==='soft'),
+      cadenceBtnStrong:segBtn(s.pulseChordCadence==='strong'), cadenceBtnLoop:segBtn(s.pulseChordCadence==='loop'),
+      setCadenceNone:function(){self.setPulseCadence('none');}, setCadenceSoft:function(){self.setPulseCadence('soft');},
+      setCadenceStrong:function(){self.setPulseCadence('strong');}, setCadenceLoop:function(){self.setPulseCadence('loop');},
+      hrBtnPreset:segBtn(s.pulseHarmonicRhythm==='preset'), hrBtnSlow:segBtn(s.pulseHarmonicRhythm==='slow'),
+      hrBtnMedium:segBtn(s.pulseHarmonicRhythm==='medium'), hrBtnFast:segBtn(s.pulseHarmonicRhythm==='fast'),
+      setHRPreset:function(){self.setPulseHarmonicRhythm('preset');}, setHRSlow:function(){self.setPulseHarmonicRhythm('slow');},
+      setHRMedium:function(){self.setPulseHarmonicRhythm('medium');}, setHRFast:function(){self.setPulseHarmonicRhythm('fast');},
+      spBtnStrict:segBtn(s.pulseScalePolicy==='strict'), spBtnCadential:segBtn(s.pulseScalePolicy==='cadential'), spBtnChromatic:segBtn(s.pulseScalePolicy==='chromatic'),
+      setSPStrict:function(){self.setPulseScalePolicy('strict');}, setSPCadential:function(){self.setPulseScalePolicy('cadential');}, setSPChromatic:function(){self.setPulseScalePolicy('chromatic');},
+      ccBtnAuto:segBtn(s.pulseChordCount===0), ccBtn4:segBtn(s.pulseChordCount===4), ccBtn6:segBtn(s.pulseChordCount===6),
+      ccBtn8:segBtn(s.pulseChordCount===8), ccBtn12:segBtn(s.pulseChordCount===12), ccBtn16:segBtn(s.pulseChordCount===16),
+      setCCAuto:function(){self.setPulseChordCount(0);}, setCC4:function(){self.setPulseChordCount(4);}, setCC6:function(){self.setPulseChordCount(6);},
+      setCC8:function(){self.setPulseChordCount(8);}, setCC12:function(){self.setPulseChordCount(12);}, setCC16:function(){self.setPulseChordCount(16);},
+      modelBtnFast:segBtn(s.pulseModel==='conditional_small'), modelBtnStd:segBtn(s.pulseModel==='conditional_medium'), modelBtnDeep:segBtn(s.pulseModel==='conditional_large'),
+      setModelFast:function(){self.setPulseModel('conditional_small');}, setModelStd:function(){self.setPulseModel('conditional_medium');}, setModelDeep:function(){self.setPulseModel('conditional_large');},
+      ccandBtn2:segBtn(s.pulseCandidateCount===2), ccandBtn4:segBtn(s.pulseCandidateCount===4), ccandBtn6:segBtn(s.pulseCandidateCount===6), ccandBtn8:segBtn(s.pulseCandidateCount===8),
+      setCCand2:function(){self.setPulseCandidateCount(2);}, setCCand4:function(){self.setPulseCandidateCount(4);}, setCCand6:function(){self.setPulseCandidateCount(6);}, setCCand8:function(){self.setPulseCandidateCount(8);},
+      cpBtnRepair:segBtn(s.pulseCadencePolicy==='repair'), cpBtnReject:segBtn(s.pulseCadencePolicy==='reject'),
+      setCPRepair:function(){self.setPulseCadencePolicy('repair');}, setCPReject:function(){self.setPulseCadencePolicy('reject');},
+      pulseAllowImmediateRepeat:s.pulseAllowImmediateRepeat,
+      toggleAllowImmediateRepeat:function(){self.toggleAllowImmediateRepeat();},
+      allowRepeatBoxStyle:{width:'15px',height:'15px',borderRadius:'4px',border:'1px solid '+(s.pulseAllowImmediateRepeat?sel:'rgba(255,255,255,.2)'),background:s.pulseAllowImmediateRepeat?sel:'transparent',flexShrink:0},
+      tipIconStyle:tipIconStyle,
+      tipDecade:tip('decade','The musical era to draw inspiration from. Different decades have different chord fashions — 1980s pop sounds quite different from 1960s folk, even in the same key.'),
+      tipTension:tip('tension','How adventurous the chords feel. Low = safe, familiar harmony that stays close to the key. High = bolder, more unexpected or colourful chord choices.'),
+      tipRepetition:tip('repetition','How much the progression repeats itself. Low = more variety with each loop. High = a hooky, familiar loop that keeps coming back to the same chords.'),
+      tipCadence:tip('cadence','How the 8 bars end. Strong: a clear, definitive landing. Soft: a gentle, understated resolution. Loop: ends in a way that flows naturally back to bar 1. None: no special ending — the progression just keeps moving.'),
+      tipHarmonicRhythm:tip('harmonicRhythm','How quickly chords change. Preset = the style\'s natural pace. Slow = long, spacious chords (2–4 bars each). Medium = roughly one chord per bar. Fast = chords move quickly, about half a bar each.'),
+      tipScalePolicy:tip('scalePolicy','Which chords are available to the AI. In Key = stays within the chosen key only. Mostly In Key = in key, but can borrow chords near the ending. Open = any chord is on the table, including outside the key.'),
+      tipAllowRepeat:tip('allowRepeat','When on, the same chord can appear twice in a row. Useful if you want a held or pedal feel. When off, every chord change moves somewhere new.'),
+      tipModel:tip('model','Which AI model generates the chords. Fast = quicker, simpler results. Standard = balanced quality and speed (default). Deep = richer, more nuanced progressions — takes a little longer to generate.'),
+      tipCandidates:tip('candidates','How many chord progressions the AI generates before picking the best one. More tries = better odds of a strong result, but takes a little longer.'),
+      tipCadencePolicy:tip('cadencePolicy','How the ending is shaped. Guided = the AI is steered toward your chosen ending during generation — consistent and reliable. Free = the AI generates naturally and weak endings are filtered out — more organic, occasionally surprising.'),
       macroSeed:'Seeded from '+s.type+' · '+s.segment+' · '+s.option,
       // zoom + pan
       matrixContentStyle:matrixContentStyle,
@@ -572,7 +787,7 @@ class Component extends DCLogic {
       toggleKey:function(){self.toggleMenu('key');}, toggleScale:function(){self.toggleMenu('scale');}, toggleType:function(){self.toggleMenu('type');}, toggleSegment:function(){self.toggleMenu('segment');}, toggleOption:function(){self.toggleMenu('option');},
       open_key:s.openMenu==='key', open_scale:s.openMenu==='scale', open_type:s.openMenu==='type', open_segment:s.openMenu==='segment', open_option:s.openMenu==='option',
       keyItems:this.menuItems('key',KEYS,s.key), scaleItems:this.menuItems('scale',SCALE_LIST,s.scale), typeItems:this.menuItems('type',TYPES,s.type), segItems:this.menuItems('segment',SEGMENTS,s.segment), optItems:this.menuItems('option',OPTIONS,s.option),
-      anyMenuOpen:(s.openMenu!=null||s.openChord!=null), closeMenus:function(){self.setState({openMenu:null,openChord:null});},
+      anyMenuOpen:(s.openMenu!=null||s.openChord!=null||s.openInstrMenu!=null), closeMenus:function(){self.setState({openMenu:null,openChord:null,openInstrMenu:null,instrMenuPos:null});},
       // view + transport
       viewGridStyle:segV(s.view==='grid'), viewWaveStyle:segV(s.view==='wave'),
       setGrid:function(){self.setState({view:'grid'});}, setWave:function(){self.setState({view:'wave'});},
@@ -596,10 +811,10 @@ class Component extends DCLogic {
       resetMacros:function(){self.resetMacros();},
       // chords
       chordCount:s.chords.length,
-      chordCells:s.chords.map(function(c,i){const nx=s.chords[i+1];return {name:c.name,lenLabel:(c.len/2)+'b',regen:function(){self.regenChord(i);},canSplit:c.len>=2,splitFn:function(){self.splitChord(i);},canMerge:!!(nx&&nx.name===c.name),mergeFn:function(){self.mergeChord(i);},menuOpen:s.openChord===i,openMenu:function(){self.toggleChordMenu(i);},pool:_chordPool(s.key,s.scale).map(function(p){return {label:p.name,pick:function(){self.setChord(i,p);},style:{padding:'7px 10px',fontSize:'12px',cursor:'pointer',borderRadius:'5px',whiteSpace:'nowrap',textAlign:'center',color:p.name===c.name?'#e9eaee':'#9aa0aa',background:p.name===c.name?self._rgba(sel,0.16):'transparent',fontWeight:p.name===c.name?600:400}};}),style:{flex:String(c.len),minWidth:0,position:'relative',display:'flex',alignItems:'center',justifyContent:'center',background:'#1a1e25',border:'1px solid rgba(255,255,255,.07)',borderRadius:'7px'}};}),
+      chordCells:s.chords.map(function(c,i){const nx=s.chords[i+1];var rag=_chordRagStatus(c.name,s.key,s.scale);var ragColor=rag==='green'?'#4caf50':rag==='amber'?'#ff9800':'#f44336';var ragTitle=rag==='green'?'In key':rag==='amber'?'Borrowed chord':'Out of key';return {name:c.name,lenLabel:(c.len/2)+'b',regen:function(){self.regenChord(i);},canSplit:c.len>=2,splitFn:function(){self.splitChord(i);},canMerge:!!(nx&&nx.name===c.name),mergeFn:function(){self.mergeChord(i);},menuOpen:s.openChord===i,openMenu:function(){self.toggleChordMenu(i);},pool:_chordPool(s.key,s.scale).map(function(p){return {label:p.name,pick:function(){self.setChord(i,p);},style:{padding:'7px 10px',fontSize:'12px',cursor:'pointer',borderRadius:'5px',whiteSpace:'nowrap',textAlign:'center',color:p.name===c.name?'#e9eaee':'#9aa0aa',background:p.name===c.name?self._rgba(sel,0.16):'transparent',fontWeight:p.name===c.name?600:400}};}),ragDot:{position:'absolute',top:'5px',right:'6px',width:'7px',height:'7px',borderRadius:'50%',background:ragColor,flexShrink:'0'},ragTitle:ragTitle,style:{flex:String(c.len),minWidth:0,position:'relative',display:'flex',alignItems:'center',justifyContent:'center',background:'#1a1e25',border:'1px solid rgba(255,255,255,.07)',borderRadius:'7px'}};}),
       regenAllChords:function(){self.genChords();}, addChord:function(){self.addChord();}, clearAll:function(){self.clearAll();}, midiChords:function(){self.midiChords();},
       // pipeline
-      genChords:function(){self.genChords();}, step1GenStyle:genBtn(true),
+      genChords:function(){self.genChords();}, step1GenStyle:genBtn(!s.pulseGenerating), step1Hint:s.pulseGenerating?'generating with Peitho-Pulse':(s.pulseError?'Pulse generation failed':'harmonic skeleton'),
       lockChordsStyle:lockBtn(s.chordsLocked), toggleLockChords:function(){self.toggleLockChords();},
       genMel:function(){self.genMel();}, step2GenStyle:genBtn(s.chordsLocked), step2Hint:s.chordsLocked?'monophonic lines':'lock chords first',
       lockMelStyle:lockBtn(s.melodyLocked), toggleLockMel:function(){self.toggleLockMel();},
@@ -626,6 +841,47 @@ class Component extends DCLogic {
       drumNotes:this.drumStyles(this._drums(),'#c2738a'),
       drumWave:this.waveStyles(_wave(this._drums().kick.concat(this._drums().snare,this._drums().hat).map(function(st){return {step:st,len:1};}),80),'#c2738a'),
       melEmpty:s.view==='grid'&&!melFilled, ctrEmpty:s.view==='grid'&&!ctrFilled,
+      // instruments — per-lane triggers + fixed overlay
+      instrOverlayOpen:s.openInstrMenu!=null,
+      instrOverlayStyle:(function(){
+        if(!s.instrMenuPos)return {display:'none'};
+        return {position:'fixed',top:s.instrMenuPos.y+'px',left:s.instrMenuPos.x+'px',width:s.instrMenuPos.w+'px',background:'#21262f',border:'1px solid rgba(255,255,255,.12)',borderRadius:'8px',padding:'6px',boxShadow:'0 20px 48px rgba(0,0,0,.6)',zIndex:90,maxHeight:'240px',overflowY:'auto'};
+      })(),
+      instrOverlayItems:(function(){
+        const FC={KEYS:'#6f93b8',PADS:'#a87dc8',STRINGS:'#cf9d5c',WINDS:'#7ab8a8',BASS:'#5fa88a',LEADS:'#d4857a'};
+        const LI={
+          chords:[{f:'KEYS',ii:['Acoustic Piano','Electric Piano 1','Vibraphone']},{f:'PADS',ii:['String Ensemble','Choir Aahs','Pad: Warm']},{f:'STRINGS',ii:['Violin','Guitar (Nylon)']}],
+          melody:[{f:'KEYS',ii:['Acoustic Piano','Electric Piano 1','Vibraphone']},{f:'STRINGS',ii:['Violin','Guitar (Nylon)']},{f:'WINDS',ii:['Flute','Oboe']},{f:'LEADS',ii:['Synth Lead','Saw Wave']}],
+          bass:[{f:'BASS',ii:['Acoustic Bass','Electric Bass (Finger)','Electric Bass (Pick)','Slap Bass','Synth Bass']},{f:'KEYS',ii:['Electric Piano 1']}],
+          counter:[{f:'KEYS',ii:['Acoustic Piano','Electric Piano 1','Vibraphone']},{f:'STRINGS',ii:['Violin','Guitar (Nylon)']},{f:'WINDS',ii:['Flute','Oboe']},{f:'PADS',ii:['String Ensemble']}]
+        };
+        const voice=s.openInstrMenu;
+        if(!voice||!LI[voice])return [];
+        const cur=s.instruments[voice];
+        const items=[];let first=true;
+        (LI[voice]||[]).forEach(function(g){
+          if(!first)items.push({isHeader:false,isItem:false,isDivider:true,style:{height:'1px',background:'rgba(255,255,255,.06)',margin:'4px 0'},label:''});
+          first=false;
+          const gfc=FC[g.f]||'#8a8f99';
+          items.push({isHeader:true,isItem:false,isDivider:false,style:{fontSize:'7.5px',letterSpacing:'.16em',fontFamily:'ui-monospace,Menlo,monospace',color:'#3f444c',padding:'6px 7px 3px',display:'block'},label:g.f});
+          g.ii.forEach(function(name){
+            const isSel=name===cur;
+            items.push({isHeader:false,isItem:true,isDivider:false,label:name,pick:function(){self.setInstrument(voice,name);},
+              style:{display:'flex',alignItems:'center',padding:'6px 8px',borderRadius:'5px',cursor:'pointer',fontSize:'12px',color:isSel?gfc:'#cfd3da',background:isSel?self._rgba(gfc,0.12):'transparent',fontWeight:isSel?600:400}});
+          });
+        });
+        return items;
+      })(),
+      instr_chords:{instrName:s.instruments.chords,toggleMenu:function(e){self.openInstrMenuAt(e,'chords');},btnStyle:{display:'flex',alignItems:'center',gap:'5px',padding:'4px 8px',background:'#21262f',border:'1px solid rgba(255,255,255,.08)',borderRadius:'5px',cursor:'pointer',minWidth:0}},
+      instr_mel:{instrName:s.instruments.melody,toggleMenu:function(e){self.openInstrMenuAt(e,'melody');},btnStyle:{display:'flex',alignItems:'center',gap:'5px',padding:'4px 8px',background:'#21262f',border:'1px solid rgba(255,255,255,.08)',borderRadius:'5px',cursor:'pointer',minWidth:0}},
+      instr_bass:{instrName:s.instruments.bass,toggleMenu:function(e){self.openInstrMenuAt(e,'bass');},btnStyle:{display:'flex',alignItems:'center',gap:'5px',padding:'4px 8px',background:'#21262f',border:'1px solid rgba(255,255,255,.08)',borderRadius:'5px',cursor:'pointer',minWidth:0}},
+      instr_ctr:{instrName:s.instruments.counter,toggleMenu:function(e){self.openInstrMenuAt(e,'counter');},btnStyle:{display:'flex',alignItems:'center',gap:'5px',padding:'4px 8px',background:'#21262f',border:'1px solid rgba(255,255,255,.08)',borderRadius:'5px',cursor:'pointer',minWidth:0}},
+      setDrumKitAcoustic:function(){self.setDrumsKit('Acoustic');},
+      setDrumKitElectronic:function(){self.setDrumsKit('Electronic');},
+      setDrumKitBrushes:function(){self.setDrumsKit('Brushes');},
+      drumKitAcousticStyle:{padding:'3px 7px',borderRadius:'4px',fontSize:'9px',fontWeight:600,cursor:'pointer',letterSpacing:'.02em',fontFamily:'ui-monospace,Menlo,monospace',background:s.instruments.drumsKit==='Acoustic'?self._rgba(sel,0.16):'transparent',color:s.instruments.drumsKit==='Acoustic'?sel:'#6b7280',border:'1px solid '+(s.instruments.drumsKit==='Acoustic'?self._rgba(sel,0.4):'transparent')},
+      drumKitElectronicStyle:{padding:'3px 7px',borderRadius:'4px',fontSize:'9px',fontWeight:600,cursor:'pointer',letterSpacing:'.02em',fontFamily:'ui-monospace,Menlo,monospace',background:s.instruments.drumsKit==='Electronic'?self._rgba(sel,0.16):'transparent',color:s.instruments.drumsKit==='Electronic'?sel:'#6b7280',border:'1px solid '+(s.instruments.drumsKit==='Electronic'?self._rgba(sel,0.4):'transparent')},
+      drumKitBrushesStyle:{padding:'3px 7px',borderRadius:'4px',fontSize:'9px',fontWeight:600,cursor:'pointer',letterSpacing:'.02em',fontFamily:'ui-monospace,Menlo,monospace',background:s.instruments.drumsKit==='Brushes'?self._rgba(sel,0.16):'transparent',color:s.instruments.drumsKit==='Brushes'?sel:'#6b7280',border:'1px solid '+(s.instruments.drumsKit==='Brushes'?self._rgba(sel,0.4):'transparent')},
       // footer
       exportMidi:function(){self.exportMidi();},
       exportBtnStyle:{display:'flex',alignItems:'center',gap:'10px',padding:'13px 22px',borderRadius:'9px',cursor:'pointer',background:sel,color:'#fff',fontSize:'12px',fontWeight:700},

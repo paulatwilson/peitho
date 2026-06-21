@@ -15,10 +15,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const MODELS_DIR = join(
-  __dirname,
-  "../../../.contrib/chord-progression-ai/chord-seq-ai-app/public/models"
-);
+const MODELS_DIR = join(__dirname, "../models");
 
 // 1,033 chord tokens (0–1032) + 2 special tokens (start=1033, end=1034)
 const NUM_TOKENS = 1035;

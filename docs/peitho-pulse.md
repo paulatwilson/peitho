@@ -1,8 +1,8 @@
 # peitho-pulse
 
-`peitho-pulse` is the AI-assisted planning engine for Peitho systems. It sits above `peitho-array` and produces symbolic musical plans that can be compiled into Peitho-native pattern data.
+`peitho-pulse` is Peitho's full AI workhorse for local-machine and API execution. It runs larger chord, melody, rhythm, and arrangement models and produces symbolic plans compiled through Peitho-native data.
 
-It is not the Peitho-Composer UI. It is not the deterministic engine. It is not an audio renderer.
+It is not the Peitho-Composer UI, lightweight browser/game runtime, or audio renderer.
 
 ## Role
 
@@ -19,7 +19,7 @@ It should output data that `peitho-array` can validate, shape, compile, and rend
 
 ## Relationship To Peitho-Array
 
-`peitho-array` is the stable deterministic foundation. `peitho-pulse` is the optional AI layer.
+`peitho-array` is the lightweight browser/React Native runtime, including its fixed small chord model and deterministic fallback. `peitho-pulse` is the full local/API workhorse with larger models and expert controls.
 
 `peitho-pulse` may call `peitho-array` for:
 
@@ -150,7 +150,7 @@ Each response feeds the next call. Pulse returns a full `PeithoPattern` each tim
 | Source | Role in `peitho-pulse` | Do Not Use For |
 | --- | --- | --- |
 | Magenta.js (`@magenta/music`) | **Stage 1 — active.** ImprovRNN for chord-conditioned melody and counter. DrumsRNN for beat generation. TF.js runtime. | adding ML inference to `peitho-array`; audio generation |
-| `peitho-array` | repair passes (`snapToScale`, `quantizeToGrid`, `thinDensity`), shared types (`NoteEvent`, `ChordEvent`, `PeithoPattern`), seeded generation as fallback | stochastic model inference; Composer-specific presets |
+| `peitho-array` | lightweight client chord generation, repair passes, shared types, runtime compilation, seeded fallback | full-size models; Composer-specific presets |
 | TyTorch / libtorch | **Stage 2 — future.** Load TyTorch-format symbolic MIDI models (e.g. MMM) without Python. Replaces TF.js backend if Bun compatibility confirmed. | Stage 1 work |
 | MLX (Apple Silicon) | **Stage 3 — future.** Native Apple Silicon inference. Replaces TF.js and TyTorch when model conversion is ready. | Stage 1–2 work |
 | ACE-Step 1.5 LM planner | **Future consideration.** Text-to-structure planning layer. Feeds `PulseRequest.prompt` if a text-conditioned model is added. Not a melody generator — audio path is out of scope. | primary note generation; Python runtime |
@@ -402,7 +402,7 @@ Licence:
 MIT (Student Trainee Center, 2023)
 ```
 
-ChordSeqAI provides seven pre-trained ONNX models for autoregressive chord sequence generation. It is used exclusively as **development tooling** to build `progression-seeds.json` — a static chord progression seed bank consumed by `peitho-array`. It does not enter the runtime pipeline.
+ChordSeqAI provides seven pre-trained ONNX models for autoregressive chord sequence generation. Array uses `conditional_small` client-side with fixed controls. Pulse uses larger selectable models through local-machine or API execution. `progression-seeds.json` remains fallback/test data rather than the primary runtime path.
 
 ### Models
 
@@ -416,7 +416,7 @@ ChordSeqAI provides seven pre-trained ONNX models for autoregressive chord seque
 | `conditional_medium.onnx` | 9.6 MB | genre + decade |
 | `conditional_large.onnx` | 18 MB | genre + decade |
 
-Primary candidate: **Conditional Transformer Medium** — genre conditioning at 9.6 MB. Benchmark all seven before locking in.
+Array model: **Conditional Transformer Small** at 4.6 MB. Pulse defaults may use Medium or Large and expose model selection.
 
 ### Chord vocabulary
 
@@ -430,7 +430,7 @@ The Conditional Transformer accepts a 28-dim style vector: 20 genres (multi-hot,
 
 **Decades (8):** 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020.
 
-Composer Types map explicitly to supported genres through `direction-presets.json` → `pulseConditions`. `pulseKeywords` remain separate free-form model hints and must not be parsed to infer ChordSeqAI genres. Composer resolves the structured genres and optional default decade before calling the generator.
+Composer Types map explicitly to supported genres through `direction-presets.json` → `pulseConditions`. `pulseKeywords` remain separate model hints and must not be parsed to infer ChordSeqAI genres. Composer resolves structured genres and one default decade before calling Array; Pulse mode may override supported controls.
 
 ### Limitations
 
@@ -448,7 +448,7 @@ Composer Types map explicitly to supported genres through `direction-presets.jso
 
 ### Avoid
 
-- Using ChordSeqAI in the real-time `peitho-pulse` runtime — it is dev tooling only
+- Bundling Medium/Large models into the Array frontend runtime
 - Expecting duration information from model output
 - Treating decade conditioning as a precise style control
 
@@ -458,7 +458,7 @@ Composer Types map explicitly to supported genres through `direction-presets.jso
 
 ### Runtime
 
-`onnxruntime-node` CPU backend. No WebGPU required for CLI use. Bun N-API compatibility needs a smoke test; fall back to Node.js 24+ if needed. Model files are not checked into git — downloaded by a setup script into `packages/peitho-pulse/models/`.
+Array target: ONNX Runtime Web in a worker, WebGPU first and WASM fallback; model fetched from object storage. Pulse target: `onnxruntime-node` for local/API execution. Both use the same inference core and `ProgressionSeed` result contract.
 
 ## ChordSeqAI Staging
 
@@ -567,7 +567,7 @@ When comparing models for the same role:
 - require Python inside the final Bun app if a practical MLX/Bun path exists
 - leak ACE-Step or Magenta objects into app-facing APIs
 - hard-code Peitho-Composer's 8-bar limit
-- make the deterministic engine depend on model runtimes
+- make Array depend on Pulse's full runtime or full-size models
 
 ## Current Implementation
 
@@ -585,11 +585,37 @@ Currently exports:
 
 Dependencies: `@peitho/array` (workspace), `@magenta/music` ^1.23.1, `@tensorflow/tfjs` ^4.22.0.
 
-Next steps:
+## Status
 
-1. Wire `/pulse/generate` endpoint in `apps/peitho-composer/src/server.ts`.
-2. Enable the Pulse engine button in `apps/peitho-composer/public/index.html`.
-3. Download and serve Magenta checkpoints locally (remove Google storage dependency).
-4. Implement `TytorchPulsePlanner` once Bun compatibility with TyTorch is confirmed (Stage 2).
-5. Benchmark all seven ChordSeqAI ONNX models (ChordSeqAI Stage 1).
-6. Build `generate-seeds.ts` CLI and produce first `progression-seeds.json` draft (ChordSeqAI Stage 2).
+### Done
+
+- [x] `ChordSeqAIGenerator` — all 7 ONNX models load and infer under Bun via `onnxruntime-node`
+- [x] `ChordGenRequest` API — tension, repetition, cadence, key, mode, bars, genre, decade, policies, sampling
+- [x] Cadence enforcement — strong/soft/loop/none via logit masking (`repair`) or post-filter (`reject`)
+- [x] Scale masking — strict / cadential / chromatic policies
+- [x] Roman degree conversion — all 12 keys, major and minor
+- [x] `ProgressionSeed` output — validated and ranked candidates, ready for `peitho-array`
+- [x] Exported from `@peitho/pulse` — `ChordSeqAIGenerator`, `ChordGenRequest`, `ChordGenResult`, all types
+- [x] 49 tests passing (~1.2 s)
+- [x] Smoke test — all 7 models pass
+- [x] `MagentaPulsePlanner` — ImprovRNN + DrumsRNN, lazy init, repair pass
+
+### Optional corpus tooling
+
+- [ ] Keep batch seed CLI only for fallback corpora, regression fixtures, and model evaluation
+- [ ] Benchmark browser `conditional_small` against Pulse Medium/Large
+
+### Wire into Composer — Done
+
+- [x] Add `/pulse/chords` endpoint in `apps/peitho-composer/src/server.ts`
+- [x] Add `/pulse/generate` endpoint in `apps/peitho-composer/src/server.ts`
+- [x] Enable Pulse engine button in `apps/peitho-composer/public/index.html`
+- [x] Move ONNX models out of `.contrib` → `packages/peitho-pulse/models/` (gitignored)
+- [x] Remove `.contrib` imports from package source (`token-map.ts`, `generator.ts`)
+- [ ] Serve Magenta checkpoints locally (remove Google storage dependency)
+
+### Future
+
+- [ ] `TytorchPulsePlanner` — Stage 2 symbolic MIDI models (MMM, Anticipatory Music Transformer)
+- [ ] MLX native inference — Stage 3 Apple Silicon backend
+- [ ] Text-conditioned LM planner — Stage 4 (ACE-Step 1.5)

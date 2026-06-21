@@ -1,10 +1,16 @@
-import { MagentaPulsePlanner, type PulseRequest } from "@peitho/pulse";
+import {
+  ChordSeqAIGenerator,
+  MagentaPulsePlanner,
+  type ChordGenRequest,
+  type PulseRequest,
+} from "@peitho/pulse";
 
 const port = Number(process.env.PORT ?? 3000);
 const root = new URL("../public/", import.meta.url);
 const composerEngineBrowserEntry = new URL("./composer-engine.ts", import.meta.url);
 
 const pulsePlanner = new MagentaPulsePlanner();
+const chordGenerator = new ChordSeqAIGenerator();
 
 const contentTypes: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -30,6 +36,22 @@ Bun.serve({
   port,
   async fetch(req) {
     const url = new URL(req.url);
+
+    if (url.pathname === "/pulse/chords" && req.method === "POST") {
+      let body: ChordGenRequest;
+      try {
+        body = await req.json();
+      } catch {
+        return new Response("Invalid JSON", { status: 400 });
+      }
+      try {
+        const result = await chordGenerator.generate(body);
+        return Response.json(result);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return Response.json({ error: message }, { status: 500 });
+      }
+    }
 
     if (url.pathname === "/pulse/generate" && req.method === "POST") {
       let body: PulseRequest;

@@ -40,8 +40,8 @@ The user should experience one composer workflow. Engine choice, validation, rep
 
 | Module | Composer Uses It For | Composer Must Not Do |
 | --- | --- | --- |
-| `peitho-array` | deterministic generation, scale maths, chord pools, melody repair, rhythm masks, MIDI-ready pattern data | duplicate reusable engine logic once extracted |
-| `peitho-pulse` | AI-assisted prompt planning, phrase suggestions, symbolic variation, future ACE-Step/Magenta adapter output | expose raw model objects directly to UI |
+| `peitho-array` | lightweight browser/React Native chord generation, deterministic fallback, repair, rhythm masks, MIDI-ready data | expose or override its locked lightweight model policy |
+| `peitho-pulse` | full local/API chord models plus melody, counter-melody, drum, and arrangement planning | expose raw model tokens or provider objects directly to UI |
 
 The Composer may impose product limits such as 8 bars, 4/4, and a compact sketch workflow. Those limits belong to the Composer, not the engines.
 
@@ -57,7 +57,7 @@ Those selections initialise:
 - note split between melody/counter material
 - syncopation level
 - rhythmic complexity
-- future Peitho-Pulse prompt constraints
+- Peitho-Pulse genre, decade, and refinement controls
 
 Current direction axes come from Peitho-Composer preset data:
 
@@ -69,7 +69,7 @@ apps/peitho-composer/src/direction-presets.json
 - Segment: Intro, Verse, Pre-Chorus, Build, Chorus, Hook, Drop, Bridge, Solo, Middle-Eight, Interlude, Breakdown, Outro.
 - Option: Rousing Crescendo, Moody Wind Down, Gentle Swell, Steady Groove, Sparse Reflection, Driving Pulse, Tension Lift, Release Drop, Nocturne Drift, Angular Push, Anthem Rise, Minimal Loop, Motorik Drive, Arpeggio Bloom, Blue Note Turn, Power Chord Lift, Dorian Drift, Chromatic Tension, Half-Time Drop, Call And Response, Staccato Push, Legato Float, Syncopated Lift, Suspended Colour, Pedal Point, Descending Line.
 
-Peitho-Composer should resolve Type, Segment, Option, and Scale into concrete generation parameters before calling an engine. `peitho-array` receives explicit macro values, chord-length bias, extension probability, segment profile, and option envelope. Later, `peitho-pulse` should receive the same resolved preset context so AI plans and deterministic repair passes share one musical intent.
+Peitho-Composer resolves Type, Segment, Option, and Scale into concrete generation parameters before calling an engine. `peitho-array` receives explicit macro values, chord-length bias, extension probability, segment profile, and option envelope. `peitho-pulse` receives the corresponding resolved request fields so model generation and deterministic repair share one musical intent.
 
 ## Direction Preset JSON
 
@@ -101,7 +101,7 @@ type DirectionTypePreset = {
   name: string;
   pulseConditions: {
     genres: PulseGenre[];
-    defaultDecade?: PulseDecade;
+    defaultDecade: PulseDecade;
   };
   macro: {
     density: number;
@@ -122,7 +122,7 @@ Field meanings:
 | --- | --- |
 | `name` | UI label and preset id. |
 | `pulseConditions.genres` | Explicit translation from the Composer Type to ChordSeqAI-supported genres. |
-| `pulseConditions.defaultDecade` | Optional era default for strongly era-specific Types; users may override it in Pulse mode. |
+| `pulseConditions.defaultDecade` | Initial Pulse decade slot; users may override it in Pulse mode. |
 | `macro.density` | Base note/event density before Segment and Option adjustments. |
 | `macro.split` | Base melody/counter balance. Higher values favour melody. |
 | `macro.sync` | Base syncopation amount. |
@@ -150,7 +150,7 @@ Example:
 
 Composer Types are the user-facing style vocabulary. Users should not have to choose the same genre again when selecting Peitho-Pulse.
 
-Each Type therefore supplies structured ChordSeqAI conditions through `pulseConditions`. Composer passes these model-supported values to Pulse separately from free-form `pulseKeywords`:
+Each Type therefore supplies structured ChordSeqAI conditions through `pulseConditions`. Composer passes these model-supported values to Pulse separately from refinement keywords:
 
 ```ts
 ComposerEngine.pulseConditions("Darkwave");
@@ -161,17 +161,30 @@ Examples:
 
 | Composer Type | Pulse genres | Default decade |
 | --- | --- | --- |
-| Cinematic | Soundtrack | none |
+| Ballad | Pop, Folk | 1970 |
+| Pop | Pop | 2010 |
+| Cinematic | Soundtrack | 2000 |
 | Lo-Fi | Hip Hop, Electronic | 2010 |
+| Ambient | New Age, Electronic | 1990 |
 | New Wave | Electronic, Pop | 1980 |
+| Electropop | Electronic, Pop | 2010 |
+| Classical | Classical | 1950 |
+| Jazz | Jazz | 1960 |
 | Funk | R&B, Funk & Soul | 1970 |
+| R&B | R&B, Funk & Soul | 2000 |
 | House | Electronic, Disco | 1990 |
+| Synth | Electronic | 1980 |
+| Folk | Folk | 1960 |
+| Rock | Rock | 1970 |
+| Punk | Rock | 1970 |
 | Post-Rock | Rock, Experimental | 1990 |
 | Darkwave | Darkwave, Electronic | 1980 |
 
-Only genre labels supported by the ChordSeqAI conditioning vector are valid. `defaultDecade` is omitted for broad Types such as Classical, Jazz, Folk, Rock, and Pop rather than forcing an arbitrary era.
+Only genre labels and decade slots supported by the ChordSeqAI conditioning vector are valid. Decade is single-select: `1950`, `1960`, `1970`, `1980`, `1990`, `2000`, `2010`, or `2020`.
 
-When Pulse-specific controls are added to the frontend, the resolved genres should appear as editable chips and the decade as an optional Era selector. Array ignores both fields.
+Composer derives genres behind the scenes from Type. Pulse refinement shows the Type's default decade in a dropdown; changing Type restores that Type's default, and the user can choose any other supported decade. Array ignores both fields.
+
+Genre and decade belong specifically to `ChordSeqAIGenerator`'s conditional chord models. They are not fields on the general `PulsePlanner` request. Only `conditional_small`, `conditional_medium`, and `conditional_large` consume these conditions.
 
 ### Segment Presets
 
@@ -345,13 +358,52 @@ Peitho-Composer deliberately starts as an 8-bar composition tool:
 
 These constraints are good for the Composer because it is meant to be fast, focused, and DAW-friendly. They should not leak into `peitho-array` or `peitho-pulse`.
 
+## Audition Playback & Instruments
+
+To improve the auditioning experience from the prototype's basic oscillators without breaking performance, we adopt a dual-stage audio roadmap:
+
+1. **Local Development (Full Version) ✓ Implemented:** Uses `midi-js-soundfonts` (MusyngKite soundfont, mp3 format) to load base64-encoded instrument samples dynamically, decoding them into `AudioBuffer` instances via the Web Audio API. Delivers high-fidelity sound during design sessions.
+
+   **Files added:**
+   - `apps/peitho-composer/public/soundfont-player.js` — thin loader/player: dynamically injects soundfont scripts, decodes base64 data URIs to `AudioBuffer`, caches per instrument stem, nearest-note lookup with `playbackRate` pitch-shifting as fallback. Exposes `SoundfontPlayer.load(ctx, label)` and `SoundfontPlayer.play(ctx, master, label, midiNote, startTime, durSec, velocity)`.
+   - `apps/peitho-composer/public/soundfonts/MusyngKite/` — 18 soundfont `.js` files: 17 melodic instruments mapped from UI labels + `synth_drum` for all drum kit variants.
+
+   **UI label → GM soundfont stem mapping** (lives in `soundfont-player.js`):
+
+   | UI Label | Soundfont Stem |
+   | --- | --- |
+   | Acoustic Piano | `acoustic_grand_piano` |
+   | Electric Piano 1 | `electric_piano_1` |
+   | Vibraphone | `vibraphone` |
+   | String Ensemble | `string_ensemble_1` |
+   | Choir Aahs | `choir_aahs` |
+   | Pad: Warm | `pad_2_warm` |
+   | Violin | `violin` |
+   | Guitar (Nylon) | `acoustic_guitar_nylon` |
+   | Flute | `flute` |
+   | Oboe | `oboe` |
+   | Synth Lead | `lead_1_square` |
+   | Saw Wave | `lead_2_sawtooth` |
+   | Acoustic Bass | `acoustic_bass` |
+   | Electric Bass (Finger) | `electric_bass_finger` |
+   | Electric Bass (Pick) | `electric_bass_pick` |
+   | Slap Bass | `slap_bass_1` |
+   | Synth Bass | `synth_bass_1` |
+   | Acoustic / Electronic / Brushes (drums) | `synth_drum` |
+
+   **Drum MIDI note mapping** (kick=36, snare=38, hat=42, open=46) handled by `Component._drumNote(kind)`.
+
+2. **Production Web (Lite Version):** Uses `WebAudioTinySynth` (General MIDI synthesizer in a single script) to synthesize 128 GM instruments client-side. This keeps the bundle self-contained and allows offline, zero-loading-latency playback of standard instruments for the standalone frontend.
+
+3. **Common Mapping Interface:** Both backends map directly to standard MIDI note numbers, velocities, and durations. `Component._scheduler` is untouched. The swap point is `Component._scheduleStep`, which calls `SoundfontPlayer.play()` for all voices (chord, bass, melody, counter, drums). The old oscillator-based `_voice()`, `_noise()`, and `_drumVoice()` methods have been removed. `Component._ensureAudio()` initialises the `AudioContext` and triggers preloading of all active instruments; `componentDidMount()` calls it so soundfonts begin loading on page mount. `setInstrument()` and `setDrumsKit()` call `SoundfontPlayer.load()` to preload any newly selected instrument immediately.
+
 ## Current Workflow
 
 The prototype workflow is:
 
 1. Select tonality: key, scale, tempo.
 2. Select direction: type, segment, option.
-3. Select engine model: Peitho-Array now, Peitho-Pulse later.
+3. Select Peitho-Array or Peitho-Pulse. Array exposes only chord count 8/16; Pulse exposes full chord controls.
 4. Generate chords.
 5. Lock chords.
 6. Generate melodies.
@@ -365,10 +417,12 @@ The prototype workflow is:
 
 The engine selector is interactive:
 
-- `Peitho-Array` keeps the deterministic Composer workflow.
+- `Peitho-Array` uses the fixed lightweight profile: `conditional_small`, two tries, Free ending policy, In Key palette, no immediate repeats, and chord count 8 or 16. Type/Segment/Option/Scale presets resolve all other values and cannot be overridden.
 - `Peitho-Pulse` reveals a refinement panel below the engine selector.
 
-The refinement panel is only visible when `engineModel === "pulse"`. It currently previews the prompt-control surface; it does not yet call the Pulse engine.
+The refinement panel is only visible when `engineModel === "pulse"`. Generate Chords posts the resolved `ChordGenRequest` to `/pulse/chords`; the server reuses one cached `ChordSeqAIGenerator` and returns ranked candidates. Composer renders the best candidate into the existing chord lane.
+
+The panel includes a single-select decade dropdown with the eight model slots from `1950` through `2020`. It starts from the selected Type's default. Changing Type updates it; Reset restores it alongside the default keyword chips.
 
 When Pulse mode is selected, Composer initialises keyword chips from the current Type, Segment, and Option:
 
@@ -409,13 +463,52 @@ type PulseComposerContext = {
   };
   pulseConditions: {
     genres: PulseGenre[];
-    decade?: PulseDecade;
+    decade: PulseDecade;
   };
   refinement: PulseRefinement;
 };
 ```
 
-Pulse keywords are model hints, not engine rules. `peitho-array` should only receive concrete symbolic parameters and repair-pass data.
+Composer translates that internal context into two separate package requests.
+
+For chord generation, Composer calls `ChordSeqAIGenerator` with resolved harmonic controls:
+
+```ts
+const chordRequest: ChordGenRequest = {
+  key,
+  mode,
+  bars,
+  tension,
+  repetition,
+  cadence,
+  chordLengths,
+  model: "conditional_medium",
+  genres: pulseConditions.genres,
+  decade: pulseConditions.decade,
+  seed,
+};
+```
+
+For melody, counter-melody, or drums, Composer calls `PulsePlanner.generate()` with macros and locked musical context. Selected refinement chips are joined into `prompt`; that field is reserved for Stage 4 LM conditioning and does not currently alter ChordSeqAI output.
+
+```ts
+const pulseRequest: PulseRequest = {
+  target,
+  key,
+  scale,
+  bars,
+  seed,
+  density,
+  split,
+  sync,
+  rhythm,
+  chords: lockedChords,
+  melody: lockedMelody,
+  prompt: refinement.keywords.join(", "),
+};
+```
+
+`docs/peitho-pulse-user-guide.md` is the authoritative package API reference. `peitho-array` should only receive concrete symbolic parameters and repair-pass data.
 
 ## Extraction Plan
 
@@ -453,11 +546,11 @@ Build the Bun app around the same first-screen experience:
 
 ### Stage 4: Peitho-Pulse Integration
 
-Add Peitho-Pulse as an optional generation path:
+Continue Peitho-Pulse integration beyond the wired chord-generation path:
 
-- prompt panel
-- plan preview
-- generated phrase suggestions
+- keep the existing `ChordSeqAIGenerator` chord route and candidate conversion covered
+- route melody, counter-melody, and drums through `PulsePlanner`
+- pass selected refinement chips through the reserved `prompt` field
 - model output repair through `peitho-array`
 - same MIDI/editing surface after generation
 

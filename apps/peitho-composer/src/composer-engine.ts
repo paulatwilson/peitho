@@ -1,15 +1,20 @@
 import {
+  ARRAY_CHORD_RUNTIME_PROFILE,
   DRUM_PATTERNS,
   KEYS,
   NOTE_NAMES,
+  SCALE_INTERVALS,
   SCALE_LABELS,
   buildMidi,
   chordPool,
   generateChords,
   generateDrums,
   generateMono,
+  normalizeScaleName,
+  romanToChordSymbols,
   scaleMidi,
   waveformBins,
+  type ChordEvent,
   type DisplayScaleName,
   type DrumPattern,
   type MidiTrack,
@@ -17,6 +22,7 @@ import {
   type MacroSettings,
   type OptionProfile,
   type ProgressionProfile,
+  type ProgressionSeed,
   type SegmentProfile,
 } from "@peitho/array";
 import directionPresets from "./direction-presets.json";
@@ -51,7 +57,7 @@ type PulseGenre = (typeof PULSE_GENRES)[number];
 type PulseDecade = (typeof PULSE_DECADES)[number];
 type PulseConditions = {
   genres: PulseGenre[];
-  defaultDecade?: PulseDecade;
+  defaultDecade: PulseDecade;
 };
 
 type DirectionTypePreset = {
@@ -79,7 +85,14 @@ type OptionPreset = {
   pulseKeywords: string[];
 };
 
-type ChordDirectionBase = Required<ProgressionProfile>;
+type ScalePolicy = "strict" | "cadential" | "chromatic";
+
+type ChordDirectionBase = Required<ProgressionProfile> & {
+  scalePolicy: ScalePolicy;
+  model: string;
+  candidateCount: number;
+  cadencePolicy: string;
+};
 
 type ChordDirectionModifier = {
   start?: ProgressionProfile["start"];
@@ -88,6 +101,8 @@ type ChordDirectionModifier = {
   repetitionShift?: number;
   chordLengthScale?: number;
   extensionShift?: number;
+  cadencePolicyOverride?: string | null;
+  candidateCountShift?: number;
 };
 
 type ChordDirectionLibrary = {
@@ -178,8 +193,58 @@ function pulseConditions(type: string): PulseConditions {
   const conditions = (TYPE_PRESETS[type] ?? DEFAULT_TYPE).pulseConditions;
   return {
     genres: [...conditions.genres],
-    ...(conditions.defaultDecade == null ? {} : { defaultDecade: conditions.defaultDecade }),
+    defaultDecade: conditions.defaultDecade,
   };
+}
+
+function chordTones(symbol: string): number[] {
+  const match = symbol.match(/^([A-G])(#|b)?(.*)$/);
+  if (!match) throw new Error(`Unsupported chord symbol: ${symbol}`);
+  const accidental = match[2] === "#" ? 1 : match[2] === "b" ? -1 : 0;
+  const root = 48 + (NOTE_NAMES.indexOf(match[1] as (typeof NOTE_NAMES)[number]) + accidental + 12) % 12;
+  const suffix = match[3];
+  const intervals = suffix.startsWith("dim") ? [0, 3, 6] : suffix.startsWith("aug") ? [0, 4, 8] : suffix.startsWith("m") ? [0, 3, 7] : [0, 4, 7];
+  return intervals.map((interval) => root + interval);
+}
+
+const NOTE_TO_PC: Record<string, number> = {
+  C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11,Cb:11
+};
+
+function chordRagStatus(chordName: string, key: string, scale: DisplayScaleName): 'green'|'amber'|'red' {
+  const scaleIntervals = SCALE_INTERVALS[normalizeScaleName(scale)];
+  const keyPc = NOTE_NAMES.indexOf(key as typeof NOTE_NAMES[number]);
+  if (keyPc === -1 || !scaleIntervals) return 'amber';
+  const inScale = new Set(scaleIntervals.map(n => (n + keyPc) % 12));
+  const rootMatch = chordName.match(/^([A-G][#b]?)/);
+  if (!rootMatch) return 'amber';
+  const rootPc = NOTE_TO_PC[rootMatch[1]];
+  if (rootPc == null) return 'amber';
+  if (!inScale.has(rootPc)) return 'red';
+  // "maj" must come before "m" — "maj7".startsWith("m") is true
+  const suffix = chordName.slice(rootMatch[1].length).split('/')[0];
+  const intervals = suffix.startsWith("dim") ? [0,3,6]
+    : suffix.startsWith("aug") ? [0,4,8]
+    : suffix.startsWith("maj") ? [0,4,7]
+    : suffix.startsWith("m7b5") || suffix.startsWith("m7#5") ? [0,3,6]
+    : suffix.startsWith("m")   ? [0,3,7]
+    : [0,4,7];
+  return intervals.map(i => (rootPc + i) % 12).every(pc => inScale.has(pc)) ? 'green' : 'amber';
+}
+
+function chordsFromProgressionSeed(seed: ProgressionSeed, key: string): ChordEvent[] {
+  const symbols = romanToChordSymbols(seed.degrees, key, seed.mode);
+  const rhythm = seed.harmonicRhythm;
+  if (!rhythm || rhythm.length !== symbols.length) {
+    throw new Error("Pulse progression seed has no matching harmonic rhythm");
+  }
+  let start = 0;
+  return symbols.map((name, index) => {
+    const len = rhythm[index];
+    const event = { name, start, len, tones: chordTones(name) };
+    start += len;
+    return event;
+  });
 }
 
 function chordDirection(type: string, segment: string, option: string) {
@@ -204,6 +269,10 @@ function chordDirection(type: string, segment: string, option: string) {
         base.repetition + (segmentModifier.repetitionShift ?? 0) + (optionModifier.repetitionShift ?? 0),
       ),
     } satisfies Required<ProgressionProfile>,
+    scalePolicy: base.scalePolicy,
+    model: base.model,
+    candidateCount: Math.min(8, Math.max(1, base.candidateCount + (segmentModifier.candidateCountShift ?? 0) + (optionModifier.candidateCountShift ?? 0))),
+    cadencePolicy: optionModifier.cadencePolicyOverride ?? segmentModifier.cadencePolicyOverride ?? base.cadencePolicy,
   };
 }
 
@@ -217,6 +286,7 @@ export const ComposerEngine = {
   PULSE_GENRES: [...PULSE_GENRES],
   PULSE_DECADES: [...PULSE_DECADES],
   PULSE_KEYWORDS: [...PULSE_KEYWORDS],
+  ARRAY_CHORD_RUNTIME_PROFILE,
   DRUM_PATTERNS: [...DRUM_PATTERNS],
   DRUM_REC: Object.fromEntries(PRESETS.types.map((preset) => [preset.name, preset.drumRecommendations])),
 
@@ -236,6 +306,11 @@ export const ComposerEngine = {
     return chordDirection(type, segment, option);
   },
 
+  chordTypeDefault(type: string) {
+    const typePreset = TYPE_PRESETS[type] ?? DEFAULT_TYPE;
+    return PRESETS.chordDirections.typeDefaults[typePreset.name] ?? PRESETS.chordDirections.typeDefaults.Ballad;
+  },
+
   genChords(
     key: string,
     scale: DisplayScaleName,
@@ -243,6 +318,7 @@ export const ComposerEngine = {
     segment = DEFAULT_SEGMENT.name,
     option = DEFAULT_OPTION.name,
     seed?: number,
+    chordCount?: number,
   ) {
     const direction = chordDirection(type, segment, option);
     return generateChords({
@@ -250,6 +326,7 @@ export const ComposerEngine = {
       scale,
       bars: 8,
       seed,
+      chordCount,
       ...direction,
     });
   },
@@ -274,6 +351,105 @@ export const ComposerEngine = {
     return pulseConditions(type);
   },
 
+  pulseChordRequest(
+    key: string,
+    scale: DisplayScaleName,
+    type: string,
+    segment: string,
+    option: string,
+    decade: PulseDecade,
+    seed: number,
+    overrides?: {
+      tension?: number;
+      repetition?: number;
+      cadence?: ProgressionProfile["cadence"];
+      chordLengths?: number[];
+      chordCount?: number;
+      model?: string;
+      candidateCount?: number;
+      cadencePolicy?: string;
+      scalePolicy?: ScalePolicy;
+      allowImmediateRepeat?: boolean;
+    },
+  ) {
+    const direction = chordDirection(type, segment, option);
+    const conditions = pulseConditions(type);
+    const explicitCount = overrides?.chordCount;
+    // window=1 (generator default) runs zero soft-penalty iterations when
+    // allowImmediateRepeat=false, so A→B→A→B loops freely. window=2 is the
+    // minimum that actually suppresses alternation; scale higher for larger counts.
+    const repetitionWindow = Math.min(
+      Math.max(2, explicitCount ? Math.round(explicitCount / 2.5) : 2),
+      7,
+    );
+    // Default penalty 3.0 is often too weak against the model's tonal priors.
+    const repetitionPenalty = 5.0;
+    const baseRepetition = overrides?.repetition ?? direction.progressionProfile.repetition;
+    // For large explicit counts the user wants variety, not the most-repetitive
+    // candidate winning the ranking round (motif bonus = repetition × 5).
+    const repetition = explicitCount && explicitCount >= 8
+      ? Math.min(baseRepetition, 0.35)
+      : baseRepetition;
+    return {
+      key,
+      mode: normalizeScaleName(scale),
+      bars: 8,
+      tension: overrides?.tension ?? direction.progressionProfile.tension,
+      repetition,
+      cadence: overrides?.cadence ?? direction.progressionProfile.cadence,
+      chordLengths: overrides?.chordLengths ?? direction.chordLengths,
+      ...(explicitCount ? { chordCount: explicitCount } : {}),
+      scalePolicy: overrides?.scalePolicy ?? direction.scalePolicy,
+      allowImmediateRepeat: overrides?.allowImmediateRepeat ?? false,
+      repetitionWindow,
+      repetitionPenalty,
+      model: (overrides?.model ?? direction.model) as any,
+      cadencePolicy: (overrides?.cadencePolicy ?? direction.cadencePolicy) as any,
+      genres: conditions.genres,
+      decade,
+      seed,
+      candidateCount: overrides?.candidateCount ?? direction.candidateCount,
+    };
+  },
+
+  arrayChordRequest(
+    key: string,
+    scale: DisplayScaleName,
+    type: string,
+    segment: string,
+    option: string,
+    chordCount: 8 | 16,
+    seed: number,
+  ) {
+    if (!ARRAY_CHORD_RUNTIME_PROFILE.chordCounts.includes(chordCount)) {
+      throw new Error("Peitho-Array chord count must be 8 or 16");
+    }
+    const direction = chordDirection(type, segment, option);
+    const conditions = pulseConditions(type);
+    return {
+      key,
+      mode: normalizeScaleName(scale),
+      bars: 8,
+      tension: direction.progressionProfile.tension,
+      repetition: direction.progressionProfile.repetition,
+      cadence: direction.progressionProfile.cadence,
+      chordLengths: direction.chordLengths,
+      chordCount,
+      genres: conditions.genres,
+      decade: conditions.defaultDecade,
+      seed,
+      model: ARRAY_CHORD_RUNTIME_PROFILE.model,
+      candidateCount: ARRAY_CHORD_RUNTIME_PROFILE.candidateCount,
+      cadencePolicy: ARRAY_CHORD_RUNTIME_PROFILE.cadencePolicy,
+      scalePolicy: ARRAY_CHORD_RUNTIME_PROFILE.scalePolicy,
+      allowImmediateRepeat: ARRAY_CHORD_RUNTIME_PROFILE.allowImmediateRepeat,
+    };
+  },
+
+  chordsFromProgressionSeed(seed: ProgressionSeed, key: string) {
+    return chordsFromProgressionSeed(seed, key);
+  },
+
   genMono(seed: number, options: ComposerMonoOptions) {
     const segment = SEGMENT_PRESETS[options.segment] ?? DEFAULT_SEGMENT;
     const option = OPTION_PRESETS[options.option] ?? DEFAULT_OPTION;
@@ -294,6 +470,10 @@ export const ComposerEngine = {
 
   buildMidi(tempo: number, tracks: MidiTrack[]) {
     return buildMidi(tempo, tracks);
+  },
+
+  chordRagStatus(chordName: string, key: string, scale: DisplayScaleName): 'green'|'amber'|'red' {
+    return chordRagStatus(chordName, key, scale);
   },
 };
 

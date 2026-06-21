@@ -1,6 +1,5 @@
-// MIT-licensed chord vocabulary from PetrIvan/chord-seq-ai-app.
-// Imported from .contrib at dev time — this module is CLI/tooling only.
-import { tokenToChord } from "../../../../.contrib/chord-progression-ai/chord-seq-ai-app/src/data/token_to_chord.ts";
+// MIT-licensed chord vocabulary from PetrIvan/chord-seq-ai-app (chord-seq-ai-app).
+import { tokenToChord } from "./token-to-chord.ts";
 
 export const VOCAB_SIZE = Object.keys(tokenToChord).length; // 1033 chord tokens
 export const NUM_TOKENS = VOCAB_SIZE + 2;                   // 1035 (+ start + end specials)

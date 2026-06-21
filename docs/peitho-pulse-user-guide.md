@@ -2,6 +2,14 @@
 
 `peitho-pulse` is the AI planning engine for Peitho. It generates musical material — chord progressions, melodies, counter-melodies, beats — that `peitho-array` can validate, compile, and render to MIDI.
 
+## Array And Pulse Runtime Split
+
+`peitho-array` owns lightweight browser/React Native use. Its optional chord inference uses `conditional_small`, two candidates, strict in-key masking, reject/free ending policy, and chord counts of 8 or 16. Remaining musical controls come from resolved presets and are not user-overridable in Array mode.
+
+`peitho-pulse` is the workhorse local/API path. It exposes larger models, more candidates, cadence/scale policies, harmonic rhythm, chord counts, and expert sampling controls.
+
+Both paths produce the same `ProgressionSeed` contract. Array's model is hosted in object storage and runs client-side; Pulse models run locally or behind the API.
+
 See [`docs/peitho-pulse.md`](./peitho-pulse.md) for architecture decisions, model candidate evaluations, and staging plan.
 
 ---

@@ -47,6 +47,17 @@ export type ProgressionProfile = {
   repetition?: number;
 };
 
+export type ArrayChordCount = 8 | 16;
+
+export const ARRAY_CHORD_RUNTIME_PROFILE = {
+  model: "conditional_small",
+  candidateCount: 2,
+  cadencePolicy: "reject",
+  scalePolicy: "strict",
+  chordCounts: [8, 16],
+  allowImmediateRepeat: false,
+} as const;
+
 type ChordDegreeRole = "tonic" | "predominant" | "dominant" | "colour";
 
 type HarmonicPhraseRole = "statement" | "preparation" | "extension" | "antecedent" | "consequent";
@@ -64,6 +75,7 @@ export type GenerateChordsOptions = {
   bars?: number;
   seed?: number;
   chordLengths?: number[];
+  chordCount?: number;
   extensionProbability?: number;
   progressionProfile?: ProgressionProfile;
 };
@@ -558,13 +570,24 @@ export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
   };
   const totalHalfBars = (options.bars ?? 8) * 2;
   const segments: number[] = [];
-  let remaining = totalHalfBars;
+  const chordCount = options.chordCount;
 
-  while (remaining > 0) {
-    let length = lengths[Math.floor(rng() * lengths.length)];
-    if (length > remaining) length = remaining;
-    segments.push(length);
-    remaining -= length;
+  if (chordCount != null) {
+    if (!Number.isInteger(chordCount) || chordCount < 1 || chordCount > totalHalfBars) {
+      throw new Error(`chordCount must be an integer from 1 to ${totalHalfBars}`);
+    }
+    segments.push(...Array.from({ length: chordCount }, () => 1));
+    for (let remaining = totalHalfBars - chordCount; remaining > 0; remaining -= 1) {
+      segments[Math.floor(rng() * segments.length)] += 1;
+    }
+  } else {
+    let remaining = totalHalfBars;
+    while (remaining > 0) {
+      let length = lengths[Math.floor(rng() * lengths.length)];
+      if (length > remaining) length = remaining;
+      segments.push(length);
+      remaining -= length;
+    }
   }
 
   let start = 0;
