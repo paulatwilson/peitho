@@ -101,6 +101,7 @@
       ],
       "extensionProbability": 0.6,
       "drumRecommendations": [
+        "Half-Time Soul",
         "Slow-Burn & 6/8 Fills",
         "Basic 8th-Note"
       ],
@@ -136,7 +137,8 @@
       "extensionProbability": 0.18,
       "drumRecommendations": [
         "Four-on-the-Floor",
-        "Basic 8th-Note"
+        "Basic 8th-Note",
+        "Driving 16th Open Hat"
       ],
       "pulseKeywords": [
         "bright",
@@ -169,8 +171,9 @@
       ],
       "extensionProbability": 0.65,
       "drumRecommendations": [
-        "Gated-Reverb Drive",
-        "Slow-Burn & 6/8 Fills"
+        "Half-Time Soul",
+        "Slow-Burn & 6/8 Fills",
+        "Gated-Reverb Drive"
       ],
       "pulseKeywords": [
         "wide",
@@ -203,8 +206,9 @@
       ],
       "extensionProbability": 0.5,
       "drumRecommendations": [
-        "Syncopated",
-        "Basic 8th-Note"
+        "Lo-Fi Shuffle",
+        "Half-Time Soul",
+        "Syncopated"
       ],
       "pulseKeywords": [
         "dusty",
@@ -237,7 +241,7 @@
       "extensionProbability": 0.5,
       "drumRecommendations": [
         "Slow-Burn & 6/8 Fills",
-        "Syncopated"
+        "Lo-Fi Shuffle"
       ],
       "pulseKeywords": [
         "spacious",
@@ -270,6 +274,7 @@
       ],
       "extensionProbability": 0.35,
       "drumRecommendations": [
+        "Gated-Reverb Drive",
         "Driving 16th Open Hat",
         "Four-on-the-Floor"
       ],
@@ -305,7 +310,8 @@
       "extensionProbability": 0.28,
       "drumRecommendations": [
         "Driving 16th Open Hat",
-        "Four-on-the-Floor"
+        "Four-on-the-Floor",
+        "Funk Pocket"
       ],
       "pulseKeywords": [
         "glossy",
@@ -337,7 +343,8 @@
       ],
       "extensionProbability": 0.42,
       "drumRecommendations": [
-        "Basic 8th-Note"
+        "Basic 8th-Note",
+        "Slow-Burn & 6/8 Fills"
       ],
       "pulseKeywords": [
         "elegant",
@@ -369,8 +376,8 @@
       ],
       "extensionProbability": 0.8,
       "drumRecommendations": [
-        "Syncopated",
-        "Basic 8th-Note"
+        "Jazz Swing",
+        "Syncopated"
       ],
       "pulseKeywords": [
         "extended",
@@ -402,8 +409,9 @@
       ],
       "extensionProbability": 0.48,
       "drumRecommendations": [
-        "Syncopated",
-        "Driving 16th Open Hat"
+        "Funk Pocket",
+        "Driving 16th Open Hat",
+        "Syncopated"
       ],
       "pulseKeywords": [
         "groove",
@@ -435,8 +443,9 @@
       ],
       "extensionProbability": 0.74,
       "drumRecommendations": [
-        "Syncopated",
-        "Basic 8th-Note"
+        "Half-Time Soul",
+        "Lo-Fi Shuffle",
+        "Syncopated"
       ],
       "pulseKeywords": [
         "smooth",
@@ -470,7 +479,8 @@
       "extensionProbability": 0.3,
       "drumRecommendations": [
         "Four-on-the-Floor",
-        "Driving 16th Open Hat"
+        "Driving 16th Open Hat",
+        "Funk Pocket"
       ],
       "pulseKeywords": [
         "four-on-floor",
@@ -503,7 +513,8 @@
       "extensionProbability": 0.36,
       "drumRecommendations": [
         "Driving 16th Open Hat",
-        "Four-on-the-Floor"
+        "Four-on-the-Floor",
+        "Gated-Reverb Drive"
       ],
       "pulseKeywords": [
         "analogue",
@@ -536,7 +547,8 @@
       "extensionProbability": 0.2,
       "drumRecommendations": [
         "Basic 8th-Note",
-        "Slow-Burn & 6/8 Fills"
+        "Slow-Burn & 6/8 Fills",
+        "Jazz Swing"
       ],
       "pulseKeywords": [
         "organic",
@@ -569,7 +581,8 @@
       "extensionProbability": 0.22,
       "drumRecommendations": [
         "Gated-Reverb Drive",
-        "Basic 8th-Note"
+        "Basic 8th-Note",
+        "Syncopated"
       ],
       "pulseKeywords": [
         "direct",
@@ -601,8 +614,8 @@
       ],
       "extensionProbability": 0.12,
       "drumRecommendations": [
-        "Gated-Reverb Drive",
-        "Driving 16th Open Hat"
+        "Punk Blast",
+        "Gated-Reverb Drive"
       ],
       "pulseKeywords": [
         "raw",
@@ -635,6 +648,7 @@
       "extensionProbability": 0.68,
       "drumRecommendations": [
         "Slow-Burn & 6/8 Fills",
+        "Half-Time Soul",
         "Gated-Reverb Drive"
       ],
       "pulseKeywords": [
@@ -668,6 +682,7 @@
       "extensionProbability": 0.52,
       "drumRecommendations": [
         "Gated-Reverb Drive",
+        "Punk Blast",
         "Driving 16th Open Hat"
       ],
       "pulseKeywords": [

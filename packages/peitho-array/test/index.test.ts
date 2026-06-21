@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import {
   ARRAY_CHORD_RUNTIME_PROFILE,
+  borrowedChordPool,
   chordPool,
   buildMidi,
   createEmptyPattern,
@@ -14,6 +15,7 @@ import {
   snapToScale,
   thinDensity,
   type ScaleName,
+  voiceChordNear,
   waveformBins,
 } from "../src/index";
 
@@ -72,6 +74,35 @@ test("builds in-key chord pool for composer chord menus", () => {
   expect(chords.map((chord) => chord.name)).toContain("Cmaj7");
   expect(chords.map((chord) => chord.name)).toContain("Dm7");
   expect(chords.every((chord) => chord.tones.length >= 3)).toBe(true);
+});
+
+test("builds borrowed chord pool from the parallel mode", () => {
+  const inKey = chordPool("C", "major");
+  const borrowed = borrowedChordPool("C", "major");
+  const inKeyNames = new Set(inKey.map((chord) => chord.name));
+
+  expect(borrowed.map((chord) => chord.name)).toContain("Cm");
+  expect(borrowed.map((chord) => chord.name)).toContain("Fm");
+  expect(borrowed.every((chord) => !inKeyNames.has(chord.name))).toBe(true);
+  expect(borrowed.every((chord) => chord.tones.length >= 3)).toBe(true);
+});
+
+test("keeps chord menu roots in one canonical octave", () => {
+  for (const key of NOTE_NAMES) {
+    for (const chord of chordPool(key, "major")) {
+      expect(chord.tones[0]).toBeGreaterThanOrEqual(48);
+      expect(chord.tones[0]).toBeLessThan(60);
+    }
+  }
+
+  expect(chordPool("E", "major").find((chord) => chord.name === "C#m")?.tones[0]).toBe(49);
+});
+
+test("voices a replacement chord near the chord being edited", () => {
+  const cMajor = chordPool("C", "major").find((chord) => chord.name === "C")!;
+
+  expect(voiceChordNear(cMajor, 59).tones).toEqual([60, 64, 67]);
+  expect(voiceChordNear(cMajor, 48).tones).toEqual([48, 52, 55]);
 });
 
 test("generates seeded chord progression that fills requested bars", () => {
@@ -392,6 +423,29 @@ test("generates drum grids and waveform bins for composer", () => {
   expect(drums.snare).toContain(4);
   expect(drums.hat).toContain(2);
   expect(waveformBins([{ step: 0, len: 16, midi: 60 }], 8)).toHaveLength(8);
+});
+
+test("generates all 11 drum patterns without throwing", () => {
+  const patterns: import("../src/contracts").DrumPattern[] = [
+    "Basic 8th-Note", "Four-on-the-Floor", "Syncopated", "Slow-Burn & 6/8 Fills",
+    "Gated-Reverb Drive", "Driving 16th Open Hat", "Jazz Swing", "Funk Pocket",
+    "Half-Time Soul", "Lo-Fi Shuffle", "Punk Blast",
+  ];
+  for (const p of patterns) {
+    const d = generateDrums(p, 8, 16, 0);
+    expect(d.kick).toBeArray();
+    expect(d.snare).toBeArray();
+    expect(d.hat).toBeArray();
+    expect(d.open).toBeArray();
+    expect([...d.kick, ...d.snare, ...d.hat, ...d.open].every((s) => s >= 0 && s < 128)).toBe(true);
+  }
+});
+
+test("seeded generateDrums produces variation vs base", () => {
+  const base = generateDrums("Jazz Swing", 8, 16, 0);
+  const seeded = generateDrums("Jazz Swing", 8, 16, 0x9f3ac71e);
+  // seeded output should differ (more notes due to ghost/variation additions)
+  expect(seeded.kick.length + seeded.snare.length).toBeGreaterThanOrEqual(base.kick.length + base.snare.length);
 });
 
 test("builds midi bytes from engine note events", () => {

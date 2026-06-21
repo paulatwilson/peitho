@@ -93,8 +93,10 @@ Current Composer UI contains:
 | Arpeggiator | chord-lane rate, step count, straight/looped pattern and preview |
 | Export | chord, bass, melody, counter, drums and multi-track MIDI |
 
-Chord cells show a green/amber/red scale relationship indicator: in-key,
-borrowed or out-of-key. Bass derives from chord roots when enabled.
+Chord cells show a green/orange/red scale relationship indicator: in-key,
+parallel-mode borrowed or out-of-key. The chord menu defaults to in-key choices
+and can include borrowed choices; each option carries the same green/orange dot.
+Bass derives from chord roots when enabled.
 
 Manual melody/counter edits create an override for active variant. Regeneration,
 direction changes or macro changes clear affected overrides.
@@ -213,6 +215,11 @@ all values are clamped to supported ranges
 | Note Split | biases generation balance: higher favours melody, lower favours counter |
 | Syncopation | increases weak-beat and off-beat trigger probability |
 | Rhythm Complexity | increases non-beat subdivision activity |
+
+Each Macro Shaping control has a plain-language information tooltip describing
+its low/high effect and whether Array updates immediately or Pulse requires
+regeneration. Note Split balances counter-melody against melody; it does not
+balance chords against melody.
 
 Segment profile additionally changes density multiplier, register, note length and
 syncopation. Option profile applies bar-to-bar envelope plus note-length

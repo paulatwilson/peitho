@@ -264,6 +264,16 @@ test("composer feeds preset output into peitho-array", () => {
   expect(notes.length).toBeGreaterThan(0);
 });
 
+test("composer exposes in-key and parallel-mode borrowed chord choices", () => {
+  const inKey = ComposerEngine.chordPool("C", "Heptatonic Major");
+  const borrowed = ComposerEngine.borrowedChordPool("C", "Heptatonic Major");
+
+  expect(inKey.map((chord) => chord.name)).toContain("F");
+  expect(borrowed.map((chord) => chord.name)).toContain("Fm");
+  expect(ComposerEngine.chordRagStatus("F", "C", "Heptatonic Major")).toBe("green");
+  expect(ComposerEngine.chordRagStatus("Fm", "C", "Heptatonic Major")).toBe("amber");
+});
+
 test("type, segment, and option resolve into audibly different chord directions", () => {
   const crescendo = ComposerEngine.chordDirection("Ballad", "Verse", "Rousing Crescendo");
   const driving = ComposerEngine.chordDirection("Ballad", "Verse", "Driving Pulse");

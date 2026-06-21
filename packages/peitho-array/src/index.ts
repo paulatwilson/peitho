@@ -167,6 +167,11 @@ export const DRUM_PATTERNS: DrumPattern[] = [
   "Slow-Burn & 6/8 Fills",
   "Gated-Reverb Drive",
   "Driving 16th Open Hat",
+  "Jazz Swing",
+  "Funk Pocket",
+  "Half-Time Soul",
+  "Lo-Fi Shuffle",
+  "Punk Blast",
 ];
 
 function clamp(value: number, min: number, max: number): number {
@@ -402,7 +407,6 @@ export function chordPool(key: string, scale: ScaleInput): ChordTemplate[] {
   const root = keyToPitchClass(key);
   const harmony = harmonicScale(scale);
   const roots = SCALE_INTERVALS[normalizeScaleName(scale)];
-  const tonic = 48 + root;
   const out: ChordTemplate[] = [];
 
   for (const rootStep of roots) {
@@ -418,9 +422,10 @@ export function chordPool(key: string, scale: ScaleInput): ChordTemplate[] {
     const seventhInterval = seventh - rootStep;
     const secondInterval = second - rootStep;
     const rootName = NOTE_NAMES[(root + rootStep) % 12];
+    const rootMidi = 48 + ((root + rootStep) % 12);
     const base = thirdInterval === 4 ? "" : thirdInterval === 3 ? "m" : thirdInterval <= 2 ? "sus2" : "sus4";
     const fifthQuality = fifthInterval === 6 ? "b5" : fifthInterval === 8 ? "#5" : "";
-    const triad = [tonic + rootStep, tonic + third, tonic + fifth];
+    const triad = [rootMidi, rootMidi + thirdInterval, rootMidi + fifthInterval];
 
     out.push({ name: `${rootName}${base}${fifthQuality}`, tones: triad });
 
@@ -432,23 +437,44 @@ export function chordPool(key: string, scale: ScaleInput): ChordTemplate[] {
       if (seventhSuffix) {
         out.push({
           name: `${rootName}${seventhSuffix}`,
-          tones: [tonic + rootStep, tonic + third, tonic + fifth, tonic + seventh],
+          tones: [...triad, rootMidi + seventhInterval],
         });
       }
 
       out.push({
         name: `${rootName}${base}add9`,
-        tones: [tonic + rootStep, tonic + third, tonic + fifth, tonic + rootStep + secondInterval + 12],
+        tones: [...triad, rootMidi + secondInterval + 12],
       });
     } else if (fifthQuality === "b5") {
       out.push({
         name: `${rootName}m7b5`,
-        tones: [tonic + rootStep, tonic + third, tonic + fifth, tonic + seventh],
+        tones: [...triad, rootMidi + seventhInterval],
       });
     }
   }
 
   return out;
+}
+
+export function borrowedChordPool(key: string, scale: ScaleInput): ChordTemplate[] {
+  const scaleName = normalizeScaleName(scale);
+  const parallelScale: ScaleName =
+    scaleName === "pentatonic-minor" || scaleName === "natural-minor" ? "major" : "natural-minor";
+  const inKeyNames = new Set(chordPool(key, scaleName).map((chord) => chord.name));
+
+  return chordPool(key, parallelScale).filter((chord) => !inKeyNames.has(chord.name));
+}
+
+export function voiceChordNear(chord: ChordTemplate, referenceRoot: number): ChordTemplate {
+  if (!chord.tones.length || !Number.isFinite(referenceRoot)) {
+    return { name: chord.name, tones: [...chord.tones] };
+  }
+
+  const octaveShift = Math.round((referenceRoot - chord.tones[0]) / 12) * 12;
+  return {
+    name: chord.name,
+    tones: chord.tones.map((tone) => tone + octaveShift),
+  };
 }
 
 export function generateChords(options: GenerateChordsOptions): ChordEvent[] {
@@ -652,7 +678,7 @@ export function generateMono(options: GenerateMonoOptions): NoteEvent[] {
   return out;
 }
 
-export function generateDrums(pattern: DrumPattern, bars = 8, stepsPerBar = 16): DrumPatternEvents {
+export function generateDrums(pattern: DrumPattern, bars = 8, stepsPerBar = 16, seed = 0): DrumPatternEvents {
   const kick: number[] = [];
   const snare: number[] = [];
   const hat: number[] = [];
@@ -660,37 +686,139 @@ export function generateDrums(pattern: DrumPattern, bars = 8, stepsPerBar = 16):
 
   for (let bar = 0; bar < bars; bar += 1) {
     const offset = bar * stepsPerBar;
+    // Per-bar seeded rng — seed=0 means base skeleton only
+    const rng = seed !== 0 ? createRng((seed ^ 0xdeadbeef) + bar * 0x9e3779b9) : () => -1;
     const fill = bar % 4 === 3;
+    const alt = bar % 2 === 1;
 
     if (pattern === "Basic 8th-Note") {
       kick.push(offset, offset + 8);
+      if (rng() > 0.65) kick.push(offset + 14);                          // anticipation into next bar
       snare.push(offset + 4, offset + 12);
+      if (alt && rng() > 0.5) snare.push(offset + 2);                    // ghost on 8th before beat 1
       for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
+      if (rng() > 0.6) open.push(offset + 10);                           // open hat accent
+      if (fill) { snare.push(offset + 10, offset + 14); }
+
     } else if (pattern === "Four-on-the-Floor") {
       kick.push(offset, offset + 4, offset + 8, offset + 12);
+      if (rng() > 0.7) kick.push(offset + 14);
       snare.push(offset + 4, offset + 12);
       for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
-      for (let i = 2; i < stepsPerBar; i += 4) open.push(offset + i);
+      if (rng() > 0.45) open.push(offset + 2);
+      if (rng() > 0.45) open.push(offset + 10);
+      if (fill) { snare.push(offset + 10, offset + 14); open.push(offset + 6); }
+
     } else if (pattern === "Syncopated") {
       kick.push(offset, offset + 6, offset + 10);
+      if (alt && rng() > 0.55) kick.push(offset + 13);
       snare.push(offset + 4, offset + 12);
-      if (bar % 2) snare.push(offset + 14);
+      if (alt) snare.push(offset + 14);
+      if (rng() > 0.6) snare.push(offset + 9);
       for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
       hat.push(offset + 7, offset + 15);
+      if (rng() > 0.55) hat.push(offset + 1);
+
     } else if (pattern === "Slow-Burn & 6/8 Fills") {
       kick.push(offset, offset + 9);
+      if (alt && rng() > 0.6) kick.push(offset + 5);
       snare.push(offset + 6);
+      if (rng() > 0.55) snare.push(offset + 14);
       [0, 3, 6, 9, 12, 15].forEach((i) => hat.push(offset + i));
-      if (fill) snare.push(offset + 10, offset + 12, offset + 14);
+      if (rng() > 0.5) hat.push(offset + 1);
+      if (fill) { snare.push(offset + 10, offset + 12, offset + 14); open.push(offset + 3); }
+
     } else if (pattern === "Gated-Reverb Drive") {
       kick.push(offset, offset + 8, offset + 11);
+      if (alt && rng() > 0.6) kick.push(offset + 14);
       snare.push(offset + 4, offset + 12);
+      if (rng() > 0.65) snare.push(offset + 6);
       for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
+      if (fill) { open.push(offset, offset + 8); snare.push(offset + 14); }
+
     } else if (pattern === "Driving 16th Open Hat") {
       kick.push(offset, offset + 8);
+      if (alt && rng() > 0.55) kick.push(offset + 11);
       snare.push(offset + 4, offset + 12);
       for (let i = 0; i < stepsPerBar; i += 1) hat.push(offset + i);
       for (let i = 2; i < stepsPerBar; i += 4) open.push(offset + i);
+      if (fill) { snare.push(offset + 10, offset + 14); }
+
+    } else if (pattern === "Jazz Swing") {
+      // Kick: feathered on 1, sparse comping
+      kick.push(offset);
+      if (rng() > 0.6) kick.push(offset + 8);
+      if (alt && rng() > 0.7) kick.push(offset + 11);
+      // Snare: accent on 2+4, ghost notes on inner 16ths
+      snare.push(offset + 4, offset + 12);
+      if (rng() > 0.45) snare.push(offset + 1);
+      if (rng() > 0.45) snare.push(offset + 9);
+      if (alt && rng() > 0.5) snare.push(offset + 6);
+      if (fill) { snare.push(offset + 2, offset + 10, offset + 14); }
+      // Hat: swing 8ths (quarter + swung upbeats)
+      [0, 3, 4, 7, 8, 11, 12, 15].forEach((i) => hat.push(offset + i));
+      // Occasional open hat on swung upbeat
+      if (rng() > 0.6) open.push(offset + 7);
+      if (alt && rng() > 0.65) open.push(offset + 15);
+
+    } else if (pattern === "Funk Pocket") {
+      // Syncopated kick with 16th note placement
+      kick.push(offset, offset + 3, offset + 8);
+      if (rng() > 0.5) kick.push(offset + 11);
+      if (alt && rng() > 0.55) kick.push(offset + 13);
+      // Snare on 2+4, ghost notes throughout
+      snare.push(offset + 4, offset + 12);
+      [2, 6, 10, 14].forEach((i) => { if (rng() > 0.4) snare.push(offset + i); });
+      if (rng() > 0.6) snare.push(offset + 9);
+      // 16th hat, drop ~30% for pocket feel when seeded
+      for (let i = 0; i < stepsPerBar; i += 1) {
+        if (i === 4 || i === 12) continue;                               // let snare breathe
+        if (seed === 0 || rng() > 0.3) hat.push(offset + i);
+      }
+      if (fill) { kick.push(offset + 14); snare.push(offset + 10, offset + 13); open.push(offset + 6); }
+
+    } else if (pattern === "Half-Time Soul") {
+      // Kick on 1, upbeat of 2
+      kick.push(offset, offset + 5);
+      if (rng() > 0.55) kick.push(offset + 3);
+      if (alt && rng() > 0.6) kick.push(offset + 14);
+      // Snare only on beat 3 (half-time feel)
+      snare.push(offset + 8);
+      if (rng() > 0.5) snare.push(offset + 13);
+      if (fill) { snare.push(offset + 10, offset + 12, offset + 14); }
+      // 8th hat, occasional open
+      for (let i = 0; i < stepsPerBar; i += 2) hat.push(offset + i);
+      if (rng() > 0.55) hat.push(offset + 9);
+      if (rng() > 0.6) open.push(offset + 6);
+      if (alt && rng() > 0.65) open.push(offset + 14);
+
+    } else if (pattern === "Lo-Fi Shuffle") {
+      // Kick on 1 and 3, sometimes with subtle anticipation
+      kick.push(offset, offset + 8);
+      if (alt && rng() > 0.6) kick.push(offset + 11);
+      if (rng() > 0.65) kick.push(offset + 14);
+      // Snare on 2+4 with occasional ghost
+      snare.push(offset + 4, offset + 12);
+      if (alt && rng() > 0.55) snare.push(offset + 2);
+      if (rng() > 0.6) snare.push(offset + 14);
+      // Swing 8th hat pattern (lazy feel)
+      [0, 3, 4, 7, 8, 11, 12, 15].forEach((i) => hat.push(offset + i));
+      if (rng() > 0.5) hat.push(offset + 1);
+      if (fill) { snare.push(offset + 10, offset + 13); open.push(offset + 7); }
+
+    } else if (pattern === "Punk Blast") {
+      // Driving kick on all four beats
+      kick.push(offset, offset + 4, offset + 8, offset + 12);
+      if (alt && rng() > 0.5) kick.push(offset + 2);
+      // Snare on 2+4, relentless
+      snare.push(offset + 4, offset + 12);
+      if (rng() > 0.55) snare.push(offset + 6);
+      if (alt && rng() > 0.5) snare.push(offset + 14);
+      // 16th hat — full on, every step
+      for (let i = 0; i < stepsPerBar; i += 1) hat.push(offset + i);
+      // Crash accent at bar start
+      if (bar % 2 === 0) open.push(offset);
+      if (fill) { snare.push(offset + 10, offset + 14); open.push(offset + 8); }
     }
   }
 

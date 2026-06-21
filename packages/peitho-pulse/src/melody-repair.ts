@@ -1,4 +1,4 @@
-import { quantizeToGrid, snapToScale, thinDensity, type NoteEvent } from "@peitho/array";
+import { quantizeToGrid, snapToScale, thinDensity, SCALE_INTERVALS, keyToPitchClass, normalizeScaleName, type NoteEvent } from "@peitho/array";
 import type { MelodyGenerationRequest, MelodyRepairReport } from "./melody-contracts";
 
 const MIDI_LO = 0;
@@ -72,10 +72,55 @@ export function repairMelodyCandidate(
   }
   working = deoverlapped;
 
+  // Step 4b: merge consecutive same-pitch notes produced by deoverlap into one longer note
+  const MAX_MERGE_LEN = 8;
+  const mergedSamePitch: NoteEvent[] = [];
+  for (const note of working) {
+    const prev = mergedSamePitch.at(-1);
+    if (prev && prev.midi === note.midi && prev.step + prev.len === note.step) {
+      mergedSamePitch[mergedSamePitch.length - 1] = { ...prev, len: Math.min(prev.len + note.len, MAX_MERGE_LEN) };
+    } else {
+      mergedSamePitch.push(note);
+    }
+  }
+  working = mergedSamePitch;
+
   // Step 5: snap non-scale pitches to nearest scale tone
   const beforeSnap = working.map((n) => n.midi);
   working = snapToScale(working, request.key, request.scale);
   report.pitchRepairs = working.filter((n, i) => n.midi !== beforeSnap[i]).length;
+
+  // Step 5b: break up runs of 3+ consecutive same-pitch notes by nudging each 3rd+ note one scale step
+  const root = keyToPitchClass(request.key);
+  const scaleName = normalizeScaleName(request.scale);
+  const scaleIntervals = SCALE_INTERVALS[scaleName] ?? SCALE_INTERVALS["major"];
+  const scaleSet: number[] = [];
+  for (let octave = 0; octave < 11; octave++) {
+    for (const interval of scaleIntervals) {
+      const midi = octave * 12 + root + interval;
+      if (midi >= 0 && midi <= 127) scaleSet.push(midi);
+    }
+  }
+  scaleSet.sort((a, b) => a - b);
+
+  let samePitchRun = 1;
+  const varied: NoteEvent[] = working.slice();
+  for (let i = 1; i < varied.length; i++) {
+    if (varied[i].midi === varied[i - 1].midi) {
+      samePitchRun++;
+      if (samePitchRun >= 3) {
+        const idx = scaleSet.indexOf(varied[i].midi);
+        if (idx >= 0) {
+          const newMidi = idx < scaleSet.length - 1 ? scaleSet[idx + 1] : scaleSet[idx - 1];
+          varied[i] = { ...varied[i], midi: newMidi };
+          samePitchRun = 1;
+        }
+      }
+    } else {
+      samePitchRun = 1;
+    }
+  }
+  working = varied;
 
   // Step 6: enforce density — thin if significantly over target
   const targetCount = Math.round(totalSteps * request.density * 0.5);

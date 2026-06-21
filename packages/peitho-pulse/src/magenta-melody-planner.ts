@@ -5,30 +5,12 @@ import type {
   MelodyPlanner,
   RawMelodyCandidate,
 } from "./melody-contracts";
-
-type MagentaModel = {
-  initialize(): Promise<void>;
-  continueSequence(
-    primer: MagentaNoteSequence,
-    steps: number,
-    temperature: number,
-    chordProgression?: string[],
-  ): Promise<MagentaNoteSequence>;
-};
-
-type MagentaNote = {
-  pitch: number;
-  quantizedStartStep: number;
-  quantizedEndStep: number;
-  velocity?: number;
-  isDrum?: boolean;
-};
-
-type MagentaNoteSequence = {
-  notes: MagentaNote[];
-  totalQuantizedSteps: number;
-  quantizationInfo: { stepsPerQuarter: number };
-};
+import {
+  loadMusicRnnConstructor,
+  type MagentaModel,
+  type MagentaNote,
+  type MagentaNoteSequence,
+} from "./magenta-runtime";
 
 export type MagentaMelodyPlannerConfig = {
   improvRnnCheckpoint?: string;
@@ -115,10 +97,8 @@ export class MagentaMelodyPlanner implements MelodyPlanner {
 
   private async ensureReady(): Promise<void> {
     if (this.ready) return;
-    const magenta = await import("@magenta/music");
-    this.improvRnn = new magenta.MusicRNN(
-      this.config.improvRnnCheckpoint,
-    ) as unknown as MagentaModel;
+    const MusicRNN = await loadMusicRnnConstructor();
+    this.improvRnn = new MusicRNN(this.config.improvRnnCheckpoint);
     await this.improvRnn.initialize();
     this.ready = true;
   }

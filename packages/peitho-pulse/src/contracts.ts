@@ -26,6 +26,7 @@ export type PulseRequest = {
   chords?: ChordEvent[];
   melody?: NoteEvent[];
   prompt?: string;
+  drumStyle?: string;
 };
 
 export type PulsePlanner = {

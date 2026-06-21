@@ -6,6 +6,7 @@ import {
   SCALE_INTERVALS,
   SCALE_LABELS,
   buildMidi,
+  borrowedChordPool,
   chordPool,
   generateChords,
   generateDrums,
@@ -13,6 +14,7 @@ import {
   normalizeScaleName,
   romanToChordSymbols,
   scaleMidi,
+  voiceChordNear,
   waveformBins,
   type ChordEvent,
   type DisplayScaleName,
@@ -213,6 +215,9 @@ const NOTE_TO_PC: Record<string, number> = {
 };
 
 function chordRagStatus(chordName: string, key: string, scale: DisplayScaleName): 'green'|'amber'|'red' {
+  if (chordPool(key, scale).some((chord) => chord.name === chordName)) return 'green';
+  if (borrowedChordPool(key, scale).some((chord) => chord.name === chordName)) return 'amber';
+
   const scaleIntervals = SCALE_INTERVALS[normalizeScaleName(scale)];
   const keyPc = NOTE_NAMES.indexOf(key as typeof NOTE_NAMES[number]);
   if (keyPc === -1 || !scaleIntervals) return 'amber';
@@ -299,8 +304,23 @@ export const ComposerEngine = {
     return clamp(value, min, max);
   },
 
-  genDrums(pattern: DrumPattern) {
-    return generateDrums(pattern, 8, 16);
+  genDrums(pattern: DrumPattern, seed = 0) {
+    return generateDrums(pattern, 8, 16, seed);
+  },
+
+  pulseDrumRequest(pattern: DrumPattern, density: number, rhythm: number, seed: number) {
+    return {
+      target: "drums" as const,
+      drumStyle: pattern,
+      bars: 8,
+      key: "C",
+      scale: "Heptatonic Major",
+      density,
+      split: 0.5,
+      sync: 0.5,
+      rhythm,
+      seed,
+    };
   },
 
   chordDirection(type: string, segment: string, option: string) {
@@ -334,6 +354,14 @@ export const ComposerEngine = {
 
   chordPool(key: string, scale: DisplayScaleName) {
     return chordPool(key, scale);
+  },
+
+  borrowedChordPool(key: string, scale: DisplayScaleName) {
+    return borrowedChordPool(key, scale);
+  },
+
+  voiceChordNear(chord: { name: string; tones: number[] }, referenceRoot: number) {
+    return voiceChordNear(chord, referenceRoot);
   },
 
   scaleMidi(key: string, scale: DisplayScaleName, lo: number, hi: number) {
