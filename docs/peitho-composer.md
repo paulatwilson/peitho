@@ -71,11 +71,76 @@ Type + Segment + Option + Scale
 
 Preset names must not cross into Array.
 
+## Front-End Surface
+
+Current Composer UI contains:
+
+| Area | Controls and behaviour |
+| --- | --- |
+| Header | play/pause, loop, tempo context, ambient seed, multi-track export |
+| Tonality | key, scale and tempo |
+| Direction | Type, Segment and Option preset selectors |
+| Chords | add, regenerate, split, merge, swap, clear and MIDI export |
+| Engine | Peitho-Array or Peitho-Pulse chord generation |
+| Pipeline | generate/lock chords, generate/lock melody, generate counter |
+| Macro shaping | density, split, syncopation, rhythm complexity and reset |
+| Matrix | chord, optional bass, melody, counter and drum lanes |
+| Editing | note move/add/delete/resize, velocity edit and drum-cell toggles |
+| Views | MIDI matrix/waveform plus horizontal and vertical zoom |
+| Variants | three melody slots and three counter-melody slots |
+| Mixer | per-lane mute, solo and gain |
+| Instruments | soundfont selection per pitched lane and drum-kit selection |
+| Arpeggiator | chord-lane rate, step count, straight/looped pattern and preview |
+| Export | chord, bass, melody, counter, drums and multi-track MIDI |
+
+Chord cells show a green/amber/red scale relationship indicator: in-key,
+borrowed or out-of-key. Bass derives from chord roots when enabled.
+
+Manual melody/counter edits create an override for active variant. Regeneration,
+direction changes or macro changes clear affected overrides.
+
+## Direction Preset Shape
+
+Exact entries live in `direction-presets.json`; documentation records schema and
+behaviour, not duplicated catalogues.
+
+```ts
+type TypePreset = {
+  name: string;
+  pulseConditions: { genres: string[]; defaultDecade: PulseDecade };
+  macro: MacroSettings;
+  chordLengths: number[];
+  extensionProbability: number;
+  drumRecommendations: DrumPattern[];
+  pulseKeywords: string[];
+};
+
+type SegmentPreset = {
+  name: string;
+  macro: Partial<MacroSettings>;
+  profile: SegmentProfile;
+  pulseKeywords: string[];
+};
+
+type OptionPreset = {
+  name: string;
+  macro: Partial<MacroSettings>;
+  envelope: "rise" | "fall" | "swell" | "flat" | "sparse" | "alternate";
+  length: number;
+  pulseKeywords: string[];
+};
+```
+
+Type supplies baseline. Segment and Option add deltas. Scale adjusts rhythm and
+may replace/add refinement keywords.
+
 ## Engine Behaviour
 
 ### Array
 
-Array uses fixed lightweight policy for Composer chords:
+Array currently calls deterministic `generateChords()` directly. Composer also
+exposes a fixed lightweight policy describing future/supported chord-adapter
+constraints:
 
 - chord count: 8 or 16
 - deterministic seeded generation
@@ -85,6 +150,9 @@ Array uses fixed lightweight policy for Composer chords:
 
 Melody, counter and drums currently use Array regardless of selected engine tile.
 
+The Array card exposes only chord count (`8` or `16`). Type, Segment and Option
+resolve all other chord and melody values.
+
 ### Pulse
 
 Pulse chord mode posts a resolved `ChordGenRequest` to `/pulse/chords`. Server
@@ -92,10 +160,97 @@ returns ranked candidates; Composer converts best `ProgressionSeed` into existin
 chord-lane events.
 
 Pulse refinement provides structured model controls plus keyword chips. Keywords
-are currently UI/planner context only; ChordSeqAI consumes genre, decade and
-harmonic controls, not free text.
+are currently retained only in Composer state. They are not sent to
+`/pulse/chords`, and Composer does not yet call `/pulse/generate`; therefore chips
+do not currently change generated music. ChordSeqAI consumes structured genre,
+decade and harmonic controls, not keywords or free text.
+
+### Pulse Refinement
+
+Selecting Pulse reveals:
+
+- decade: `1950` through `2020`; seeded from selected Type
+- selected keyword chips: remove individually
+- available keyword catalogue: add individually
+- reset: restore Type + Segment + Option + Scale defaults
+- generation error display
+
+Pulse chord parameters:
+
+| UI control | Request value |
+| --- | --- |
+| Tension | `0..1`; maps to sampling temperature unless overridden |
+| Repetition | `0..1`; affects candidate ranking and repeat behaviour |
+| Ending | `none`, `soft`, `strong`, `loop` cadence |
+| Chord Speed | preset lengths or slow/medium/fast length weights |
+| Chord Palette | `strict`, `cadential`, `chromatic` scale policy |
+| Chord Count | auto, 4, 6, 8, 12 or 16 |
+| Model | Fast=`conditional_small`, Standard=`conditional_medium`, Deep=`conditional_large` |
+| Tries | 2, 4, 6 or 8 candidates |
+| Ending Policy | repair cadence or reject invalid candidate |
+| Immediate Repeats | allow/block adjacent identical chord token |
+
+Type supplies ChordSeqAI genres and default decade. Direction presets also seed
+tension, repetition, cadence, scale policy, model, tries and ending policy.
+Changing relevant direction inputs resets these values and invalidates generated
+Pulse chords. Advanced reset restores current direction defaults.
 
 `/pulse/generate` exists for melody/counter/drums but is not wired into Composer.
+
+## Macro Shaping And Melody Generation
+
+Four macros are resolved by `ComposerEngine.recommendMacros()`:
+
+```text
+resolved macro = Type base + Segment delta + Option delta
+rhythm also receives -0.05 for pentatonic or +0.05 for heptatonic scale
+all values are clamped to supported ranges
+```
+
+| Macro | Current Array melody effect |
+| --- | --- |
+| Note Density | scales event probability; higher density also shortens notes |
+| Note Split | biases generation balance: higher favours melody, lower favours counter |
+| Syncopation | increases weak-beat and off-beat trigger probability |
+| Rhythm Complexity | increases non-beat subdivision activity |
+
+Segment profile additionally changes density multiplier, register, note length and
+syncopation. Option profile applies bar-to-bar envelope plus note-length
+multiplier. Melody uses register `58..84`; counter uses `46..74` before Segment
+register shift. Counter probability receives an additional reduction.
+
+Macro sliders affect generated melody and counter material, not existing chord
+selection. Moving a macro clears manual melody/counter overrides so active seeded
+variants are recomputed. Reset recalculates defaults from current direction and
+scale.
+
+Current limitation: melody generation is scale-aware but not conditioned on
+active chord tones. Pulse keyword chips do not influence it.
+
+Target Pulse melody architecture:
+[`melody-generation-design.md`](./melody-generation-design.md).
+
+## Variants And Locks
+
+- Chords must be generated and locked before melody generation.
+- Melody must contain material and be locked before counter generation.
+- Melody and counter each have three independent seed/override slots.
+- Regenerating active slot replaces its seed and clears its override.
+- Locking protects workflow stage; it does not persist data across refresh.
+
+## Arpeggiator
+
+Current chord-lane arpeggiator supports:
+
+- rates: sixteenth, eighth or quarter note
+- chord-tone step counts: 3, 4, 5 or 6
+- straight permutations or looped up/down-style patterns
+- visual pattern selection
+- preview, accept, cancel and turn-off actions
+
+It changes derived chord-lane playback/export notes while enabled. Logic currently
+lives inline in `public/index.html`; extraction into reusable TypeScript remains a
+refactor target.
 
 ## Workflow
 

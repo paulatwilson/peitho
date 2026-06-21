@@ -22,6 +22,7 @@ adapters may use Array repair/types. Array remains deterministic and model-free.
 | Pulse request contract | `packages/peitho-pulse/src/contracts.ts` | model adapters |
 | model-output repair | `packages/peitho-pulse/src/repair.ts` | Composer UI |
 | Magenta generation | `packages/peitho-pulse/src/magenta-planner.ts` | ChordSeqAI |
+| AI melody target design | `docs/melody-generation-design.md` | model reference trees |
 | ONNX chords | `packages/peitho-pulse/src/chord-seq-ai/` | Magenta adapter |
 | preset translation | `apps/peitho-composer/src/composer-engine.ts` | server code |
 | Pulse HTTP routes | `apps/peitho-composer/src/pulse-api.ts` | static serving |

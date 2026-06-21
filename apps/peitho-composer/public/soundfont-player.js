@@ -119,7 +119,7 @@
       src.buffer = map[found.key];
       if (found.detune !== 0) src.playbackRate.value = Math.pow(2, found.detune / 12);
 
-      const gain = Math.max(0.0001, (velocity == null ? 90 : velocity) / 127) * 0.82;
+      const gain = Math.max(0.0001, (velocity == null ? 90 : velocity) / 127) * 2.0;
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, startTime);
       g.gain.linearRampToValueAtTime(gain, startTime + 0.005);

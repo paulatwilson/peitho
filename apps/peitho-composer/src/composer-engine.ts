@@ -25,6 +25,7 @@ import {
   type ProgressionSeed,
   type SegmentProfile,
 } from "@peitho/array";
+import type { MelodyGenerationRequest } from "@peitho/pulse";
 import directionPresets from "./direction-presets.json";
 
 type MacroVector = MacroSettings;
@@ -474,6 +475,51 @@ export const ComposerEngine = {
 
   chordRagStatus(chordName: string, key: string, scale: DisplayScaleName): 'green'|'amber'|'red' {
     return chordRagStatus(chordName, key, scale);
+  },
+
+  pulseMelodyRequest(
+    key: string,
+    scale: DisplayScaleName,
+    type: string,
+    segment: string,
+    option: string,
+    tempo: number,
+    seed: number,
+    overrides: {
+      target?: "melody" | "counter";
+      density: number;
+      sync: number;
+      rhythm: number;
+      melodyShare: number;
+      chords: ChordEvent[];
+      keywords?: string[];
+      melody?: NoteEvent[];
+    },
+  ): MelodyGenerationRequest {
+    const seg = SEGMENT_PRESETS[segment] ?? DEFAULT_SEGMENT;
+    const opt = OPTION_PRESETS[option] ?? DEFAULT_OPTION;
+    return {
+      target: overrides.target ?? "melody",
+      bars: 8,
+      beatsPerBar: 4,
+      stepsPerBeat: 4,
+      tempo,
+      key,
+      scale,
+      seed,
+      candidateCount: 3,
+      density: overrides.density,
+      sync: overrides.sync,
+      rhythm: overrides.rhythm,
+      melodyShare: overrides.melodyShare,
+      segmentProfile: seg.profile,
+      optionProfile: { envelope: opt.envelope, length: opt.length },
+      prompt: [type, segment, option].filter(Boolean).join(" · "),
+      keywords: overrides.keywords ?? [],
+      chords: overrides.chords,
+      melody: overrides.melody,
+      planner: "magenta",
+    };
   },
 };
 

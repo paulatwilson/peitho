@@ -1,167 +1,162 @@
-# peitho-pulse
+# Peitho-Pulse: Melody & Session Player Generation
 
-`@peitho/pulse` owns optional symbolic model runtimes. It accepts Peitho requests,
-runs a model adapter and returns canonical Array contracts. It does not own UI
-presets, playback, MIDI files or finished audio.
+`peitho-pulse` is the local AI generation engine for Peitho. Its primary role is to run pre-trained symbolic models to generate melodies, counter-melodies, and instrument parts that are conditioned on chord progressions, user-edited notes, and real-time macro controls.
 
-## Current Status
+The entire application runs **locally under Bun** and is **100% Python-free**. It supports two complementary local planning engines:
 
-| Capability | Status | Implementation |
-| --- | --- | --- |
-| ChordSeqAI ONNX chords | implemented, used by Composer | `src/chord-seq-ai/` |
-| Magenta melody/counter/drums | implemented adapter, not used by Composer UI | `src/magenta-planner.ts` |
-| deterministic repair | implemented | `src/repair.ts` |
-| empty test planner | implemented | `src/stub-planner.ts` |
-| ACE-Step planner | research only | none |
-| Anticipatory Music Transformer | research only | none |
-| TyTorch runtime | research only | none |
-| native MLX runtime | research only | config type only |
+1.  **Magenta (Lightweight/Zero-Setup)**: Runs `@magenta/music` via TensorFlow.js in Bun.
+2.  **Anticipatory Music Transformer (High-Fidelity/Ensemble)**: Runs AMT via TyTorch (libtorch C++ Metal core).
 
-## Package Boundary
+---
 
-```text
-Composer resolved request
-  -> Pulse adapter
-  -> model-native output
-  -> Array repair/contracts
-  -> PeithoPattern
+## 1. Local Architecture
+
+`peitho-pulse` implements two parallel planner interfaces in the Bun backend:
+`PulsePlanner` for drums and `MelodyPlanner` for melody and counter. The
+`/pulse/generate` endpoint routes on `target` to select the correct path.
+
+```
+                          +-----------------------------------+
+                          |        peitho-composer UI         |
+                          +-----------------------------------+
+                                            |
+                          +-----------+-----+-----+-----------+
+                          |                             |
+                  (PulseRequest)           (MelodyGenerationRequest)
+                  target: drums            target: melody | counter
+                          |                             |
+                          v                             v
+              +----------------------+   +------------------------------+
+              |  MagentaPulsePlanner |   |   MelodyPlanner pipeline     |
+              |  (TF.js / DrumsRNN)  |   |                              |
+              |  - drums patterns    |   |  enrichChords()              |
+              +----------------------+   |  planner.generate()          |
+                          |              |  (MagentaMelodyPlanner /     |
+                          |              |   future: MidiGenAI, AMT)    |
+                          |              |  repairMelodyCandidate()     |
+                          |              |  scoreMelodyCandidate()      |
+                          |              |  sort best-first             |
+                          |              +------------------------------+
+                          |                             |
+                  (PeithoPattern)       (MelodyCandidateReport[])
+                          |                             |
+                          +-------------+---------------+
+                                        v
+                          +-----------------------------------+
+                          |        peitho-composer UI         |
+                          |   populates variant slots / MIDI  |
+                          +-----------------------------------+
 ```
 
-Pulse may depend on Array. Array must never depend on Pulse. Model-native tensors,
-tokens and provider objects must not cross the Pulse public boundary.
+`peitho-array` provides deterministic repair primitives used inside the melody
+pipeline (quantise, scale snap, density limits). It remains model-free.
 
-Source layout:
+---
 
-- `src/contracts.ts`: `PulseRequest`, `PulsePlanner`, runtime-neutral types.
-- `src/repair.ts`: quantise, scale-snap and density repair.
-- `src/magenta-planner.ts`: Magenta adapter.
-- `src/stub-planner.ts`: empty pattern adapter.
-- `src/chord-seq-ai/`: ONNX chord inference.
-- `src/index.ts`: public exports only.
+## 2. Planner Specifications
 
-## PulsePlanner Contract
+### 2.1 MagentaPulsePlanner (Active — Drums)
 
-`PulseRequest.target` is `chords`, `drums`, `melody` or `counter`. Composer resolves
-Type/Segment/Option presets into explicit macros before calling Pulse. Locked
-chords and melody may be supplied as context. `prompt` is accepted but no current
-adapter uses it.
+*   **Role**: Drum pattern generation via `PulsePlanner` interface.
+*   **Models**: `DrumsRNN` — 1-bar and 8-bar drum patterns.
+*   **Runtime**: `@magenta/music` under TensorFlow.js with native Node bindings in Bun.
+*   **Local Checkpoints**: Served locally by Composer dev server rather than Google storage.
 
-```ts
-type PulsePlanner = {
-  generate(request: PulseRequest): Promise<PeithoPattern>;
+### 2.2 MagentaMelodyPlanner (Active — Melody / Counter)
+
+*   **Role**: Multi-candidate melody and counter generation via `MelodyPlanner` interface.
+*   **Model**: `ImprovRNN` (`chord_pitches_improv` checkpoint) — monophonic, chord-conditioned.
+*   **Candidates**: generates `candidateCount` candidates via temperature variation (base
+    derived from density + sync; ±0.12 spread across candidates). Each candidate receives a
+    deterministic seed derived from the request seed.
+*   **Chord conditioning**: Pulse enriches `ChordEvent[]` to `EnrichedChordEvent[]` before
+    the planner call. Planner maps half-bar chord events to ImprovRNN chord symbols.
+*   **Counter primer**: locked melody notes are converted to an ImprovRNN primer sequence
+    when `target === "counter"`.
+*   **Runtime**: same `@magenta/music` / TF.js stack as 2.1 above.
+
+### 2.3 The TyTorch / AMT Planner (Stage 2 — High-Fidelity, Planned)
+
+*   **Role**: Interactive, multi-instrument ensemble playing.
+*   **Source Code**: `.contrib/ai-models/anticipation` (Stanford CRFM) — reference only.
+*   **Model Checkpoint**: `stanford-crfm/music-medium-800k` (Safetensors/PyTorch binary).
+*   **Runtime**: `astrohackerlabs/tytorch` loading weights natively in TS/Bun, binding to the
+    pre-compiled C++ **libtorch** library (`libtorch.dylib`) on macOS to execute on Metal GPU.
+    TyTorch currently lacks slice/cat/argmax/model-loading; spike required before this planner
+    can be implemented.
+*   **Why AMT**: Multi-track infilling transformer. Takes locked chord track and generates
+    guitar, bass, piano, and synth parts in parallel with cohesive cross-instrument context.
+
+---
+
+## 3. API Contracts
+
+### 3.1 PulseRequest (drums)
+
+```typescript
+export type PulseTarget = "chords" | "drums" | "melody" | "counter" | "accompaniment";
+
+export type PulseRequest = {
+  target: PulseTarget;
+  key: string;
+  scale: string;
+  bars: number;
+  seed?: number;
+  density: number;
+  split: number;
+  sync: number;
+  rhythm: number;
+  chords?: ChordEvent[];
+  melody?: NoteEvent[];
 };
 ```
 
-Each call returns a complete pattern shell with only requested output populated.
+### 3.2 MelodyGenerationRequest (melody / counter)
 
-## ChordSeqAI
+Used when `target` is `"melody"` or `"counter"`. Composer resolves presets and
+macros before sending; Pulse enriches chords internally.
 
-`ChordSeqAIGenerator` runs seven local ONNX chord models through
-`onnxruntime-node`:
-
-- recurrent
-- transformer small/medium/large
-- conditional small/medium/large
-
-Conditional models accept structured genre and decade inputs. Composer resolves
-those from its preset catalogue; refinement keyword chips are separate and do not
-infer model genres.
-
-Generation supports seeded sampling, candidate counts, chord counts, harmonic
-rhythm, scale policies, cadence policies and repetition controls. Results are
-ranked `ProgressionSeed` candidates with provenance and validation reports.
-
-Models live under `packages/peitho-pulse/models/` and are gitignored. Source code
-must not import model logic from `.contrib`.
-
-Composer route:
-
-```text
-Generate Chords
-  -> POST /pulse/chords
-  -> cached ChordSeqAIGenerator
-  -> ranked candidates
-  -> best ProgressionSeed converted to ChordEvent[]
+```typescript
+type MelodyGenerationRequest = {
+  target: "melody" | "counter";
+  bars: number;
+  beatsPerBar: number;
+  stepsPerBeat: number;
+  tempo: number;
+  key: string;
+  scale: string;
+  seed: number;
+  candidateCount: number;
+  density: number;
+  sync: number;
+  rhythm: number;
+  melodyShare: number;
+  segmentProfile: SegmentProfile;
+  optionProfile: OptionProfile;
+  prompt: string;
+  keywords: string[];
+  chords: ChordEvent[];
+  melody?: NoteEvent[];       // required for counter; locked melody
+  existingNotes?: NoteEvent[]; // user-authored infilling context
+  planner: "magenta" | "midigenai" | "amt";
+};
 ```
 
-## MagentaPulsePlanner
+Response: `MelodyCandidateReport[]` sorted best-first. Each entry includes repaired
+`notes`, `source` provenance, `score`, 10-metric `metrics` object, `repair` report
+and `warnings`.
 
-Current adapter uses `@magenta/music`:
+---
 
-- ImprovRNN for melody and counter
-- DrumsRNN for drums
-- lazy checkpoint initialisation
-- chord-symbol conditioning for melodic targets
-- Array repair after generation
+## 4. Mapping Slider Controls & Keywords
 
-Default checkpoints load from Google-hosted URLs. This creates a network/runtime
-dependency that must be resolved before treating Magenta as production-ready.
+Whether using Magenta or TyTorch/AMT, the user's frontend variables shape the generation:
 
-`POST /pulse/generate` exposes this planner, but Composer generation buttons still
-use Array for melody, counter and drums. Documentation must not claim otherwise.
+### 4.1 Sliders (Density, Split, Syncopation)
+*   **Density & Split**:
+    *   Sets note-length bounds and the threshold for the procedural `thinDensity()` repair pass.
+*   **Syncopation**:
+    *   Adjusts model temperature/top-p. High syncopation increases probability of choosing off-beat subdivisions and syncopated time-shifts.
 
-## Research Candidates
-
-### Anticipatory Music Transformer
-
-Reference: `.contrib/ai-models/anticipation` (read-only).
-
-Local reference confirms a Python/Hugging Face sampling implementation with
-control inputs for infilling and accompaniment. Pretrained checkpoints are hosted
-by Stanford CRFM. It does not confirm TyTorch or Bun compatibility.
-
-Required spike:
-
-1. load a real checkpoint outside Python or document why this is impractical
-2. reproduce custom event tokenisation and controlled sampling
-3. convert output into `NoteEvent[]`
-4. measure latency, memory and output quality
-5. verify licence/provenance and redistribution requirements
-
-Until then, AMT is a candidate—not Peitho architecture.
-
-### ACE-Step 1.5
-
-Potential use: high-level prompt-to-blueprint planning. It is not the current note
-generator. No adapter or native MLX execution exists.
-
-Questions requiring proof:
-
-- can planner output be isolated cleanly from audio generation?
-- does output contain useful symbolic structure rather than descriptive metadata?
-- can a stable adapter map it to Peitho requests?
-- is a local process/API preferable to speculative native bindings?
-
-### TyTorch And MLX
-
-No current Peitho code loads model weights through TyTorch or MLX. Bun
-compatibility, checkpoint support, Metal execution and performance are unverified.
-Do not publish invented APIs or performance targets as implementation facts.
-
-## Decision Order
-
-1. Prove Composer workflow and listening value with Array/ChordSeqAI.
-2. Decide whether Magenta output is useful enough to keep.
-3. Establish Session Player contracts with deterministic implementations.
-4. Spike one controlled-infilling model against those contracts.
-5. Choose runtime only after checkpoint compatibility and measurements exist.
-
-## Non-Goals
-
-- model dependencies inside Array
-- audio waveform generation
-- Composer preset ownership
-- direct imports from `.contrib`
-- provider-specific objects in app state
-- multiple speculative runtimes implemented simultaneously
-
-## Verification
-
-```sh
-bun test packages/peitho-pulse/test
-bun run typecheck
-```
-
-Detailed calling examples belong in
-[`peitho-pulse-user-guide.md`](./peitho-pulse-user-guide.md). Roadmap work belongs
-in [`plan.md`](./plan.md).
+### 4.2 Pulse Refinement (Keywords)
+*   Keywords (e.g. *"Lyrical"*, *"Virtuoso"*, *"Minimalist"*) are processed by the local **ACE-Step 1.5 Conductor** (running via MLX) to output arrangement constraints (e.g., restricting pitch ranges or phrase intervals) before running the planners.

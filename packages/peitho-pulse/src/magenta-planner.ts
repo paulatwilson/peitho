@@ -58,7 +58,7 @@ function toNoteEvents(sequence: MagentaNoteSequence): NoteEvent[] {
     step: note.quantizedStartStep,
     len: Math.max(1, note.quantizedEndStep - note.quantizedStartStep),
     midi: note.pitch,
-    vel: note.velocity,
+    vel: note.velocity != null && note.velocity > 0 ? Math.max(note.velocity, 80) : 90,
   }));
 }
 

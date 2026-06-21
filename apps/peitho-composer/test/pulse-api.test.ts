@@ -17,6 +17,7 @@ const chordResult = {
 const api = createPulseApi({
   chordGenerator: { generate: async () => chordResult },
   planner: { generate: async (request) => createEmptyPattern({ bars: request.bars }) },
+  melodyPlanner: { generate: async () => [] },
 });
 
 test("pulse API ignores unrelated routes", async () => {

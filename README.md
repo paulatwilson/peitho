@@ -39,6 +39,7 @@ Default Composer URL: `http://localhost:43117`.
 - [Composer](./docs/peitho-composer.md)
 - [Array](./docs/peitho-array.md)
 - [Pulse](./docs/peitho-pulse.md)
+- [AI-first melody generation](./docs/melody-generation-design.md)
 - [TokenMusicStream](./docs/token-music-stream.md)
 - [Roadmap](./docs/plan.md)
 

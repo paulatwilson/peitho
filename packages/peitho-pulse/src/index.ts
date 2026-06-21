@@ -16,3 +16,19 @@ export type {
   SamplingStrategy,
   ScalePolicy,
 } from "./chord-seq-ai/types.ts";
+
+export type {
+  EnrichedChordEvent,
+  InternalMelodyRequest,
+  MelodyCandidateReport,
+  MelodyGenerationRequest,
+  MelodyPlanner,
+  MelodyRepairReport,
+  RawMelodyCandidate,
+} from "./melody-contracts";
+export { enrichChords, activeChordAt } from "./chord-enrichment";
+export { repairMelodyCandidate } from "./melody-repair";
+export { scoreMelodyCandidate } from "./melody-scoring";
+export { MagentaMelodyPlanner } from "./magenta-melody-planner";
+export type { MagentaMelodyPlannerConfig } from "./magenta-melody-planner";
+export { generateMelodyCandidates } from "./melody-pipeline";

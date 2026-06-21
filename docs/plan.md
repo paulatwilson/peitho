@@ -57,17 +57,20 @@ Composer: presets, workflow, editing, playback, export
 
 ## Session Players
 
-Build deterministic players before model-backed players:
+Build Session Players as AI-first symbolic performers. Models own musical
+decisions; deterministic code validates, minimally repairs, scores and provides
+an explicitly labelled fallback.
 
-1. arpeggiator
-2. root/fifth bass
-3. chord comping
-4. string voice leading
-5. guitar strumming/fingerpicking
-6. walking bass and fills
+- [ ] Define shared request, candidate, provenance and report contracts.
+- [ ] Reuse the melody bake-off harness for bass and keys model spikes.
+- [ ] Compare Magenta, MidiGenAI and AMT through blind listening fixtures.
+- [ ] Implement one proven role adapter before expanding the role catalogue.
+- [ ] Support regeneration conditioned on locked tracks.
+- [ ] Evaluate joint multi-track generation for ensemble coherence.
+- [ ] Extract the Composer arpeggiator as a deterministic utility and fallback.
 
-Each player must accept explicit context and return `NoteEvent[]`. See
-[`session-players.md`](./session-players.md).
+Each production player must accept explicit labelled context and return ranked
+canonical `NoteEvent[]` candidates. See [`session-players.md`](./session-players.md).
 
 ## Research Backlog
 
