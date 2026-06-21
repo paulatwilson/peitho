@@ -304,23 +304,8 @@ export const ComposerEngine = {
     return clamp(value, min, max);
   },
 
-  genDrums(pattern: DrumPattern, seed = 0) {
-    return generateDrums(pattern, 8, 16, seed);
-  },
-
-  pulseDrumRequest(pattern: DrumPattern, density: number, rhythm: number, seed: number) {
-    return {
-      target: "drums" as const,
-      drumStyle: pattern,
-      bars: 8,
-      key: "C",
-      scale: "Heptatonic Major",
-      density,
-      split: 0.5,
-      sync: 0.5,
-      rhythm,
-      seed,
-    };
+  genDrums(pattern: DrumPattern) {
+    return generateDrums(pattern, 8, 16);
   },
 
   chordDirection(type: string, segment: string, option: string) {

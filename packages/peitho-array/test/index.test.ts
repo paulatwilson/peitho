@@ -425,29 +425,6 @@ test("generates drum grids and waveform bins for composer", () => {
   expect(waveformBins([{ step: 0, len: 16, midi: 60 }], 8)).toHaveLength(8);
 });
 
-test("generates all 11 drum patterns without throwing", () => {
-  const patterns: import("../src/contracts").DrumPattern[] = [
-    "Basic 8th-Note", "Four-on-the-Floor", "Syncopated", "Slow-Burn & 6/8 Fills",
-    "Gated-Reverb Drive", "Driving 16th Open Hat", "Jazz Swing", "Funk Pocket",
-    "Half-Time Soul", "Lo-Fi Shuffle", "Punk Blast",
-  ];
-  for (const p of patterns) {
-    const d = generateDrums(p, 8, 16, 0);
-    expect(d.kick).toBeArray();
-    expect(d.snare).toBeArray();
-    expect(d.hat).toBeArray();
-    expect(d.open).toBeArray();
-    expect([...d.kick, ...d.snare, ...d.hat, ...d.open].every((s) => s >= 0 && s < 128)).toBe(true);
-  }
-});
-
-test("seeded generateDrums produces variation vs base", () => {
-  const base = generateDrums("Jazz Swing", 8, 16, 0);
-  const seeded = generateDrums("Jazz Swing", 8, 16, 0x9f3ac71e);
-  // seeded output should differ (more notes due to ghost/variation additions)
-  expect(seeded.kick.length + seeded.snare.length).toBeGreaterThanOrEqual(base.kick.length + base.snare.length);
-});
-
 test("builds midi bytes from engine note events", () => {
   const midi = buildMidi(120, [{ channel: 0, notes: [{ step: 0, len: 4, midi: 60, vel: 90 }] }]);
 

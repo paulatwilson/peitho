@@ -1,4 +1,4 @@
-import { createEmptyPattern, generateDrums, type ChordEvent, type DrumPattern, type NoteEvent, type PeithoPattern } from "@peitho/array";
+import { createEmptyPattern, type ChordEvent, type NoteEvent, type PeithoPattern } from "@peitho/array";
 import type { PulsePlanner, PulseRequest } from "./contracts";
 import {
   loadMusicRnnConstructor,
@@ -46,7 +46,6 @@ function toNoteEvents(sequence: MagentaNoteSequence): NoteEvent[] {
 
 function toDrumSteps(sequence: MagentaNoteSequence): Record<string, number[]> {
   const drums = { kick: [] as number[], snare: [] as number[], hat: [] as number[], open: [] as number[] };
-
   for (const note of sequence.notes) {
     if (!note.isDrum) continue;
     if ([35, 36].includes(note.pitch)) drums.kick.push(note.quantizedStartStep);
@@ -54,23 +53,11 @@ function toDrumSteps(sequence: MagentaNoteSequence): Record<string, number[]> {
     else if ([42, 44].includes(note.pitch)) drums.hat.push(note.quantizedStartStep);
     else if (note.pitch === 46) drums.open.push(note.quantizedStartStep);
   }
-
   return drums;
 }
 
 function emptyPrimer(stepsPerQuarter: number): MagentaNoteSequence {
   return { notes: [], totalQuantizedSteps: stepsPerQuarter, quantizationInfo: { stepsPerQuarter } };
-}
-
-function drumStylePrimer(style: string): MagentaNoteSequence {
-  const pattern = generateDrums(style as DrumPattern, 1, 16, 0);
-  const notes: MagentaNote[] = [];
-  pattern.kick.forEach((step) => notes.push({ pitch: 36, quantizedStartStep: step, quantizedEndStep: step + 1, isDrum: true, velocity: 100 }));
-  pattern.snare.forEach((step) => notes.push({ pitch: 38, quantizedStartStep: step, quantizedEndStep: step + 1, isDrum: true, velocity: 90 }));
-  pattern.hat.forEach((step) => notes.push({ pitch: 42, quantizedStartStep: step, quantizedEndStep: step + 1, isDrum: true, velocity: 70 }));
-  pattern.open.forEach((step) => notes.push({ pitch: 46, quantizedStartStep: step, quantizedEndStep: step + 1, isDrum: true, velocity: 80 }));
-  const maxStep = notes.length > 0 ? Math.max(...notes.map((n) => n.quantizedEndStep)) : 1;
-  return { notes, totalQuantizedSteps: maxStep, quantizationInfo: { stepsPerQuarter: 4 } };
 }
 
 export class MagentaPulsePlanner implements PulsePlanner {
@@ -106,10 +93,7 @@ export class MagentaPulsePlanner implements PulsePlanner {
     await this.ensureReady();
 
     if (request.target === "drums") {
-      const primer = request.drumStyle
-        ? drumStylePrimer(request.drumStyle)
-        : emptyPrimer(stepsPerQuarter);
-      const sequence = await this.drumsRnn!.continueSequence(primer, totalSteps, temperature);
+      const sequence = await this.drumsRnn!.continueSequence(emptyPrimer(stepsPerQuarter), totalSteps, temperature);
       pattern.drums = toDrumSteps(sequence);
       return pattern;
     }

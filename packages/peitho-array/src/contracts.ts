@@ -51,12 +51,7 @@ export type DrumPattern =
   | "Syncopated"
   | "Slow-Burn & 6/8 Fills"
   | "Gated-Reverb Drive"
-  | "Driving 16th Open Hat"
-  | "Jazz Swing"
-  | "Funk Pocket"
-  | "Half-Time Soul"
-  | "Lo-Fi Shuffle"
-  | "Punk Blast";
+  | "Driving 16th Open Hat";
 export type DrumPatternEvents = { kick: number[]; snare: number[]; hat: number[]; open: number[] };
 export type MidiTrack = { notes: NoteEvent[]; channel: number };
 export type PeithoPattern = {

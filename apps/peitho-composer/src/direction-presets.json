@@ -1,91 +1,595 @@
 {
   "chordDirections": {
     "typeDefaults": {
-      "Ballad":    { "start": "tonic", "cadence": "soft",   "tension": 0.35, "repetition": 0.5,  "scalePolicy": "cadential", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "repair" },
-      "Pop":       { "start": "tonic", "cadence": "strong", "tension": 0.45, "repetition": 0.75, "scalePolicy": "strict",    "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "repair" },
-      "Cinematic": { "start": "tonic", "cadence": "strong", "tension": 0.7,  "repetition": 0.35, "scalePolicy": "chromatic", "model": "conditional_large",  "candidateCount": 6, "cadencePolicy": "reject" },
-      "Lo-Fi":     { "start": "any",   "cadence": "loop",   "tension": 0.3,  "repetition": 0.7,  "scalePolicy": "cadential", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "reject" },
-      "Ambient":   { "start": "any",   "cadence": "loop",   "tension": 0.25, "repetition": 0.65, "scalePolicy": "cadential", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "reject" },
-      "New Wave":  { "start": "tonic", "cadence": "loop",   "tension": 0.55, "repetition": 0.75, "scalePolicy": "cadential", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "repair" },
-      "Electropop":{ "start": "tonic", "cadence": "strong", "tension": 0.55, "repetition": 0.8,  "scalePolicy": "strict",    "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "repair" },
-      "Classical": { "start": "tonic", "cadence": "strong", "tension": 0.5,  "repetition": 0.35, "scalePolicy": "strict",    "model": "conditional_large",  "candidateCount": 6, "cadencePolicy": "reject" },
-      "Jazz":      { "start": "any",   "cadence": "soft",   "tension": 0.65, "repetition": 0.35, "scalePolicy": "chromatic", "model": "conditional_large",  "candidateCount": 6, "cadencePolicy": "reject" },
-      "Funk":      { "start": "tonic", "cadence": "loop",   "tension": 0.55, "repetition": 0.8,  "scalePolicy": "cadential", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "repair" },
-      "R&B":       { "start": "tonic", "cadence": "soft",   "tension": 0.5,  "repetition": 0.55, "scalePolicy": "chromatic", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "reject" },
-      "House":     { "start": "tonic", "cadence": "loop",   "tension": 0.6,  "repetition": 0.85, "scalePolicy": "strict",    "model": "conditional_small",  "candidateCount": 4, "cadencePolicy": "repair" },
-      "Synth":     { "start": "any",   "cadence": "loop",   "tension": 0.55, "repetition": 0.65, "scalePolicy": "cadential", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "repair" },
-      "Folk":      { "start": "tonic", "cadence": "soft",   "tension": 0.3,  "repetition": 0.65, "scalePolicy": "strict",    "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "repair" },
-      "Rock":      { "start": "tonic", "cadence": "strong", "tension": 0.6,  "repetition": 0.7,  "scalePolicy": "cadential", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "repair" },
-      "Punk":      { "start": "tonic", "cadence": "strong", "tension": 0.7,  "repetition": 0.8,  "scalePolicy": "strict",    "model": "conditional_small",  "candidateCount": 4, "cadencePolicy": "repair" },
-      "Post-Rock": { "start": "tonic", "cadence": "strong", "tension": 0.65, "repetition": 0.45, "scalePolicy": "chromatic", "model": "conditional_large",  "candidateCount": 6, "cadencePolicy": "reject" },
-      "Darkwave":  { "start": "tonic", "cadence": "loop",   "tension": 0.75, "repetition": 0.7,  "scalePolicy": "chromatic", "model": "conditional_medium", "candidateCount": 4, "cadencePolicy": "reject" }
+      "Ballad": {
+        "start": "tonic",
+        "cadence": "soft",
+        "tension": 0.35,
+        "repetition": 0.5,
+        "scalePolicy": "cadential",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Pop": {
+        "start": "tonic",
+        "cadence": "strong",
+        "tension": 0.45,
+        "repetition": 0.75,
+        "scalePolicy": "strict",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Cinematic": {
+        "start": "tonic",
+        "cadence": "strong",
+        "tension": 0.7,
+        "repetition": 0.35,
+        "scalePolicy": "chromatic",
+        "model": "conditional_large",
+        "candidateCount": 6,
+        "cadencePolicy": "reject"
+      },
+      "Lo-Fi": {
+        "start": "any",
+        "cadence": "loop",
+        "tension": 0.3,
+        "repetition": 0.7,
+        "scalePolicy": "cadential",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "reject"
+      },
+      "Ambient": {
+        "start": "any",
+        "cadence": "loop",
+        "tension": 0.25,
+        "repetition": 0.65,
+        "scalePolicy": "cadential",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "reject"
+      },
+      "New Wave": {
+        "start": "tonic",
+        "cadence": "loop",
+        "tension": 0.55,
+        "repetition": 0.75,
+        "scalePolicy": "cadential",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Electropop": {
+        "start": "tonic",
+        "cadence": "strong",
+        "tension": 0.55,
+        "repetition": 0.8,
+        "scalePolicy": "strict",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Classical": {
+        "start": "tonic",
+        "cadence": "strong",
+        "tension": 0.5,
+        "repetition": 0.35,
+        "scalePolicy": "strict",
+        "model": "conditional_large",
+        "candidateCount": 6,
+        "cadencePolicy": "reject"
+      },
+      "Jazz": {
+        "start": "any",
+        "cadence": "soft",
+        "tension": 0.65,
+        "repetition": 0.35,
+        "scalePolicy": "chromatic",
+        "model": "conditional_large",
+        "candidateCount": 6,
+        "cadencePolicy": "reject"
+      },
+      "Funk": {
+        "start": "tonic",
+        "cadence": "loop",
+        "tension": 0.55,
+        "repetition": 0.8,
+        "scalePolicy": "cadential",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "R&B": {
+        "start": "tonic",
+        "cadence": "soft",
+        "tension": 0.5,
+        "repetition": 0.55,
+        "scalePolicy": "chromatic",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "reject"
+      },
+      "House": {
+        "start": "tonic",
+        "cadence": "loop",
+        "tension": 0.6,
+        "repetition": 0.85,
+        "scalePolicy": "strict",
+        "model": "conditional_small",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Synth": {
+        "start": "any",
+        "cadence": "loop",
+        "tension": 0.55,
+        "repetition": 0.65,
+        "scalePolicy": "cadential",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Folk": {
+        "start": "tonic",
+        "cadence": "soft",
+        "tension": 0.3,
+        "repetition": 0.65,
+        "scalePolicy": "strict",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Rock": {
+        "start": "tonic",
+        "cadence": "strong",
+        "tension": 0.6,
+        "repetition": 0.7,
+        "scalePolicy": "cadential",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Punk": {
+        "start": "tonic",
+        "cadence": "strong",
+        "tension": 0.7,
+        "repetition": 0.8,
+        "scalePolicy": "strict",
+        "model": "conditional_small",
+        "candidateCount": 4,
+        "cadencePolicy": "repair"
+      },
+      "Post-Rock": {
+        "start": "tonic",
+        "cadence": "strong",
+        "tension": 0.65,
+        "repetition": 0.45,
+        "scalePolicy": "chromatic",
+        "model": "conditional_large",
+        "candidateCount": 6,
+        "cadencePolicy": "reject"
+      },
+      "Darkwave": {
+        "start": "tonic",
+        "cadence": "loop",
+        "tension": 0.75,
+        "repetition": 0.7,
+        "scalePolicy": "chromatic",
+        "model": "conditional_medium",
+        "candidateCount": 4,
+        "cadencePolicy": "reject"
+      }
     },
     "segmentModifiers": {
-      "Intro":        { "cadence": "none",   "tensionShift": -0.2,  "repetitionShift":  0.1,  "chordLengthScale": 1.25, "extensionShift": -0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 0 },
-      "Verse":        { "cadence": "none",   "tensionShift": -0.05, "repetitionShift":  0.05, "chordLengthScale": 1,    "extensionShift":  0,    "cadencePolicyOverride": null,     "candidateCountShift": 0 },
-      "Pre-Chorus":   { "cadence": "none",   "tensionShift":  0.15, "repetitionShift": -0.05, "chordLengthScale": 0.85, "extensionShift":  0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Build":        { "cadence": "none",   "tensionShift":  0.25, "repetitionShift": -0.1,  "chordLengthScale": 0.75, "extensionShift":  0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 1 },
-      "Chorus":       { "cadence": "strong", "tensionShift":  0.05, "repetitionShift":  0.1,  "chordLengthScale": 1,    "extensionShift":  0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 2 },
-      "Hook":         { "cadence": "loop",   "tensionShift":  0.1,  "repetitionShift":  0.2,  "chordLengthScale": 0.8,  "extensionShift":  0,    "cadencePolicyOverride": "repair", "candidateCountShift": 2 },
-      "Drop":         { "cadence": "loop",   "tensionShift":  0.2,  "repetitionShift":  0.25, "chordLengthScale": 0.7,  "extensionShift": -0.15, "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Bridge":       { "cadence": "soft",   "tensionShift":  0.1,  "repetitionShift": -0.15, "chordLengthScale": 1,    "extensionShift":  0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 2 },
-      "Solo":         { "cadence": "none",   "tensionShift":  0.15, "repetitionShift": -0.2,  "chordLengthScale": 0.75, "extensionShift":  0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 1 },
-      "Middle-Eight": { "cadence": "soft",   "tensionShift":  0.2,  "repetitionShift": -0.15, "chordLengthScale": 0.85, "extensionShift":  0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 2 },
-      "Interlude":    { "cadence": "loop",   "tensionShift": -0.15, "repetitionShift":  0.1,  "chordLengthScale": 1.3,  "extensionShift":  0.15, "cadencePolicyOverride": "reject", "candidateCountShift": 0 },
-      "Breakdown":    { "cadence": "none",   "tensionShift": -0.1,  "repetitionShift":  0.2,  "chordLengthScale": 1.4,  "extensionShift": -0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 0 },
-      "Outro":        { "cadence": "strong", "tensionShift": -0.1,  "repetitionShift":  0.1,  "chordLengthScale": 1.2,  "extensionShift":  0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 0 }
+      "Intro": {
+        "cadence": "none",
+        "tensionShift": -0.2,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 1.25,
+        "extensionShift": -0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 0
+      },
+      "Verse": {
+        "cadence": "none",
+        "tensionShift": -0.05,
+        "repetitionShift": 0.05,
+        "chordLengthScale": 1,
+        "extensionShift": 0,
+        "cadencePolicyOverride": null,
+        "candidateCountShift": 0
+      },
+      "Pre-Chorus": {
+        "cadence": "none",
+        "tensionShift": 0.15,
+        "repetitionShift": -0.05,
+        "chordLengthScale": 0.85,
+        "extensionShift": 0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Build": {
+        "cadence": "none",
+        "tensionShift": 0.25,
+        "repetitionShift": -0.1,
+        "chordLengthScale": 0.75,
+        "extensionShift": 0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 1
+      },
+      "Chorus": {
+        "cadence": "strong",
+        "tensionShift": 0.05,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 1,
+        "extensionShift": 0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 2
+      },
+      "Hook": {
+        "cadence": "loop",
+        "tensionShift": 0.1,
+        "repetitionShift": 0.2,
+        "chordLengthScale": 0.8,
+        "extensionShift": 0,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 2
+      },
+      "Drop": {
+        "cadence": "loop",
+        "tensionShift": 0.2,
+        "repetitionShift": 0.25,
+        "chordLengthScale": 0.7,
+        "extensionShift": -0.15,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Bridge": {
+        "cadence": "soft",
+        "tensionShift": 0.1,
+        "repetitionShift": -0.15,
+        "chordLengthScale": 1,
+        "extensionShift": 0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 2
+      },
+      "Solo": {
+        "cadence": "none",
+        "tensionShift": 0.15,
+        "repetitionShift": -0.2,
+        "chordLengthScale": 0.75,
+        "extensionShift": 0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      },
+      "Middle-Eight": {
+        "cadence": "soft",
+        "tensionShift": 0.2,
+        "repetitionShift": -0.15,
+        "chordLengthScale": 0.85,
+        "extensionShift": 0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 2
+      },
+      "Interlude": {
+        "cadence": "loop",
+        "tensionShift": -0.15,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 1.3,
+        "extensionShift": 0.15,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 0
+      },
+      "Breakdown": {
+        "cadence": "none",
+        "tensionShift": -0.1,
+        "repetitionShift": 0.2,
+        "chordLengthScale": 1.4,
+        "extensionShift": -0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 0
+      },
+      "Outro": {
+        "cadence": "strong",
+        "tensionShift": -0.1,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 1.2,
+        "extensionShift": 0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      }
     },
     "optionModifiers": {
-      "Rousing Crescendo": { "cadence": "strong", "tensionShift":  0.25, "repetitionShift": -0.1,  "chordLengthScale": 0.75, "extensionShift":  0.15, "cadencePolicyOverride": "repair", "candidateCountShift": 2 },
-      "Moody Wind Down":   { "cadence": "soft",   "tensionShift": -0.2,  "repetitionShift":  0.1,  "chordLengthScale": 1.25, "extensionShift":  0.05, "cadencePolicyOverride": "reject", "candidateCountShift": 1 },
-      "Gentle Swell":      { "cadence": "soft",   "tensionShift": -0.1,  "repetitionShift":  0.05, "chordLengthScale": 1.15, "extensionShift":  0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 1 },
-      "Steady Groove":     { "cadence": "loop",   "tensionShift":  0,    "repetitionShift":  0.2,  "chordLengthScale": 0.9,  "extensionShift": -0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Sparse Reflection": { "cadence": "none",   "tensionShift": -0.2,  "repetitionShift":  0.1,  "chordLengthScale": 1.5,  "extensionShift": -0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 0 },
-      "Driving Pulse":     { "cadence": "loop",   "tensionShift":  0.15, "repetitionShift":  0.3,  "chordLengthScale": 0.7,  "extensionShift": -0.1,  "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Tension Lift":      { "cadence": "none",   "tensionShift":  0.3,  "repetitionShift": -0.15, "chordLengthScale": 0.8,  "extensionShift":  0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 2 },
-      "Release Drop":      { "cadence": "strong", "tensionShift": -0.2,  "repetitionShift":  0.1,  "chordLengthScale": 1.1,  "extensionShift":  0,    "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Nocturne Drift":    { "cadence": "loop",   "tensionShift": -0.1,  "repetitionShift":  0.05, "chordLengthScale": 1.25, "extensionShift":  0.15, "cadencePolicyOverride": "reject", "candidateCountShift": 1 },
-      "Angular Push":      { "cadence": "none",   "tensionShift":  0.2,  "repetitionShift": -0.2,  "chordLengthScale": 0.65, "extensionShift": -0.05, "cadencePolicyOverride": "reject", "candidateCountShift": 2 },
-      "Anthem Rise":       { "cadence": "strong", "tensionShift":  0.2,  "repetitionShift":  0.05, "chordLengthScale": 0.8,  "extensionShift":  0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 2 },
-      "Minimal Loop":      { "cadence": "loop",   "tensionShift": -0.1,  "repetitionShift":  0.35, "chordLengthScale": 1.1,  "extensionShift": -0.2,  "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Motorik Drive":     { "cadence": "loop",   "tensionShift":  0.15, "repetitionShift":  0.35, "chordLengthScale": 0.65, "extensionShift": -0.15, "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Arpeggio Bloom":    { "cadence": "none",   "tensionShift":  0.1,  "repetitionShift": -0.05, "chordLengthScale": 0.75, "extensionShift":  0.2,  "cadencePolicyOverride": "reject", "candidateCountShift": 1 },
-      "Blue Note Turn":    { "cadence": "soft",   "tensionShift":  0.1,  "repetitionShift": -0.05, "chordLengthScale": 0.9,  "extensionShift":  0.2,  "cadencePolicyOverride": "reject", "candidateCountShift": 2 },
-      "Power Chord Lift":  { "cadence": "strong", "tensionShift":  0.2,  "repetitionShift":  0.15, "chordLengthScale": 0.75, "extensionShift": -0.2,  "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Dorian Drift":      { "cadence": "loop",   "tensionShift":  0,    "repetitionShift": -0.05, "chordLengthScale": 1.1,  "extensionShift":  0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 1 },
-      "Chromatic Tension": { "cadence": "none",   "tensionShift":  0.35, "repetitionShift": -0.2,  "chordLengthScale": 0.75, "extensionShift":  0.2,  "cadencePolicyOverride": "reject", "candidateCountShift": 2 },
-      "Half-Time Drop":    { "cadence": "loop",   "tensionShift": -0.05, "repetitionShift":  0.2,  "chordLengthScale": 1.35, "extensionShift": -0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 0 },
-      "Call And Response": { "cadence": "soft",   "tensionShift":  0.05, "repetitionShift":  0.1,  "chordLengthScale": 0.9,  "extensionShift":  0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 1 },
-      "Staccato Push":     { "cadence": "none",   "tensionShift":  0.15, "repetitionShift":  0.1,  "chordLengthScale": 0.65, "extensionShift": -0.1,  "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Legato Float":      { "cadence": "soft",   "tensionShift": -0.1,  "repetitionShift":  0.05, "chordLengthScale": 1.3,  "extensionShift":  0.15, "cadencePolicyOverride": "reject", "candidateCountShift": 1 },
-      "Syncopated Lift":   { "cadence": "none",   "tensionShift":  0.15, "repetitionShift":  0.05, "chordLengthScale": 0.75, "extensionShift":  0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Suspended Colour":  { "cadence": "soft",   "tensionShift":  0.1,  "repetitionShift": -0.05, "chordLengthScale": 1.1,  "extensionShift":  0.25, "cadencePolicyOverride": "reject", "candidateCountShift": 1 },
-      "Pedal Point":       { "cadence": "loop",   "tensionShift": -0.05, "repetitionShift":  0.4,  "chordLengthScale": 1.2,  "extensionShift": -0.05, "cadencePolicyOverride": "repair", "candidateCountShift": 0 },
-      "Descending Line":   { "cadence": "soft",   "tensionShift": -0.05, "repetitionShift": -0.05, "chordLengthScale": 0.9,  "extensionShift":  0.1,  "cadencePolicyOverride": "reject", "candidateCountShift": 1 }
+      "Rousing Crescendo": {
+        "cadence": "strong",
+        "tensionShift": 0.25,
+        "repetitionShift": -0.1,
+        "chordLengthScale": 0.75,
+        "extensionShift": 0.15,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 2
+      },
+      "Moody Wind Down": {
+        "cadence": "soft",
+        "tensionShift": -0.2,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 1.25,
+        "extensionShift": 0.05,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      },
+      "Gentle Swell": {
+        "cadence": "soft",
+        "tensionShift": -0.1,
+        "repetitionShift": 0.05,
+        "chordLengthScale": 1.15,
+        "extensionShift": 0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      },
+      "Steady Groove": {
+        "cadence": "loop",
+        "tensionShift": 0,
+        "repetitionShift": 0.2,
+        "chordLengthScale": 0.9,
+        "extensionShift": -0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Sparse Reflection": {
+        "cadence": "none",
+        "tensionShift": -0.2,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 1.5,
+        "extensionShift": -0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 0
+      },
+      "Driving Pulse": {
+        "cadence": "loop",
+        "tensionShift": 0.15,
+        "repetitionShift": 0.3,
+        "chordLengthScale": 0.7,
+        "extensionShift": -0.1,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Tension Lift": {
+        "cadence": "none",
+        "tensionShift": 0.3,
+        "repetitionShift": -0.15,
+        "chordLengthScale": 0.8,
+        "extensionShift": 0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 2
+      },
+      "Release Drop": {
+        "cadence": "strong",
+        "tensionShift": -0.2,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 1.1,
+        "extensionShift": 0,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Nocturne Drift": {
+        "cadence": "loop",
+        "tensionShift": -0.1,
+        "repetitionShift": 0.05,
+        "chordLengthScale": 1.25,
+        "extensionShift": 0.15,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      },
+      "Angular Push": {
+        "cadence": "none",
+        "tensionShift": 0.2,
+        "repetitionShift": -0.2,
+        "chordLengthScale": 0.65,
+        "extensionShift": -0.05,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 2
+      },
+      "Anthem Rise": {
+        "cadence": "strong",
+        "tensionShift": 0.2,
+        "repetitionShift": 0.05,
+        "chordLengthScale": 0.8,
+        "extensionShift": 0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 2
+      },
+      "Minimal Loop": {
+        "cadence": "loop",
+        "tensionShift": -0.1,
+        "repetitionShift": 0.35,
+        "chordLengthScale": 1.1,
+        "extensionShift": -0.2,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Motorik Drive": {
+        "cadence": "loop",
+        "tensionShift": 0.15,
+        "repetitionShift": 0.35,
+        "chordLengthScale": 0.65,
+        "extensionShift": -0.15,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Arpeggio Bloom": {
+        "cadence": "none",
+        "tensionShift": 0.1,
+        "repetitionShift": -0.05,
+        "chordLengthScale": 0.75,
+        "extensionShift": 0.2,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      },
+      "Blue Note Turn": {
+        "cadence": "soft",
+        "tensionShift": 0.1,
+        "repetitionShift": -0.05,
+        "chordLengthScale": 0.9,
+        "extensionShift": 0.2,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 2
+      },
+      "Power Chord Lift": {
+        "cadence": "strong",
+        "tensionShift": 0.2,
+        "repetitionShift": 0.15,
+        "chordLengthScale": 0.75,
+        "extensionShift": -0.2,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Dorian Drift": {
+        "cadence": "loop",
+        "tensionShift": 0,
+        "repetitionShift": -0.05,
+        "chordLengthScale": 1.1,
+        "extensionShift": 0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      },
+      "Chromatic Tension": {
+        "cadence": "none",
+        "tensionShift": 0.35,
+        "repetitionShift": -0.2,
+        "chordLengthScale": 0.75,
+        "extensionShift": 0.2,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 2
+      },
+      "Half-Time Drop": {
+        "cadence": "loop",
+        "tensionShift": -0.05,
+        "repetitionShift": 0.2,
+        "chordLengthScale": 1.35,
+        "extensionShift": -0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 0
+      },
+      "Call And Response": {
+        "cadence": "soft",
+        "tensionShift": 0.05,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 0.9,
+        "extensionShift": 0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 1
+      },
+      "Staccato Push": {
+        "cadence": "none",
+        "tensionShift": 0.15,
+        "repetitionShift": 0.1,
+        "chordLengthScale": 0.65,
+        "extensionShift": -0.1,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Legato Float": {
+        "cadence": "soft",
+        "tensionShift": -0.1,
+        "repetitionShift": 0.05,
+        "chordLengthScale": 1.3,
+        "extensionShift": 0.15,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      },
+      "Syncopated Lift": {
+        "cadence": "none",
+        "tensionShift": 0.15,
+        "repetitionShift": 0.05,
+        "chordLengthScale": 0.75,
+        "extensionShift": 0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Suspended Colour": {
+        "cadence": "soft",
+        "tensionShift": 0.1,
+        "repetitionShift": -0.05,
+        "chordLengthScale": 1.1,
+        "extensionShift": 0.25,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      },
+      "Pedal Point": {
+        "cadence": "loop",
+        "tensionShift": -0.05,
+        "repetitionShift": 0.4,
+        "chordLengthScale": 1.2,
+        "extensionShift": -0.05,
+        "cadencePolicyOverride": "repair",
+        "candidateCountShift": 0
+      },
+      "Descending Line": {
+        "cadence": "soft",
+        "tensionShift": -0.05,
+        "repetitionShift": -0.05,
+        "chordLengthScale": 0.9,
+        "extensionShift": 0.1,
+        "cadencePolicyOverride": "reject",
+        "candidateCountShift": 1
+      }
     }
   },
   "scaleProfiles": {
     "Pentatonic Major": {
-      "pulseKeywords": ["major", "open"],
-      "replacements": { "minor": "major" }
+      "pulseKeywords": [
+        "major",
+        "open"
+      ],
+      "replacements": {
+        "minor": "major"
+      }
     },
     "Pentatonic Minor": {
-      "pulseKeywords": ["minor", "soulful"],
-      "replacements": { "major": "minor", "bright": "earthy", "uplifting": "defiant" }
+      "pulseKeywords": [
+        "minor",
+        "soulful"
+      ],
+      "replacements": {
+        "major": "minor",
+        "bright": "earthy",
+        "uplifting": "defiant"
+      }
     },
     "Heptatonic Major": {
-      "pulseKeywords": ["major", "bright"],
-      "replacements": { "minor": "major" }
+      "pulseKeywords": [
+        "major",
+        "bright"
+      ],
+      "replacements": {
+        "minor": "major"
+      }
     },
     "Heptatonic Natural Minor": {
-      "pulseKeywords": ["minor", "melancholic"],
-      "replacements": { "major": "minor", "bright": "bittersweet", "uplifting": "yearning" }
+      "pulseKeywords": [
+        "minor",
+        "melancholic"
+      ],
+      "replacements": {
+        "major": "minor",
+        "bright": "bittersweet",
+        "uplifting": "yearning"
+      }
     }
   },
   "types": [
     {
       "name": "Ballad",
-      "pulseConditions": { "genres": ["Pop", "Folk"], "defaultDecade": 1970 },
+      "pulseConditions": {
+        "genres": [
+          "Pop",
+          "Folk"
+        ],
+        "defaultDecade": 1970
+      },
       "macro": {
         "density": 0.42,
         "split": 0.55,
@@ -101,7 +605,6 @@
       ],
       "extensionProbability": 0.6,
       "drumRecommendations": [
-        "Half-Time Soul",
         "Slow-Burn & 6/8 Fills",
         "Basic 8th-Note"
       ],
@@ -120,7 +623,12 @@
     },
     {
       "name": "Pop",
-      "pulseConditions": { "genres": ["Pop"], "defaultDecade": 2010 },
+      "pulseConditions": {
+        "genres": [
+          "Pop"
+        ],
+        "defaultDecade": 2010
+      },
       "macro": {
         "density": 0.62,
         "split": 0.45,
@@ -137,8 +645,7 @@
       "extensionProbability": 0.18,
       "drumRecommendations": [
         "Four-on-the-Floor",
-        "Basic 8th-Note",
-        "Driving 16th Open Hat"
+        "Basic 8th-Note"
       ],
       "pulseKeywords": [
         "bright",
@@ -155,7 +662,12 @@
     },
     {
       "name": "Cinematic",
-      "pulseConditions": { "genres": ["Soundtrack"], "defaultDecade": 2000 },
+      "pulseConditions": {
+        "genres": [
+          "Soundtrack"
+        ],
+        "defaultDecade": 2000
+      },
       "macro": {
         "density": 0.5,
         "split": 0.6,
@@ -171,9 +683,8 @@
       ],
       "extensionProbability": 0.65,
       "drumRecommendations": [
-        "Half-Time Soul",
-        "Slow-Burn & 6/8 Fills",
-        "Gated-Reverb Drive"
+        "Gated-Reverb Drive",
+        "Slow-Burn & 6/8 Fills"
       ],
       "pulseKeywords": [
         "wide",
@@ -190,7 +701,13 @@
     },
     {
       "name": "Lo-Fi",
-      "pulseConditions": { "genres": ["Hip Hop", "Electronic"], "defaultDecade": 2010 },
+      "pulseConditions": {
+        "genres": [
+          "Hip Hop",
+          "Electronic"
+        ],
+        "defaultDecade": 2010
+      },
       "macro": {
         "density": 0.55,
         "split": 0.4,
@@ -206,9 +723,8 @@
       ],
       "extensionProbability": 0.5,
       "drumRecommendations": [
-        "Lo-Fi Shuffle",
-        "Half-Time Soul",
-        "Syncopated"
+        "Syncopated",
+        "Basic 8th-Note"
       ],
       "pulseKeywords": [
         "dusty",
@@ -225,7 +741,13 @@
     },
     {
       "name": "Ambient",
-      "pulseConditions": { "genres": ["New Age", "Electronic"], "defaultDecade": 1990 },
+      "pulseConditions": {
+        "genres": [
+          "New Age",
+          "Electronic"
+        ],
+        "defaultDecade": 1990
+      },
       "macro": {
         "density": 0.3,
         "split": 0.7,
@@ -241,7 +763,7 @@
       "extensionProbability": 0.5,
       "drumRecommendations": [
         "Slow-Burn & 6/8 Fills",
-        "Lo-Fi Shuffle"
+        "Syncopated"
       ],
       "pulseKeywords": [
         "spacious",
@@ -258,7 +780,13 @@
     },
     {
       "name": "New Wave",
-      "pulseConditions": { "genres": ["Electronic", "Pop"], "defaultDecade": 1980 },
+      "pulseConditions": {
+        "genres": [
+          "Electronic",
+          "Pop"
+        ],
+        "defaultDecade": 1980
+      },
       "macro": {
         "density": 0.58,
         "split": 0.42,
@@ -274,7 +802,6 @@
       ],
       "extensionProbability": 0.35,
       "drumRecommendations": [
-        "Gated-Reverb Drive",
         "Driving 16th Open Hat",
         "Four-on-the-Floor"
       ],
@@ -293,7 +820,13 @@
     },
     {
       "name": "Electropop",
-      "pulseConditions": { "genres": ["Electronic", "Pop"], "defaultDecade": 2010 },
+      "pulseConditions": {
+        "genres": [
+          "Electronic",
+          "Pop"
+        ],
+        "defaultDecade": 2010
+      },
       "macro": {
         "density": 0.66,
         "split": 0.38,
@@ -310,8 +843,7 @@
       "extensionProbability": 0.28,
       "drumRecommendations": [
         "Driving 16th Open Hat",
-        "Four-on-the-Floor",
-        "Funk Pocket"
+        "Four-on-the-Floor"
       ],
       "pulseKeywords": [
         "glossy",
@@ -328,7 +860,12 @@
     },
     {
       "name": "Classical",
-      "pulseConditions": { "genres": ["Classical"], "defaultDecade": 1950 },
+      "pulseConditions": {
+        "genres": [
+          "Classical"
+        ],
+        "defaultDecade": 1950
+      },
       "macro": {
         "density": 0.46,
         "split": 0.58,
@@ -343,8 +880,7 @@
       ],
       "extensionProbability": 0.42,
       "drumRecommendations": [
-        "Basic 8th-Note",
-        "Slow-Burn & 6/8 Fills"
+        "Basic 8th-Note"
       ],
       "pulseKeywords": [
         "elegant",
@@ -361,7 +897,12 @@
     },
     {
       "name": "Jazz",
-      "pulseConditions": { "genres": ["Jazz"], "defaultDecade": 1960 },
+      "pulseConditions": {
+        "genres": [
+          "Jazz"
+        ],
+        "defaultDecade": 1960
+      },
       "macro": {
         "density": 0.58,
         "split": 0.5,
@@ -376,8 +917,8 @@
       ],
       "extensionProbability": 0.8,
       "drumRecommendations": [
-        "Jazz Swing",
-        "Syncopated"
+        "Syncopated",
+        "Basic 8th-Note"
       ],
       "pulseKeywords": [
         "extended",
@@ -394,7 +935,12 @@
     },
     {
       "name": "Funk",
-      "pulseConditions": { "genres": ["R&B, Funk & Soul"], "defaultDecade": 1970 },
+      "pulseConditions": {
+        "genres": [
+          "R&B, Funk & Soul"
+        ],
+        "defaultDecade": 1970
+      },
       "macro": {
         "density": 0.68,
         "split": 0.36,
@@ -409,9 +955,8 @@
       ],
       "extensionProbability": 0.48,
       "drumRecommendations": [
-        "Funk Pocket",
-        "Driving 16th Open Hat",
-        "Syncopated"
+        "Syncopated",
+        "Driving 16th Open Hat"
       ],
       "pulseKeywords": [
         "groove",
@@ -428,7 +973,12 @@
     },
     {
       "name": "R&B",
-      "pulseConditions": { "genres": ["R&B, Funk & Soul"], "defaultDecade": 2000 },
+      "pulseConditions": {
+        "genres": [
+          "R&B, Funk & Soul"
+        ],
+        "defaultDecade": 2000
+      },
       "macro": {
         "density": 0.5,
         "split": 0.48,
@@ -443,9 +993,8 @@
       ],
       "extensionProbability": 0.74,
       "drumRecommendations": [
-        "Half-Time Soul",
-        "Lo-Fi Shuffle",
-        "Syncopated"
+        "Syncopated",
+        "Basic 8th-Note"
       ],
       "pulseKeywords": [
         "smooth",
@@ -462,7 +1011,13 @@
     },
     {
       "name": "House",
-      "pulseConditions": { "genres": ["Electronic", "Disco"], "defaultDecade": 1990 },
+      "pulseConditions": {
+        "genres": [
+          "Electronic",
+          "Disco"
+        ],
+        "defaultDecade": 1990
+      },
       "macro": {
         "density": 0.64,
         "split": 0.34,
@@ -479,8 +1034,7 @@
       "extensionProbability": 0.3,
       "drumRecommendations": [
         "Four-on-the-Floor",
-        "Driving 16th Open Hat",
-        "Funk Pocket"
+        "Driving 16th Open Hat"
       ],
       "pulseKeywords": [
         "four-on-floor",
@@ -497,7 +1051,12 @@
     },
     {
       "name": "Synth",
-      "pulseConditions": { "genres": ["Electronic"], "defaultDecade": 1980 },
+      "pulseConditions": {
+        "genres": [
+          "Electronic"
+        ],
+        "defaultDecade": 1980
+      },
       "macro": {
         "density": 0.6,
         "split": 0.46,
@@ -513,8 +1072,7 @@
       "extensionProbability": 0.36,
       "drumRecommendations": [
         "Driving 16th Open Hat",
-        "Four-on-the-Floor",
-        "Gated-Reverb Drive"
+        "Four-on-the-Floor"
       ],
       "pulseKeywords": [
         "analogue",
@@ -531,7 +1089,12 @@
     },
     {
       "name": "Folk",
-      "pulseConditions": { "genres": ["Folk"], "defaultDecade": 1960 },
+      "pulseConditions": {
+        "genres": [
+          "Folk"
+        ],
+        "defaultDecade": 1960
+      },
       "macro": {
         "density": 0.44,
         "split": 0.56,
@@ -547,8 +1110,7 @@
       "extensionProbability": 0.2,
       "drumRecommendations": [
         "Basic 8th-Note",
-        "Slow-Burn & 6/8 Fills",
-        "Jazz Swing"
+        "Slow-Burn & 6/8 Fills"
       ],
       "pulseKeywords": [
         "organic",
@@ -565,7 +1127,12 @@
     },
     {
       "name": "Rock",
-      "pulseConditions": { "genres": ["Rock"], "defaultDecade": 1970 },
+      "pulseConditions": {
+        "genres": [
+          "Rock"
+        ],
+        "defaultDecade": 1970
+      },
       "macro": {
         "density": 0.64,
         "split": 0.4,
@@ -581,8 +1148,7 @@
       "extensionProbability": 0.22,
       "drumRecommendations": [
         "Gated-Reverb Drive",
-        "Basic 8th-Note",
-        "Syncopated"
+        "Basic 8th-Note"
       ],
       "pulseKeywords": [
         "direct",
@@ -599,7 +1165,12 @@
     },
     {
       "name": "Punk",
-      "pulseConditions": { "genres": ["Rock"], "defaultDecade": 1970 },
+      "pulseConditions": {
+        "genres": [
+          "Rock"
+        ],
+        "defaultDecade": 1970
+      },
       "macro": {
         "density": 0.76,
         "split": 0.32,
@@ -614,8 +1185,8 @@
       ],
       "extensionProbability": 0.12,
       "drumRecommendations": [
-        "Punk Blast",
-        "Gated-Reverb Drive"
+        "Gated-Reverb Drive",
+        "Driving 16th Open Hat"
       ],
       "pulseKeywords": [
         "raw",
@@ -632,7 +1203,13 @@
     },
     {
       "name": "Post-Rock",
-      "pulseConditions": { "genres": ["Rock", "Experimental"], "defaultDecade": 1990 },
+      "pulseConditions": {
+        "genres": [
+          "Rock",
+          "Experimental"
+        ],
+        "defaultDecade": 1990
+      },
       "macro": {
         "density": 0.48,
         "split": 0.62,
@@ -648,7 +1225,6 @@
       "extensionProbability": 0.68,
       "drumRecommendations": [
         "Slow-Burn & 6/8 Fills",
-        "Half-Time Soul",
         "Gated-Reverb Drive"
       ],
       "pulseKeywords": [
@@ -666,7 +1242,13 @@
     },
     {
       "name": "Darkwave",
-      "pulseConditions": { "genres": ["Darkwave", "Electronic"], "defaultDecade": 1980 },
+      "pulseConditions": {
+        "genres": [
+          "Darkwave",
+          "Electronic"
+        ],
+        "defaultDecade": 1980
+      },
       "macro": {
         "density": 0.5,
         "split": 0.55,
@@ -682,7 +1264,6 @@
       "extensionProbability": 0.52,
       "drumRecommendations": [
         "Gated-Reverb Drive",
-        "Punk Blast",
         "Driving 16th Open Hat"
       ],
       "pulseKeywords": [
