@@ -1,35 +1,30 @@
 # @peitho/array
 
-Deterministic TypeScript music engine for Peitho systems.
+Deterministic, model-free symbolic music engine for browser, mobile, game and
+server consumers.
 
-`@peitho/array` provides the lightweight symbolic foundation: grid configuration, scale/key mapping, note and chord event shapes, deterministic generation utilities, and future motif/rhythm helpers.
+## Implemented
 
-It does not load ML models, generate audio, or depend on Peitho-Composer.
-
-## Install
-
-```sh
-bun add @peitho/array
-```
-
-## Current API
+- shared event and pattern contracts
+- scale mapping and pitch snapping
+- weighted seeded chord progressions and cadence profiles
+- monophonic melody/counter generation
+- procedural drum grids
+- waveform summaries
+- Standard MIDI file generation
+- progression seed validation, selection and transposition
 
 ```ts
-import { createEmptyPattern, scaleMidi } from "@peitho/array";
+import { generateChords, generateMono } from "@peitho/array";
 
-const pattern = createEmptyPattern({
+const chords = generateChords({
+  key: "C",
+  scale: "major",
   bars: 8,
-  beatsPerBar: 4,
-  stepsPerBeat: 4,
+  seed: 42,
+  progressionProfile: { cadence: "strong", tension: 0.5 },
 });
-
-const notes = scaleMidi("C", "major", 60, 72);
 ```
 
-## Documentation
-
-See [`../../docs/peitho-array.md`](../../docs/peitho-array.md).
-
-## Licence
-
-MIT. See [`LICENSE`](./LICENSE).
+Composer preset names and model dependencies do not belong here. See
+[Array documentation](../../docs/peitho-array.md).

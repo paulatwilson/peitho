@@ -452,4 +452,4 @@ describe("ChordSeqAIGenerator", () => {
     });
     expect(result.resolvedControls.temperature).toBeCloseTo(0.8, 5);
   });
-}, 60_000); // allow up to 60 s for ONNX inference in tests
+});

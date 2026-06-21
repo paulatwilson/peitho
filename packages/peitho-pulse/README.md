@@ -1,32 +1,32 @@
 # @peitho/pulse
 
-AI-assisted symbolic planning engine for Peitho systems.
+Symbolic model adapters for Peitho. Pulse depends on `@peitho/array` for shared
+contracts and deterministic repair. Array never depends on Pulse.
 
-`@peitho/pulse` sits above `@peitho/array`. It will adapt planners such as ACE-Step 1.5 and optional Magenta-style symbolic models into Peitho-native pattern data.
+## Implemented
 
-It should output symbolic music structures, not finished audio renders.
+- `ChordSeqAIGenerator`: seven ONNX chord models through `onnxruntime-node`.
+- `MagentaPulsePlanner`: lazy ImprovRNN and DrumsRNN adapter.
+- `StubPulsePlanner`: empty-pattern test/fallback adapter.
+- `repairNotes`: quantise, snap to scale and thin density.
 
-## Install
-
-```sh
-bun add @peitho/pulse
-```
-
-## Current API
+Models under `models/` are local and gitignored. Magenta checkpoints default to
+Google-hosted URLs.
 
 ```ts
-import { StubPulsePlanner } from "@peitho/pulse";
+import { ChordSeqAIGenerator } from "@peitho/pulse";
 
-const planner = new StubPulsePlanner();
-const pattern = await planner.generate({
-  prompt: "8-bar ballad verse",
+const generator = new ChordSeqAIGenerator();
+const result = await generator.generate({
+  key: "C",
+  mode: "major",
+  bars: 8,
+  tension: 0.5,
+  repetition: 0.4,
+  cadence: "strong",
+  seed: 42,
 });
 ```
 
-## Documentation
-
-See [`../../docs/peitho-pulse.md`](../../docs/peitho-pulse.md).
-
-## Licence
-
-MIT. See [`LICENSE`](./LICENSE).
+ACE-Step, MLX, TyTorch and Anticipatory Music Transformer support are not
+implemented. See [Pulse documentation](../../docs/peitho-pulse.md).

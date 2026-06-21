@@ -1,35 +1,46 @@
 # Peitho
 
-Peitho is a TypeScript/Bun workspace for three public outputs:
+Peitho is a Bun/TypeScript workspace for generating, editing, auditioning and
+exporting symbolic music.
 
-- `@peitho/array`: deterministic MIDI and theory engine.
-- `@peitho/pulse`: ACE-Step/MLX-backed symbolic planner engine.
-- `peitho-composer`: Bun-based 8-bar music composition surface using both engines in the background.
+| Project | Current role |
+| --- | --- |
+| `@peitho/array` | Deterministic theory, chord, melody, drum and MIDI utilities. |
+| `@peitho/pulse` | ONNX chord generation plus Magenta melody/drum adapters. |
+| `peitho-composer` | Focused 8-bar composition UI consuming both engines. |
 
-The original visual prototype remains in `docs/Peitho/Peitho.dc.html`.
-The working Composer copy is served from `apps/peitho-composer/public/index.html`.
+Peitho produces MIDI-ready event data, not finished audio. Composer uses
+soundfonts for audition playback and exports Standard MIDI files.
 
-Engine documentation:
+## Status
 
-- [`docs/peitho-array.md`](./docs/peitho-array.md)
-- [`docs/peitho-pulse.md`](./docs/peitho-pulse.md)
-- [`docs/peitho-composer.md`](./docs/peitho-composer.md)
-- [`docs/token-music-stream.md`](./docs/token-music-stream.md)
+- Array generation, repair helpers and MIDI export: implemented.
+- Pulse ChordSeqAI route: implemented and connected to Composer.
+- Pulse Magenta planner: implemented package adapter; Composer does not yet call
+  it for melody, counter-melody or drums.
+- ACE-Step, MLX, TyTorch and Anticipatory Music Transformer: research only.
+- Persistence/projects: not implemented.
 
-## Commands
+## Development
 
 ```sh
 bun install
-bun test
-bun run dev
-```
-
-`bun run dev` serves the prototype and future app assets from `apps/peitho-composer`.
-
-For local development, use:
-
-```sh
 ./dev.sh
+bun test
+bun run typecheck
 ```
 
-Default URL: `http://localhost:43117`.
+Default Composer URL: `http://localhost:43117`.
+
+## Documentation
+
+- [Current handoff](./docs/PEITHO.md)
+- [Code map](./docs/code-map.md)
+- [Composer](./docs/peitho-composer.md)
+- [Array](./docs/peitho-array.md)
+- [Pulse](./docs/peitho-pulse.md)
+- [TokenMusicStream](./docs/token-music-stream.md)
+- [Roadmap](./docs/plan.md)
+
+`.contrib/*` contains read-only reference projects and the original Composer
+prototype. Active code must not import from or modify it.

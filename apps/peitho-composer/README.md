@@ -1,31 +1,23 @@
 # Peitho-Composer
 
-Bun-based composition surface for Peitho.
-
-Peitho-Composer uses `@peitho/array` and `@peitho/pulse` in the background to provide a focused 8-bar MIDI composition workflow.
-
-The current visual prototype is served from:
-
-```txt
-../../docs/Peitho/Peitho.dc.html
-```
-
-## Development
+Bun-served 8-bar MIDI composition surface using `@peitho/array` and
+`@peitho/pulse`.
 
 ```sh
-bun run dev
+# workspace root
+./dev.sh
 ```
 
-From the workspace root:
+Active files:
 
-```sh
-bun run dev
-```
+- `public/index.html`: Design Component UI and interaction state.
+- `src/composer-engine.ts`: preset-to-engine translation and browser facade.
+- `src/pulse-api.ts`: Pulse HTTP endpoints.
+- `src/static-assets.ts`: static files and on-demand browser bundle.
+- `src/server.ts`: server composition only.
 
-## Documentation
+`/composer-engine.js` is built in memory. Do not commit a generated copy.
 
-See [`../../docs/peitho-composer.md`](../../docs/peitho-composer.md).
+Reference-only prototype: `.contrib/Peitho/Peitho.dc.html`.
 
-## Licence
-
-MIT. See [`LICENSE`](./LICENSE).
+See [Composer documentation](../../docs/peitho-composer.md).

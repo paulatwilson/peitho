@@ -1,5 +1,8 @@
 # TokenMusicStream
 
+Status: versioned format proposal. Encoder, decoder and Composer import/export are
+not yet implemented in this repository.
+
 `TokenMusicStream` is the shared compact JSON music format for Peitho projects.
 
 It is intended for:

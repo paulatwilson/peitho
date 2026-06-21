@@ -7,3 +7,4 @@ coverage/
 .env.*
 !.env.example
 .contrib/
+apps/peitho-composer/public/composer-engine.js
