@@ -30,6 +30,8 @@ limits.
 - `src/index.ts`: current implementation and public exports.
 - `src/progression-seeds.ts`: progression conversion, validation and selection.
 - `src/progression-seeds.json`: compact fallback seed bank.
+- `src/token-music-stream.ts`: TokenMusicStream v2 encode/decode (deterministic,
+  no storage I/O — callers persist the resulting JSON).
 
 `src/index.ts` remains a refactor target. Planned modules: theory, harmony,
 melody, rhythm, repair and MIDI.

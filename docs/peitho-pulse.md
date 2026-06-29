@@ -87,6 +87,23 @@ pipeline (quantise, scale snap, density limits). It remains model-free.
 *   **Why AMT**: Multi-track infilling transformer. Takes locked chord track and generates
     guitar, bass, piano, and synth parts in parallel with cohesive cross-instrument context.
 
+### 2.4 AMT Reference Spike (Experimental)
+
+`POST /pulse/session-player/amt` is a research endpoint for proving AMT before a
+native runtime or full Session Player architecture is built. It accepts locked
+Peitho chords, optional locked note tracks and one target role: `piano` or `pad`.
+The endpoint invokes the read-only Python reference implementation and masks
+generated note tokens to the requested General MIDI program.
+
+Composer's **Add Piano Player** action sends the current chords and existing
+note tracks to this endpoint, then creates a separate playable/exportable track
+from the returned notes. The UI intentionally exposes only piano during this
+first listening spike; the endpoint also accepts `pad`.
+
+This proves only whether AMT can generate a useful same-timeline part around
+Peitho controls. It is not the TyTorch planner described above, does not interpret
+style language and currently loads the model in a fresh worker per request.
+
 ---
 
 ## 3. API Contracts

@@ -84,6 +84,7 @@ Implemented in `packages/peitho-array/`:
 - procedural drum patterns
 - MIDI byte generation
 - progression seed bank and validation
+- TokenMusicStream v2 encode/decode (`src/token-music-stream.ts`)
 
 Array remains model-free. Browser ONNX support described in older plans is not
 implemented.
@@ -100,8 +101,13 @@ Composer calls Pulse for chords through `POST /pulse/chords`. Composer does not
 yet call the Magenta planner for melody, counter or drums, although
 `POST /pulse/generate` exists.
 
+Composer autosaves/restores project state (music data via TokenMusicStream,
+app state separately) to `localStorage` across page refresh; see
+[`peitho-composer.md`](./peitho-composer.md#tokenmusicstream). Named/multiple
+projects are not implemented.
+
 Not implemented: ACE-Step planner adapter, MLX runtime, TyTorch runtime,
-Anticipatory Music Transformer adapter or persistent projects.
+Anticipatory Music Transformer adapter.
 
 ## Development
 

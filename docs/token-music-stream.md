@@ -1,7 +1,10 @@
 # TokenMusicStream
 
-Status: versioned format proposal. Encoder, decoder and Composer import/export are
-not yet implemented in this repository.
+Status: versioned format, v2. Encoder/decoder implemented in
+`packages/peitho-array/src/token-music-stream.ts`
+(`encodeTokenMusicStream` / `decodeTokenMusicStream`). Composer uses it to
+autosave/restore project music data to `localStorage`; see
+[`peitho-composer.md`](./peitho-composer.md#tokenmusicstream).
 
 `TokenMusicStream` is the shared compact JSON music format for Peitho projects.
 
@@ -131,6 +134,54 @@ export const MUSIC_TOKEN_TABLE_V1 = {
   },
 } as const;
 ```
+
+## Token Dictionary V2 Additions
+
+V2 is additive over V1. Existing V1 tuple positions are unchanged. A V2 decoder
+must still read `v: 1` streams; a V1 decoder may ignore the new optional fields.
+
+New top-level key:
+
+| Token | Meaning | Type |
+| --- | --- | --- |
+| `mc` | macro shaping tuple | `[density, split, sync, rhythm]` |
+
+New chord tuple position (appended, optional):
+
+| Index | Token | Meaning |
+| --- | --- | --- |
+| `6` | `tn` | raw MIDI tones, lossless fallback when `q` cannot represent the chord |
+
+New event tuple position (appended, optional):
+
+| Index | Token | Meaning |
+| --- | --- | --- |
+| `5` | `n` | exact MIDI note number, lossless companion to derived `f` (Hz) |
+
+New voice enum entries (appended, existing 0-4 unchanged):
+
+| Domain | Token | Meaning |
+| --- | --- | --- |
+| voice | `5` | kick |
+| voice | `6` | snare |
+| voice | `7` | hat |
+| voice | `8` | open (open hat) |
+
+New chord quality enum entry (appended, existing 0-5 unchanged):
+
+| Domain | Token | Meaning |
+| --- | --- | --- |
+| chord quality | `6` | other (use `tn` for exact tones) |
+
+### V2 Encoding Rules
+
+- Always include `tn` on a chord tuple unless the chord's quality, degree, and
+  accidental fully reconstruct the original tones losslessly.
+- Always include `n` on an event tuple. Decoders that only understand V1 may
+  fall back to deriving pitch from `f`.
+- Percussion voices (`5`-`8`) ignore `f`/`n`; only `t`, `l`, and `v` matter.
+- `mc` describes the generation macros in effect, not literal note data;
+  omit it when the stream was hand-authored without macro shaping.
 
 ## TypeScript Shape
 

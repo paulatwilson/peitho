@@ -51,9 +51,12 @@ Composer: presets, workflow, editing, playback, export
 
 ### 4. Persistence
 
-- [ ] Define project/session contract using canonical symbolic data.
-- [ ] Add undo/redo before durable persistence.
-- [ ] Add TokenMusicStream import/export only at storage boundaries.
+- [x] Define project/session contract using canonical symbolic data.
+- [ ] Add undo/redo.
+- [x] Add TokenMusicStream import/export only at storage boundaries.
+  Shipped as `localStorage` autosave/restore (see
+  [`peitho-composer.md`](./peitho-composer.md#tokenmusicstream)); durable
+  named projects and undo/redo remain open.
 
 ## Session Players
 

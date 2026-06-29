@@ -1,4 +1,5 @@
 import {
+  AmtSessionPlayerSpike,
   ChordSeqAIGenerator,
   MagentaMelodyPlanner,
   MagentaPulsePlanner,
@@ -8,6 +9,8 @@ import {
   type MelodyPlanner,
   type PulsePlanner,
   type PulseRequest,
+  type AmtSessionPlayerRequest,
+  type AmtSessionPlayerResult,
 } from "@peitho/pulse";
 import { errorResponse, isResponse, readJson } from "./http-response";
 
@@ -15,6 +18,7 @@ type PulseApiDependencies = {
   chordGenerator: Pick<ChordSeqAIGenerator, "generate">;
   planner: PulsePlanner;
   melodyPlanner: MelodyPlanner;
+  amtSessionPlayer: { generate(request: AmtSessionPlayerRequest): Promise<AmtSessionPlayerResult> };
 };
 
 export function createPulseApi(
@@ -22,6 +26,7 @@ export function createPulseApi(
     chordGenerator: new ChordSeqAIGenerator(),
     planner: new MagentaPulsePlanner(),
     melodyPlanner: new MagentaMelodyPlanner(),
+    amtSessionPlayer: new AmtSessionPlayerSpike(),
   },
 ) {
   return async function pulseApi(request: Request, pathname: string): Promise<Response | null> {
@@ -56,6 +61,17 @@ export function createPulseApi(
 
       try {
         return Response.json(await dependencies.planner.generate(body as PulseRequest));
+      } catch (error) {
+        return errorResponse(error);
+      }
+    }
+
+    if (pathname === "/pulse/session-player/amt") {
+      const body = await readJson<AmtSessionPlayerRequest>(request);
+      if (isResponse(body)) return body;
+
+      try {
+        return Response.json(await dependencies.amtSessionPlayer.generate(body));
       } catch (error) {
         return errorResponse(error);
       }

@@ -8,6 +8,8 @@ import {
   buildMidi,
   borrowedChordPool,
   chordPool,
+  decodeTokenMusicStream,
+  encodeTokenMusicStream,
   generateChords,
   generateDrums,
   generateMono,
@@ -19,6 +21,7 @@ import {
   type ChordEvent,
   type DisplayScaleName,
   type DrumPattern,
+  type EncodeMusicInput,
   type MidiTrack,
   type NoteEvent,
   type MacroSettings,
@@ -26,6 +29,7 @@ import {
   type ProgressionProfile,
   type ProgressionSeed,
   type SegmentProfile,
+  type TokenMusicStream,
 } from "@peitho/array";
 import type { MelodyGenerationRequest } from "@peitho/pulse";
 import directionPresets from "./direction-presets.json";
@@ -363,6 +367,14 @@ export const ComposerEngine = {
 
   pulseConditions(type: string) {
     return pulseConditions(type);
+  },
+
+  encodeProjectStream(input: EncodeMusicInput): TokenMusicStream {
+    return encodeTokenMusicStream(input);
+  },
+
+  decodeProjectStream(stream: TokenMusicStream) {
+    return decodeTokenMusicStream(stream);
   },
 
   pulseChordRequest(

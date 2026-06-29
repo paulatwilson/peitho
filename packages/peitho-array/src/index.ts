@@ -1,5 +1,6 @@
 export * from "./progression-seeds";
 export * from "./contracts";
+export * from "./token-music-stream";
 import type {
   ChordEvent,
   ChordTemplate,

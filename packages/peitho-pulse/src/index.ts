@@ -32,3 +32,11 @@ export { scoreMelodyCandidate } from "./melody-scoring";
 export { MagentaMelodyPlanner } from "./magenta-melody-planner";
 export type { MagentaMelodyPlannerConfig } from "./magenta-melody-planner";
 export { generateMelodyCandidates } from "./melody-pipeline";
+export { AmtSessionPlayerSpike, buildAmtWorkerRequest } from "./amt-session-player";
+export type {
+  AmtLockedTrack,
+  AmtSessionPlayerConfig,
+  AmtSessionPlayerRequest,
+  AmtSessionPlayerResult,
+  AmtSessionPlayerRole,
+} from "./amt-session-player";

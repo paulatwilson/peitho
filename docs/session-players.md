@@ -163,6 +163,16 @@ Both paths must end in the same per-track Peitho event contracts.
 
 No production Session Player model has been selected.
 
+An experimental `POST /pulse/session-player/amt` endpoint now provides the first
+model spike for `piano` and `pad`. It uses the Python AMT reference runtime and a
+target-program sampling mask. Results must not be treated as a production player
+until listening, latency and control-following tests pass.
+
+Composer currently exposes the smallest useful audition path: **Add Piano
+Player** conditions AMT on the current arrangement and creates a dynamic track
+with playback, mute, solo, gain, instrument selection, removal and MIDI export.
+Pad remains endpoint-only until piano output has been judged useful.
+
 | Engine | Relevant capability | Main uncertainty |
 | --- | --- | --- |
 | Magenta | integrated local baseline for melody and drums | older role-specific models and limited ensemble context |

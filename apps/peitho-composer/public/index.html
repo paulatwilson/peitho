@@ -347,6 +347,29 @@ body{margin:0;background:#0c0e12}
             </div>
           </div>
 
+          <!-- CHORD ARP TRACK LANE -->
+          <sc-if value="{{ arpChordTrackActive }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ laneStyle }}">
+            <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:3px;background:#9b7fc8;box-shadow:0 0 6px #9b7fc8"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">Chord Arp Track</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ ms_arpChord.toggleM }}" style="{{ ms_arpChord.mStyle }}" title="Mute">M</div><div onClick="{{ ms_arpChord.toggleS }}" style="{{ ms_arpChord.sStyle }}" title="Solo">S</div></div></div>
+              <div style="display:flex;align-items:center;gap:5px"><span style="font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em;width:20px;flex:none">VOL</span><div onPointerDown="{{ gainArpChord.start }}" style="position:relative;flex:1;height:8px;background:#101319;border:1px solid rgba(255,255,255,.06);border-radius:4px;cursor:pointer"><div style="{{ gainArpChord.fill }}"></div><div style="{{ gainArpChord.handle }}"></div></div><span style="font-size:8px;color:#7d828c;font-family:ui-monospace,Menlo,monospace;width:26px;text-align:right;flex:none">{{ gainArpChord.label }}</span></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div onClick="{{ midiArpChord }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa" title="Export chord arp MIDI"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+                <div onClick="{{ openArpModal }}" style="{{ arpBtnStyle }}" title="Edit arpeggiator"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,20 2,14 8,14 8,9 14,9 14,4 20,4"/><circle cx="2" cy="20" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1.5" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="20" cy="4" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+              </div>
+              <div onClick="{{ instr_arpChordTrack.toggleMenu }}" style="{{ instr_arpChordTrack.btnStyle }}"><span style="font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9aa0aa">{{ instr_arpChordTrack.instrName }}</span><span style="font-size:8px;color:#5f646e">▾</span></div>
+            </div>
+            <div style="{{ ms_arpChord.areaStyle }}">
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ arpChordRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
+              <div style="{{ matrixContentStyle }}">
+              <div style="{{ gridStyle }}"></div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0"><sc-for list="{{ arpChordNotes }}" as="n" hint-placeholder-count="16"><div style="{{ n.style }}" onContextMenu="{{ n.onCtx }}"></div></sc-for></div></sc-if>
+              </div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:3;pointer-events:none"><sc-for list="{{ arpChordRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.lLabelStyle }}">{{ r.name }}</div><div style="{{ r.rLabelStyle }}">{{ r.name }}</div></div></sc-for></div></sc-if>
+            </div>
+          </div>
+          </sc-if>
+
           <!-- BASS LANE -->
           <sc-if value="{{ showBass }}" hint-placeholder-val="{{ false }}">
           <div style="{{ laneStyle }}">
@@ -368,29 +391,6 @@ body{margin:0;background:#0c0e12}
               <sc-if value="{{ showWave }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;gap:1px;padding:8px 10px"><sc-for list="{{ bassWave }}" as="b" hint-placeholder-count="40"><div style="{{ b.style }}"></div></sc-for></div></sc-if>
               </div>
               <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:3;pointer-events:none"><sc-for list="{{ bassRows }}" as="r" hint-placeholder-count="6"><div style="position:absolute;inset:0"><div style="{{ r.lLabelStyle }}">{{ r.name }}</div><div style="{{ r.rLabelStyle }}">{{ r.name }}</div></div></sc-for></div></sc-if>
-            </div>
-          </div>
-          </sc-if>
-
-          <!-- CHORD ARP TRACK LANE -->
-          <sc-if value="{{ arpChordTrackActive }}" hint-placeholder-val="{{ false }}">
-          <div style="{{ laneStyle }}">
-            <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:8px">
-              <div style="display:flex;align-items:center;gap:8px"><div style="width:9px;height:9px;border-radius:3px;background:#9b7fc8;box-shadow:0 0 6px #9b7fc8"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">Chord Arp Track</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ ms_arpChord.toggleM }}" style="{{ ms_arpChord.mStyle }}" title="Mute">M</div><div onClick="{{ ms_arpChord.toggleS }}" style="{{ ms_arpChord.sStyle }}" title="Solo">S</div></div></div>
-              <div style="display:flex;align-items:center;gap:5px"><span style="font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em;width:20px;flex:none">VOL</span><div onPointerDown="{{ gainArpChord.start }}" style="position:relative;flex:1;height:8px;background:#101319;border:1px solid rgba(255,255,255,.06);border-radius:4px;cursor:pointer"><div style="{{ gainArpChord.fill }}"></div><div style="{{ gainArpChord.handle }}"></div></div><span style="font-size:8px;color:#7d828c;font-family:ui-monospace,Menlo,monospace;width:26px;text-align:right;flex:none">{{ gainArpChord.label }}</span></div>
-              <div style="display:flex;align-items:center;gap:6px">
-                <div onClick="{{ midiArpChord }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa" title="Export chord arp MIDI"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
-                <div onClick="{{ openArpModal }}" style="{{ arpBtnStyle }}" title="Edit arpeggiator"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,20 2,14 8,14 8,9 14,9 14,4 20,4"/><circle cx="2" cy="20" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1.5" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="20" cy="4" r="1.5" fill="currentColor" stroke="none"/></svg></div>
-              </div>
-              <div onClick="{{ instr_arpChordTrack.toggleMenu }}" style="{{ instr_arpChordTrack.btnStyle }}"><span style="font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9aa0aa">{{ instr_arpChordTrack.instrName }}</span><span style="font-size:8px;color:#5f646e">▾</span></div>
-            </div>
-            <div style="{{ ms_arpChord.areaStyle }}">
-              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ arpChordRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
-              <div style="{{ matrixContentStyle }}">
-              <div style="{{ gridStyle }}"></div>
-              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0"><sc-for list="{{ arpChordNotes }}" as="n" hint-placeholder-count="16"><div style="{{ n.style }}" onContextMenu="{{ n.onCtx }}"></div></sc-for></div></sc-if>
-              </div>
-              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:3;pointer-events:none"><sc-for list="{{ arpChordRows }}" as="r" hint-placeholder-count="10"><div style="position:absolute;inset:0"><div style="{{ r.lLabelStyle }}">{{ r.name }}</div><div style="{{ r.rLabelStyle }}">{{ r.name }}</div></div></sc-for></div></sc-if>
             </div>
           </div>
           </sc-if>
@@ -490,6 +490,33 @@ body{margin:0;background:#0c0e12}
             </div>
           </div>
 
+          <!-- SESSION PLAYER LANES -->
+          <sc-for list="{{ sessionPlayerLanes }}" as="sp" hint-placeholder-count="0">
+          <div style="{{ laneStyle }}">
+            <div style="width:178px;flex:none;padding:11px 12px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px"><div style="{{ sp.dotStyle }}"></div><span style="font-size:11.5px;font-weight:600;letter-spacing:.02em">{{ sp.name }}</span><div style="margin-left:auto;display:flex;gap:4px"><div onClick="{{ sp.toggleM }}" style="{{ sp.mStyle }}" title="Mute">M</div><div onClick="{{ sp.toggleS }}" style="{{ sp.sStyle }}" title="Solo">S</div></div></div>
+              <div style="display:flex;align-items:center;gap:5px"><span style="font-size:8px;color:#5f646e;font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em;width:20px;flex:none">VOL</span><div onPointerDown="{{ sp.gainStart }}" style="position:relative;flex:1;height:8px;background:#101319;border:1px solid rgba(255,255,255,.06);border-radius:4px;cursor:pointer"><div style="{{ sp.gainFill }}"></div><div style="{{ sp.gainHandle }}"></div></div><span style="font-size:8px;color:#7d828c;font-family:ui-monospace,Menlo,monospace;width:26px;text-align:right;flex:none">{{ sp.gainLabel }}</span></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div onClick="{{ sp.midiExport }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa" title="Export MIDI"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 21h14"/></svg></div>
+                <div onClick="{{ sp.remove }}" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:#1a1e25;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;color:#9aa0aa" title="Remove track"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+              </div>
+              <div onClick="{{ sp.toggleInstr }}" style="{{ sp.instrBtnStyle }}"><span style="font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9aa0aa">{{ sp.instrName }}</span><span style="font-size:8px;color:#5f646e">▾</span></div>
+            </div>
+            <div style="{{ sp.areaStyle }}">
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:0;pointer-events:none"><sc-for list="{{ sp.rows }}" as="r" hint-placeholder-count="8"><div style="position:absolute;inset:0"><div style="{{ r.bandStyle }}"></div></div></sc-for></div></sc-if>
+              <div style="{{ matrixContentStyle }}">
+              <div style="{{ gridStyle }}"></div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0"><sc-for list="{{ sp.notes }}" as="n" hint-placeholder-count="8"><div style="{{ n.style }}"></div></sc-for></div></sc-if>
+              </div>
+              <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;z-index:3;pointer-events:none"><sc-for list="{{ sp.rows }}" as="r" hint-placeholder-count="8"><div style="position:absolute;inset:0"><div style="{{ r.lLabelStyle }}">{{ r.name }}</div><div style="{{ r.rLabelStyle }}">{{ r.name }}</div></div></sc-for></div></sc-if>
+            </div>
+          </div>
+          </sc-for>
+
+          <!-- ADD SESSION PLAYER -->
+          <div onClick="{{ addSessionPlayer }}" style="{{ addPlayerBtnStyle }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span style="font-size:10px;font-weight:600;letter-spacing:.08em;font-family:ui-monospace,Menlo,monospace">{{ addPlayerLabel }}</span></div>
+          <sc-if value="{{ showSessionPlayerError }}" hint-placeholder-val="{{ false }}"><div style="padding:7px 10px;color:#d4857a;font-size:10px;font-family:ui-monospace,Menlo,monospace">{{ sessionPlayerError }}</div></sc-if>
+
           <!-- PLAYHEAD -->
           <div style="position:absolute;top:0;bottom:0;left:179px;right:0;pointer-events:none;overflow:hidden"><div ref="{{ phRef }}" style="{{ playheadStyle }}"></div></div>
 
@@ -561,6 +588,10 @@ function _pulseConditions(type){return CE.pulseConditions(type);}
 function _chordDirection(t,sg,op){return CE.chordDirection(t,sg,op);}
 function _chordTypeDefault(t){return CE.chordTypeDefault(t);}
 function _pulseChordRequest(key,scale,type,segment,option,decade,seed,overrides){return CE.pulseChordRequest(key,scale,type,segment,option,decade,seed,overrides);}
+function _encodeProjectStream(input){return CE.encodeProjectStream(input);}
+function _decodeProjectStream(stream){return CE.decodeProjectStream(stream);}
+const MUSIC_STREAM_STORAGE_KEY='peitho-composer:music-stream';
+const APP_STATE_STORAGE_KEY='peitho-composer:app-state';
 function _chordsFromProgressionSeed(seed,key){return CE.chordsFromProgressionSeed(seed,key);}
 function _chordRagStatus(name,key,scale){return CE.chordRagStatus(name,key,scale);}
 function _genMono(seed,o){return CE.genMono(seed,o);}
@@ -571,7 +602,7 @@ function _dl(bytes,name){const blob=new Blob([bytes],{type:'audio/midi'});const 
 function _arpPermute(arr){const used=[],perms=[];function go(a){if(perms.length>=24)return;for(let i=0;i<a.length;i++){if(perms.length>=24)return;const ch=a.splice(i,1)[0];used.push(ch);if(a.length===0)perms.push(used.slice());go(a);a.splice(i,0,ch);used.pop();}}go(arr.slice());return perms;}
 function _arpLoop(perms){return perms.map(function(p){const a=p.slice();for(let x=1;x<p.length-1;x++)a.push(p[p.length-1-x]);return a;});}
 function _arpPatterns(steps){const arr=[];for(let i=0;i<steps;i++)arr.push(i);const st=_arpPermute(arr);return {straight:st,looped:_arpLoop(st)};}
-function _arpNotes(chords,steps,type,style,timeMode){if(!chords.length)return[];const ss=timeMode==='8n'?2:timeMode==='4n'?4:1;const pats=_arpPatterns(steps);const patterns=pats[type]||pats.straight;const pat=patterns[Math.min(style,patterns.length-1)];const out=[];for(const c of chords){const tones=c.tones||[];if(!tones.length)continue;const ext=[];for(let i=0;i<steps;i++)ext.push(tones[i%tones.length]+Math.floor(i/tones.length)*12);const s0=c.start*8,s1=s0+c.len*8;let pos=s0,pi=0;while(pos<s1){const ni=pat[pi%pat.length];const nl=Math.min(ss,s1-pos);if(nl>=1)out.push({step:Math.round(pos),len:Math.round(nl),midi:ext[ni]});pos+=ss;pi++;}}return out;}
+function _arpNotes(chords,steps,type,style,timeMode){if(!chords.length)return[];const ss=timeMode==='8n'?2:timeMode==='4n'?4:1;const pats=_arpPatterns(steps);const patterns=pats[type]||pats.straight;const pat=patterns[Math.min(style,patterns.length-1)];const out=[];for(const c of chords){const tones=c.tones||[];if(!tones.length)continue;const ext=[];for(let i=0;i<steps;i++)ext.push(tones[i%tones.length]+Math.floor(i/tones.length)*12);const s0=c.start*8,s1=s0+c.len*8;let pos=s0,pi=0;while(pos<s1){const ni=pat[pi%pat.length];const nl=Math.min(ss,s1-pos);if(nl>=1)out.push({step:Math.round(pos),len:Math.round(nl),midi:ext[ni],vel:100});pos+=ss;pi++;}}return out;}
 
 class Component extends DCLogic {
   phRef = React.createRef();
@@ -601,10 +632,50 @@ class Component extends DCLogic {
     instruments:{chords:'String Ensemble',melody:'Electric Piano 1',bass:'Acoustic Bass',counter:'Acoustic Piano',drumsKit:'Acoustic',arpChordTrack:'Electric Piano 1',arpBassTrack:'Acoustic Bass'},
     openInstrMenu:null, instrMenuPos:null, noteCtxMenu:null,
     arpOn:false, arpSteps:3, arpType:'straight', arpStyle:0, arpTimeMode:'16n', arpModalOpen:false, arpSnapshot:null,
-    arpSource:'chord', arpMode:'replace', arpChordTrack:null, arpBassTrack:null
+    arpSource:'chord', arpMode:'replace', arpChordTrack:null, arpBassTrack:null,
+    sessionPlayers:[], sessionPlayerGenerating:false, sessionPlayerError:null
   };
-  componentWillUnmount(){this._pause();if(this.ctx){try{this.ctx.close();}catch(e){}}}
-  componentDidMount(){this._ensureAudio();}
+  componentWillUnmount(){this._pause();if(this.ctx){try{this.ctx.close();}catch(e){}}clearTimeout(this._saveTimer);}
+  componentDidMount(){this._ensureAudio();this._loadProject();}
+  componentDidUpdate(){this._scheduleSave();}
+
+  _scheduleSave(){
+    if(this._loadingProject)return;
+    const self=this;
+    clearTimeout(this._saveTimer);
+    this._saveTimer=setTimeout(function(){self._saveProject();},300);
+  }
+  _saveProject(){
+    const s=this.state;
+    try{
+      const musicInput={id:'composer-session',seed:s.seed,bpm:s.tempo,timeSignature:44,tuningA4:440,key:s.key,scale:s.scale,macros:{density:s.density,split:s.split,sync:s.sync,rhythm:s.rhythm},chords:s.chords,melody:this._melNotes(),counter:this._ctrNotes(),drums:this._drums()};
+      const stream=_encodeProjectStream(musicInput);
+      localStorage.setItem(MUSIC_STREAM_STORAGE_KEY,JSON.stringify(stream));
+    }catch(e){}
+    try{
+      const appState={mute:s.mute,solo:s.solo,gain:s.gain,instruments:s.instruments,zoom:s.zoom,vzoom:s.vzoom,collapseLeft:s.collapseLeft,collapseTonality:s.collapseTonality,collapseChords:s.collapseChords,melSeeds:s.melSeeds,activeMel:s.activeMel,ctrSeeds:s.ctrSeeds,activeCtr:s.activeCtr,drumPattern:s.drumPattern,engineModel:s.engineModel,type:s.type,segment:s.segment,option:s.option,arrayChordCount:s.arrayChordCount,sessionPlayers:s.sessionPlayers};
+      localStorage.setItem(APP_STATE_STORAGE_KEY,JSON.stringify(appState));
+    }catch(e){}
+  }
+  _loadProject(){
+    const self=this;
+    let appState=null,decoded=null;
+    try{const raw=localStorage.getItem(APP_STATE_STORAGE_KEY);if(raw)appState=JSON.parse(raw);}catch(e){}
+    try{const raw=localStorage.getItem(MUSIC_STREAM_STORAGE_KEY);if(raw)decoded=_decodeProjectStream(JSON.parse(raw));}catch(e){}
+    if(!appState&&!decoded)return;
+    const patch=Object.assign({},appState||{});
+    if(decoded){
+      patch.key=decoded.key;patch.scale=decoded.scale;patch.tempo=decoded.bpm;patch.seed=decoded.seed;patch.chords=decoded.chords;
+      if(decoded.macros){patch.density=decoded.macros.density;patch.split=decoded.macros.split;patch.sync=decoded.macros.sync;patch.rhythm=decoded.macros.rhythm;}
+      const activeMel=patch.activeMel!=null?patch.activeMel:self.state.activeMel;
+      const melOverride=self.state.melOverride.slice();melOverride[activeMel]=decoded.melody;patch.melOverride=melOverride;
+      const activeCtr=patch.activeCtr!=null?patch.activeCtr:self.state.activeCtr;
+      const ctrOverride=self.state.ctrOverride.slice();ctrOverride[activeCtr]=decoded.counter;patch.ctrOverride=ctrOverride;
+      patch.drumOverride=decoded.drums;
+    }
+    this._loadingProject=true;
+    this.setState(patch,function(){self._loadingProject=false;});
+  }
 
   sel(){ return this.props.accent || '#4a90d9'; }
   glow(){ return this.props.glow!==false; }
@@ -646,14 +717,14 @@ class Component extends DCLogic {
     const arpActive=(s.arpOn||s.arpModalOpen)&&s.chords.length;
     const arpReplace=arpActive&&s.arpMode==='replace';
     const bassArpChords=s.chords.map(function(c){const r=(c.tones&&c.tones[0])||48;let b=r;while(b>55)b-=12;while(b<28)b+=12;const fifth=b+7<=55?b+7:b-5;return Object.assign({},c,{tones:[b,fifth,b+12<=60?b+12:b]});});
-    if(arpReplace&&s.arpSource==='chord'){for(const n of _arpNotes(s.chords,s.arpSteps,s.arpType,s.arpStyle,s.arpTimeMode))chord.push(n);}
+    if(arpReplace&&s.arpSource==='chord'&&!(s.arpChordTrack&&s.arpChordTrack.length)){for(const n of _arpNotes(s.chords,s.arpSteps,s.arpType,s.arpStyle,s.arpTimeMode))chord.push(n);}
     else{for(const c of s.chords){for(const m of c.tones){chord.push({step:c.start*8,len:c.len*8,midi:m});}}}
-    if(arpReplace&&s.arpSource==='bass'){for(const n of _arpNotes(bassArpChords,s.arpSteps,s.arpType,s.arpStyle,s.arpTimeMode))bass.push(n);}
+    if(arpReplace&&s.arpSource==='bass'&&!(s.arpBassTrack&&s.arpBassTrack.length)){for(const n of _arpNotes(bassArpChords,s.arpSteps,s.arpType,s.arpStyle,s.arpTimeMode))bass.push(n);}
     else{for(const c of s.chords){const pc=((c.tones&&c.tones[0])||48)%12;bass.push({step:c.start*8,len:c.len*8,midi:36+pc});}}
     const mel=this._melNotes(); const ctr=this._ctrNotes();
     return {chord:chord,mel:mel,ctr:ctr,bass:bass,arpChord:s.arpChordTrack||[],arpBass:s.arpBassTrack||[]};
   }
-  _top(midi,range){let n=(midi-range[0])/(range[1]-range[0]);n=_clamp(n,0,1);return 12+(1-n)*70;}
+  _top(midi,range){let n=(midi-range[0])/(range[1]-range[0]);n=_clamp(n,0,1);return 4+(1-n)*92;}
   _rowPct(range){const sc=_scaleMidi(this.state.key,this.state.scale,range[0],range[1]);if(sc.length<2)return 10;const gaps=[];for(let i=1;i<sc.length;i++)gaps.push(Math.abs(this._top(sc[i],range)-this._top(sc[i-1],range)));gaps.sort(function(a,b){return a-b;});return gaps[Math.floor(gaps.length/2)];}
   _noteH(range){return _clamp((this._rowPct(range)/100)*108*(this.state.vzoom||1)*0.92,8,64);}
   pianoRows(range,labelPx){const sc=_scaleMidi(this.state.key,this.state.scale,range[0]-3,range[1]+3);const root=NOTE_NAMES.indexOf(this.state.key);const self=this;const out=[];const lp=labelPx;for(let i=0;i<sc.length;i++){const m=sc[i];const tHere=self._top(m,range);const tUp=(i+1<sc.length)?self._top(sc[i+1],range):tHere-6;const tDn=(i-1>=0)?self._top(sc[i-1],range):tHere+6;const span=Math.min(Math.abs(tHere-tUp),Math.abs(tHere-tDn));const bandH=Math.max(1.5,span*0.78);let top=tHere-bandH/2,height=bandH;if(top<0){height+=top;top=0;}if(top+height>100){height=100-top;}if(height<=0)continue;const isRoot=(m%12)===root;const labelStyle={position:'absolute',top:'calc('+tHere+'% - '+(lp*0.62)+'px)',fontSize:lp+'px',lineHeight:1,fontFamily:'ui-monospace,Menlo,monospace',fontWeight:isRoot?700:500,color:isRoot?self.sel():'#b6bcc6',background:'rgba(10,12,16,.72)',padding:'1px 3px',borderRadius:'3px'};out.push({name:NOTE_NAMES[m%12],bandStyle:{position:'absolute',left:0,right:0,top:top+'%',height:height+'%',background:isRoot?self._rgba(self.sel(),0.20):'rgba(255,255,255,.065)',borderTop:'1px solid rgba(255,255,255,.05)',borderBottom:'1px solid rgba(0,0,0,.32)'},lLabelStyle:Object.assign({left:'4px'},labelStyle),rLabelStyle:Object.assign({right:'4px'},labelStyle)});}return out;}
@@ -666,10 +737,10 @@ class Component extends DCLogic {
   trackPlay(voice){const self=this;const s=this.state;if(s.playing&&s.solo[voice]){self.setState({playing:false});self._pause();}else{const ns={chord:false,bass:false,mel:false,ctr:false,drums:false};ns[voice]=true;self.setState({solo:ns});if(!s.playing){self.setState({playing:true});self._play();}}}
   _editRange(track){return track==='mel'?[56,84]:[46,76];}
   _setOverride(track,arr){this.setState(function(s){if(track==='mel'){const o=s.melOverride.slice();o[s.activeMel]=arr;return {melOverride:o};}else{const o=s.ctrOverride.slice();o[s.activeCtr]=arr;return {ctrOverride:o};}});}
-  _snapMidi(track,topPct){const rng=this._editRange(track);let n=_clamp(1-(topPct-12)/70,0,1);let midi=Math.round(rng[0]+n*(rng[1]-rng[0]));const sc=_scaleMidi(this.state.key,this.state.scale,rng[0],rng[1]);if(!sc.length)return midi;return sc.reduce(function(a,b){return Math.abs(b-midi)<Math.abs(a-midi)?b:a;},sc[0]);}
+  _snapMidi(track,topPct){const rng=this._editRange(track);let n=_clamp(1-(topPct-4)/92,0,1);let midi=Math.round(rng[0]+n*(rng[1]-rng[0]));const sc=_scaleMidi(this.state.key,this.state.scale,rng[0],rng[1]);if(!sc.length)return midi;return sc.reduce(function(a,b){return Math.abs(b-midi)<Math.abs(a-midi)?b:a;},sc[0]);}
   startNoteDrag(e,track,idx){e.preventDefault();e.stopPropagation();const surface=e.currentTarget.parentElement;const rect=surface.getBoundingClientRect();const base=(track==='mel'?this._melNotes():this._ctrNotes()).map(function(n){return Object.assign({},n);});const orig=Object.assign({},base[idx]);const self=this;const startX=e.clientX,startY=e.clientY;const cur0Step=Math.round(_clamp((startX-rect.left)/rect.width,0,1)*128);const grabStep=orig.step-cur0Step;const grabTop=self._top(orig.midi,self._editRange(track))-((startY-rect.top)/rect.height*100);let dragging=false;const upd=function(cx,cy){const cs=Math.round(_clamp((cx-rect.left)/rect.width,0,1)*128);const step=_clamp(cs+grabStep,0,127);const topPct=((cy-rect.top)/rect.height*100)+grabTop;base[idx]=Object.assign({},orig,{step:step,midi:self._snapMidi(track,topPct)});self._setOverride(track,base.slice());};const move=function(ev){if(!dragging){if(Math.abs(ev.clientX-startX)<3&&Math.abs(ev.clientY-startY)<3)return;dragging=true;}upd(ev.clientX,ev.clientY);};const up=function(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);}
   startNoteResize(e,track,idx){e.preventDefault();e.stopPropagation();const surface=e.currentTarget.parentElement.parentElement;const rect=surface.getBoundingClientRect();const base=(track==='mel'?this._melNotes():this._ctrNotes()).map(function(n){return Object.assign({},n);});const orig=Object.assign({},base[idx]);const self=this;const startX=e.clientX;let dragging=false;const upd=function(cx){const dStep=Math.round((cx-startX)/rect.width*128);const len=_clamp((orig.len||1)+dStep,1,128-orig.step);base[idx]=Object.assign({},orig,{len:len});self._setOverride(track,base.slice());};const move=function(ev){if(!dragging){if(Math.abs(ev.clientX-startX)<3)return;dragging=true;}upd(ev.clientX);};const up=function(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);}
-  startAddNote(e,track){if(this.state.editMode[track]==='velocity')return;if(e.target!==e.currentTarget)return;const rect=e.currentTarget.getBoundingClientRect();let fx=_clamp((e.clientX-rect.left)/rect.width,0,1);let step=_clamp(Math.round(fx*128),0,127);let topPct=(e.clientY-rect.top)/rect.height*100;const cur=(track==='mel'?this._melNotes():this._ctrNotes()).map(function(n){return Object.assign({},n);});cur.push({step:step,len:2,midi:this._snapMidi(track,topPct)});this._setOverride(track,cur);}
+  startAddNote(e,track){if(this.state.editMode[track]==='velocity')return;if(e.target!==e.currentTarget)return;const rect=e.currentTarget.getBoundingClientRect();let fx=_clamp((e.clientX-rect.left)/rect.width,0,1);let step=_clamp(Math.round(fx*128),0,127);let topPct=(e.clientY-rect.top)/rect.height*100;const cur=(track==='mel'?this._melNotes():this._ctrNotes()).map(function(n){return Object.assign({},n);});cur.push({step:step,len:4,midi:this._snapMidi(track,topPct)});this._setOverride(track,cur);}
   deleteNote(e,track,idx){if(e){e.preventDefault();e.stopPropagation();}const cur=(track==='mel'?this._melNotes():this._ctrNotes()).filter(function(_,i){return i!==idx;});this._setOverride(track,cur);this.setState({noteCtxMenu:null});}
   deleteArpNote(track,idx){this.setState(function(s){const key=track==='arpChord'?'arpChordTrack':'arpBassTrack';const arr=(s[key]||[]).filter(function(_,i){return i!==idx;});const o={noteCtxMenu:null};o[key]=arr;return o;});}
   openNoteCtxMenu(e,track,idx,isArp){e.preventDefault();e.stopPropagation();this.setState({noteCtxMenu:{x:e.clientX,y:e.clientY,track:track,idx:idx,isArp:isArp},openMenu:null,openChord:null,openInstrMenu:null,instrMenuPos:null});}
@@ -698,7 +769,7 @@ class Component extends DCLogic {
   addChord(){this.setState(function(s){if(s.chords.length>=16)return null;const ch=s.chords.slice();let idx=-1,mx=1;ch.forEach(function(c,i){if(c.len>mx){mx=c.len;idx=i;}});if(idx<0)return null;const c=ch[idx];const one=_genChords(s.key,s.scale,s.type,s.segment,s.option)[0];const half=Math.floor(c.len/2);ch.splice(idx,1,Object.assign({},c,{len:c.len-half}),{name:one.name,len:half,tones:one.tones,start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
   splitChord(i){this.setState(function(s){const c=s.chords[i];if(!c||c.len<2)return null;const ch=s.chords.slice();const a=Math.ceil(c.len/2),b=c.len-a;ch.splice(i,1,{name:c.name,len:a,tones:c.tones.slice(),start:0},{name:c.name,len:b,tones:c.tones.slice(),start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
   mergeChord(i){this.setState(function(s){const c=s.chords[i],n=s.chords[i+1];if(!c||!n||c.name!==n.name)return null;const ch=s.chords.slice();ch.splice(i,2,{name:c.name,len:c.len+n.len,tones:c.tones.slice(),start:0});let st=0;ch.forEach(function(x){x.start=st;st+=x.len;});return {chords:ch};});}
-  clearAll(){this.setState({chords:[],chordsGen:false,chordsLocked:false,melSeeds:[null,null,null],melodyLocked:false,ctrSeeds:[null,null,null]});}
+  clearAll(){this.setState({chords:[],chordsGen:false,chordsLocked:false,melSeeds:[null,null,null],melodyLocked:false,ctrSeeds:[null,null,null],sessionPlayers:[]});}
   async genChords(){
     const s=this.state;
     if(s.engineModel==='array'){this.setState({chords:_genChords(s.key,s.scale,s.type,s.segment,s.option,CE.rand(),s.arrayChordCount),chordsGen:true,chordsLocked:true,pulseError:null});return;}
@@ -733,9 +804,9 @@ class Component extends DCLogic {
   _drumMidi(){const d=this._drums();const n=[];d.kick.forEach(function(s){n.push({step:s,len:1,midi:36});});d.snare.forEach(function(s){n.push({step:s,len:1,midi:38});});d.hat.forEach(function(s){n.push({step:s,len:1,midi:42});});d.open.forEach(function(s){n.push({step:s,len:2,midi:46});});return n;}
   midiDrums(){_dl(_buildMidi(this.state.tempo,[{notes:this._drumMidi(),channel:9}]),'Peitho-drums.mid');}
   drumStyles(d,color){const g=this.glow();const rows={hat:{top:18,h:6,w:0.7,op:0.6},open:{top:18,h:6,w:0.7,op:0.95},snare:{top:46,h:9,w:1.0,op:0.85},kick:{top:74,h:11,w:1.3,op:1}};const out=[];['hat','open','snare','kick'].forEach(function(k){const r=rows[k];d[k].forEach(function(st){out.push({style:{position:'absolute',left:(st/128*100)+'%',top:r.top+'%',width:r.w+'%',minWidth:'3px',height:r.h+'px',borderRadius:'2px',background:color,opacity:r.op,boxShadow:(g&&(k==='kick'||k==='open'))?('0 0 6px '+color+'aa'):'none'}});});});return out;}
-  exportMidi(){const n=this.computeNotes();const tracks=[{notes:n.chord,channel:0},{notes:n.bass,channel:1},{notes:n.mel,channel:2},{notes:n.ctr,channel:3},{notes:this._drumMidi(),channel:9}];if(n.arpChord&&n.arpChord.length)tracks.push({notes:n.arpChord,channel:4});if(n.arpBass&&n.arpBass.length)tracks.push({notes:n.arpBass,channel:5});_dl(_buildMidi(this.state.tempo,tracks),'Peitho-8bar.mid');}
+  exportMidi(){const n=this.computeNotes();const tracks=[{notes:n.chord,channel:0},{notes:n.bass,channel:1},{notes:n.mel,channel:2},{notes:n.ctr,channel:3},{notes:this._drumMidi(),channel:9}];if(n.arpChord&&n.arpChord.length)tracks.push({notes:n.arpChord,channel:4});if(n.arpBass&&n.arpBass.length)tracks.push({notes:n.arpBass,channel:5});const channels=[6,7,8,10,11,12,13,14,15];(this.state.sessionPlayers||[]).slice(0,channels.length).forEach(function(sp,i){if(sp.notes&&sp.notes.length)tracks.push({notes:sp.notes,channel:channels[i]});});_dl(_buildMidi(this.state.tempo,tracks),'Peitho-8bar.mid');}
 
-  _audible(name){const s=this.state;const anySolo=['chord','bass','mel','ctr','drums','arpChord','arpBass'].some(function(k){return s.solo[k];});if(anySolo)return !!s.solo[name];return !s.mute[name];}
+  _audible(name){const s=this.state;const anySolo=['chord','bass','mel','ctr','drums','arpChord','arpBass'].some(function(k){return s.solo[k];})||(s.sessionPlayers||[]).some(function(p){return p.solo;});if(anySolo)return !!s.solo[name];return !s.mute[name];}
   toggleMute(name){this.setState(function(s){const m=Object.assign({},s.mute);m[name]=!m[name];return {mute:m};});}
   toggleSolo(name){this.setState(function(s){const so=Object.assign({},s.solo);so[name]=!so[name];return {solo:so};});}
   setTrackGain(name,val){val=_clamp(val,0,4);this.setState(function(s){const g=Object.assign({},s.gain);g[name]=val;return {gain:g};});if(this.trackGain&&this.trackGain[name])this.trackGain[name].gain.value=val;}
@@ -749,7 +820,7 @@ class Component extends DCLogic {
   _play(){this._ensureAudio();if(this.ctx.state==='suspended'){this.ctx.resume();}this._notesCache=this.computeNotes();this._drumCache=this._drums();this._t0=performance.now();this._lastStep=-1;this._running=true;const self=this;this.sched=setInterval(function(){self._scheduler();},16);this._raf=requestAnimationFrame(function(){self._tick();});}
   _pause(){this._running=false;if(this.sched){clearInterval(this.sched);this.sched=null;}if(this._raf){cancelAnimationFrame(this._raf);this._raf=null;}}
   _scheduler(){if(!this._running||!this.ctx)return;const nowStep=Math.floor(this._elapsedSteps());while(this._lastStep<nowStep){this._lastStep++;const loopStep=((this._lastStep%128)+128)%128;if(loopStep===0&&this._lastStep>0){if(!this.state.loop){this._pause();this.setState({playing:false});return;}this._notesCache=this.computeNotes();this._drumCache=this._drums();}this._scheduleStep(loopStep,this.ctx.currentTime+0.02);}}
-  _scheduleStep(step,time){const sd=this._stepDur();const n=this._notesCache;const d=this._drumCache;const self=this;const ctx=this.ctx;const tg=this.trackGain||{};const instr=this.state.instruments;if(ctx.state==='suspended')return;const play=function(arr,voice,label){if(!self._audible(voice))return;const dest=tg[voice]||self.master;for(const nt of arr){if(nt.step===step){const vel=(nt.vel!=null&&nt.vel>0)?Math.max(nt.vel,1):90;const dur=Math.max(1,nt.len)*sd*0.92;SoundfontPlayer.play(ctx,dest,label,nt.midi,time,dur,vel);}}};play(n.chord,'chord',instr.chords);play(n.bass,'bass',instr.bass);play(n.mel,'mel',instr.melody);play(n.ctr,'ctr',instr.counter);play(n.arpChord||[],'arpChord',instr.arpChordTrack);play(n.arpBass||[],'arpBass',instr.arpBassTrack);if(this._audible('drums')){const drumDest=tg['drums']||self.master;['kick','snare','hat','open'].forEach(function(k){if(d[k]&&d[k].indexOf(step)>=0){SoundfontPlayer.play(ctx,drumDest,instr.drumsKit,self._drumNote(k),time,0.25,100);}});}}
+  _scheduleStep(step,time){const sd=this._stepDur();const n=this._notesCache;const d=this._drumCache;const self=this;const ctx=this.ctx;const tg=this.trackGain||{};const instr=this.state.instruments;if(ctx.state==='suspended')return;const play=function(arr,voice,label){if(!self._audible(voice))return;const dest=tg[voice]||self.master;for(const nt of arr){if(nt.step===step){const vel=(nt.vel!=null&&nt.vel>0)?Math.max(nt.vel,1):90;const dur=Math.max(4,nt.len)*sd*0.96;SoundfontPlayer.play(ctx,dest,label,nt.midi,time,dur,vel);}}};play(n.chord,'chord',instr.chords);play(n.bass,'bass',instr.bass);play(n.mel,'mel',instr.melody);play(n.ctr,'ctr',instr.counter);play(n.arpChord||[],'arpChord',instr.arpChordTrack);play(n.arpBass||[],'arpBass',instr.arpBassTrack);if(this._audible('drums')){const drumDest=tg['drums']||self.master;['kick','snare','hat','open'].forEach(function(k){if(d[k]&&d[k].indexOf(step)>=0){SoundfontPlayer.play(ctx,drumDest,instr.drumsKit,self._drumNote(k),time,0.25,100);}});}try{if(!self.spGain)self.spGain={};(self.state.sessionPlayers||[]).forEach(function(sp){if(!self._audibleSP(sp)||!sp.notes||!sp.notes.length)return;if(!self.spGain[sp.id]&&ctx){const g=ctx.createGain();g.gain.value=sp.gain||1;g.connect(self.master);self.spGain[sp.id]=g;}const spDest=self.spGain[sp.id]||self.master;for(const nt of sp.notes){if(nt.step===step){const vel=(nt.vel!=null&&nt.vel>0)?Math.max(nt.vel,1):90;const dur=Math.max(1,nt.len)*sd*0.92;SoundfontPlayer.play(ctx,spDest,sp.instrument||'Electric Piano 1',nt.midi,time,dur,vel);}}});}catch(e){console.error('[SP scheduler]',e);}}
   _tick(){if(!this._running)return;let pos=this._elapsedSteps()/128;pos=pos-Math.floor(pos);const z=this.state.zoom,pn=this.state.pan;let x=(pos*z-pn*(z-1))*100;if(this.phRef&&this.phRef.current){this.phRef.current.style.left=x+'%';this.phRef.current.style.opacity=(x<-1||x>101)?'0':(this.state.playing?'1':'0.22');}const self=this;this._raf=requestAnimationFrame(function(){self._tick();});}
   togglePlay(){const willPlay=!this.state.playing;this.setState({playing:willPlay});if(willPlay)this._play();else this._pause();}
   zoomBy(d){this.setState(function(s){const z=_clamp(Math.round((s.zoom+d)*2)/2,1,4);return {zoom:z,pan:z<=1?0:s.pan};});}
@@ -759,7 +830,7 @@ class Component extends DCLogic {
   toggleTonality(){this.setState(function(s){return {collapseTonality:!s.collapseTonality};});}
   toggleChords(){this.setState(function(s){return {collapseChords:!s.collapseChords};});}
   openInstrMenuAt(e,voice){const rect=e.currentTarget.getBoundingClientRect();const dropH=240;const y=rect.bottom+4+dropH>window.innerHeight?Math.max(4,rect.top-4-dropH):rect.bottom+4;this.setState(function(s){if(s.openInstrMenu===voice)return {openInstrMenu:null,instrMenuPos:null};return {openInstrMenu:voice,instrMenuPos:{x:rect.left,y:y,w:Math.max(rect.width,180)},openMenu:null,openChord:null};});}
-  setInstrument(voice,name){if(this.ctx)SoundfontPlayer.load(this.ctx,name);this.setState(function(s){const i=Object.assign({},s.instruments);i[voice]=name;return {instruments:i,openInstrMenu:null,instrMenuPos:null};});}
+  setInstrument(voice,name){const self=this;const apply=function(){if(voice.startsWith('sp_')){const id=parseInt(voice.slice(3));self.setState(function(s){return {sessionPlayers:s.sessionPlayers.map(function(sp){return sp.id===id?Object.assign({},sp,{instrument:name}):sp;}),openInstrMenu:null,instrMenuPos:null};});}else{self.setState(function(s){const i=Object.assign({},s.instruments);i[voice]=name;return {instruments:i,openInstrMenu:null,instrMenuPos:null};});}};if(this.ctx){SoundfontPlayer.load(this.ctx,name).then(apply).catch(apply);}else{apply();}}
   setDrumsKit(kit){if(this.ctx)SoundfontPlayer.load(this.ctx,kit);this.setState(function(s){const i=Object.assign({},s.instruments);i.drumsKit=kit;return {instruments:i};});}
   resetInstruments(){this.setState({instruments:{chords:'String Ensemble',melody:'Electric Piano 1',bass:'Acoustic Bass',counter:'Acoustic Piano',drumsKit:'Acoustic'}});}
   openArpModal(){this.setState(function(s){return {arpModalOpen:true,openMenu:null,openChord:null,openInstrMenu:null,instrMenuPos:null,arpSnapshot:{on:s.arpOn,steps:s.arpSteps,type:s.arpType,style:s.arpStyle,timeMode:s.arpTimeMode,source:s.arpSource,mode:s.arpMode}};});}
@@ -776,6 +847,14 @@ class Component extends DCLogic {
   renderArpToTrack(){const s=this.state;if(!s.chords.length)return;const src=s.arpSource==='bass'?s.chords.map(function(c){const r=(c.tones&&c.tones[0])||48;let b=r;while(b>55)b-=12;while(b<28)b+=12;const fifth=b+7<=55?b+7:b-5;return Object.assign({},c,{tones:[b,fifth,b+12<=60?b+12:b]});}) : s.chords;const notes=_arpNotes(src,s.arpSteps,s.arpType,s.arpStyle,s.arpTimeMode);const update=s.arpSource==='bass'?{arpBassTrack:notes}:{arpChordTrack:notes};this.setState(Object.assign({arpModalOpen:false,arpSnapshot:null},update));}
   midiArpChord(){const n=this.computeNotes();if(!n.arpChord.length)return;_dl(_buildMidi(this.state.tempo,[{notes:n.arpChord,channel:0}]),'Peitho-arp-chord.mid');}
   midiArpBass(){const n=this.computeNotes();if(!n.arpBass.length)return;_dl(_buildMidi(this.state.tempo,[{notes:n.arpBass,channel:0}]),'Peitho-arp-bass.mid');}
+  _sessionLockedTracks(){const n=this.computeNotes();const tracks=[];const add=function(program,notes){if(notes&&notes.length)tracks.push({program:program,notes:notes});};add(32,n.bass);add(4,n.mel);add(0,n.ctr);add(128,this._drumMidi());add(4,n.arpChord);add(32,n.arpBass);(this.state.sessionPlayers||[]).forEach(function(sp){add(sp.program==null?0:sp.program,sp.notes);});return tracks;}
+  async generateSessionPlayer(role){if(this.state.sessionPlayerGenerating||!this.state.chords.length)return;const self=this;const s=this.state;this.setState({sessionPlayerGenerating:true,sessionPlayerError:null});try{const response=await fetch('/pulse/session-player/amt',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({role:role,bars:8,beatsPerBar:4,stepsPerBeat:4,tempo:s.tempo,chords:s.chords,lockedTracks:this._sessionLockedTracks(),seed:CE.rand()})});const result=await response.json();if(!response.ok)throw new Error(result.error||'AMT session player generation failed');if(!result.notes||!result.notes.length)throw new Error('AMT returned no notes');const COLORS=['#5f9bd0','#9b7fc8','#7fc8b0','#cf9d5c','#c2738a','#82b48f','#d4857a'];this.setState(function(current){const i=current.sessionPlayers.length;const instrument=role==='pad'?'Pad: Warm':'Acoustic Piano';return {sessionPlayers:current.sessionPlayers.concat([{id:Date.now(),role:role,program:result.program,name:(role==='pad'?'Pad':'Piano')+' Player '+(i+1),color:COLORS[i%COLORS.length],range:[48,84],instrument:instrument,mute:false,solo:false,gain:1.0,notes:result.notes,source:result.source,warnings:result.warnings||[]}]),sessionPlayerGenerating:false,sessionPlayerError:null};});if(this.ctx)SoundfontPlayer.load(this.ctx,role==='pad'?'Pad: Warm':'Acoustic Piano');}catch(error){self.setState({sessionPlayerGenerating:false,sessionPlayerError:error&&error.message?error.message:String(error)});}}
+  addSessionPlayer(){this.generateSessionPlayer('piano');}
+  removeSessionPlayer(id){this.setState(function(s){return {sessionPlayers:s.sessionPlayers.filter(function(sp){return sp.id!==id;})};});}
+  toggleSessionMute(idx){this.setState(function(s){const sps=s.sessionPlayers.slice();sps[idx]=Object.assign({},sps[idx],{mute:!sps[idx].mute});return {sessionPlayers:sps};});}
+  toggleSessionSolo(idx){this.setState(function(s){const sps=s.sessionPlayers.slice();sps[idx]=Object.assign({},sps[idx],{solo:!sps[idx].solo});return {sessionPlayers:sps};});}
+  setSessionGain(idx,val){val=_clamp(val,0,4);this.setState(function(s){const sps=s.sessionPlayers.slice();sps[idx]=Object.assign({},sps[idx],{gain:val});return {sessionPlayers:sps};});const sp=this.state.sessionPlayers[idx];if(sp&&this.spGain&&this.spGain[sp.id])this.spGain[sp.id].gain.value=val;}
+  _audibleSP(sp){const s=this.state;const anySolo=['chord','bass','mel','ctr','drums','arpChord','arpBass'].some(function(k){return s.solo[k];})||(s.sessionPlayers||[]).some(function(p){return p.solo;});if(anySolo)return !!sp.solo;return !sp.mute;}
 
   menuItems(name,list,current){const self=this;const sel=this.sel();return list.map(function(v){const a=v===current;return {label:v,pick:function(){self.pick(name,v);},style:{padding:'8px 12px',fontSize:'12.5px',cursor:'pointer',borderRadius:'6px',whiteSpace:'nowrap',color:a?'#e9eaee':'#9aa0aa',background:a?self._rgba(sel,0.16):'transparent',fontWeight:a?600:400}};});}
   tabItems(seeds,active,color,kind){const self=this;return [0,1,2].map(function(i){const filled=seeds[i]!=null;const isA=i===active;return {label:'V'+(i+1),pick:function(){kind==='mel'?self.pickMel(i):self.pickCtr(i);},style:{padding:'4px 9px',fontSize:'10px',borderRadius:'5px',cursor:'pointer',fontFamily:'ui-monospace,Menlo,monospace',letterSpacing:'.04em',background:isA?self._rgba(color,0.18):'transparent',color:isA?color:(filled?'#cfd3da':'#5f646e'),border:'1px solid '+(isA?self._rgba(color,0.6):'rgba(255,255,255,.08)')}};});}
@@ -889,7 +968,7 @@ class Component extends DCLogic {
       zoomOutStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'5px',cursor:z>1?'pointer':'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.08)',color:z>1?'#cfd3da':'#3f444c',opacity:z>1?1:0.5},
       zoomVInStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'5px',cursor:s.vzoom<3?'pointer':'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.08)',color:s.vzoom<3?'#cfd3da':'#3f444c',opacity:s.vzoom<3?1:0.5},
       zoomVOutStyle:{display:'flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',borderRadius:'5px',cursor:s.vzoom>1?'pointer':'default',background:'#1a1e25',border:'1px solid rgba(255,255,255,.08)',color:s.vzoom>1?'#cfd3da':'#3f444c',opacity:s.vzoom>1?1:0.5},
-      laneStyle:{display:'flex',flex:'1 1 auto',minHeight:Math.round(108*s.vzoom)+'px',background:'#101319',border:'1px solid rgba(255,255,255,.06)',borderRadius:'9px',overflow:'hidden'},
+      laneStyle:{display:'flex',flex:'1 1 auto',minHeight:Math.round(88*s.vzoom)+'px',background:'#101319',border:'1px solid rgba(255,255,255,.06)',borderRadius:'9px',overflow:'hidden'},
       chordBands:this.scaleBands([44,72]), bassBands:this.scaleBands([30,52]), melBands:this.scaleBands([56,84]), ctrBands:this.scaleBands([46,76]),
       chordRows:this.pianoRows([44,72],_clamp((this._rowPct([44,72])/100)*108*s.vzoom*0.5,8,15)), bassRows:this.pianoRows([30,52],_clamp((this._rowPct([30,52])/100)*108*s.vzoom*0.5,8,15)), melRows:this.pianoRows([56,84],_clamp((this._rowPct([56,84])/100)*108*s.vzoom*0.5,8,15)), ctrRows:this.pianoRows([46,76],_clamp((this._rowPct([46,76])/100)*108*s.vzoom*0.5,8,15)), arpChordRows:this.pianoRows([44,84],_clamp((this._rowPct([44,84])/100)*108*s.vzoom*0.5,8,15)), arpBassRows:this.pianoRows([28,55],_clamp((this._rowPct([28,55])/100)*108*s.vzoom*0.5,8,15)),
       showPan:z>1, startPan:function(e){self.startSlider(e,'pan',0,1,0);},
@@ -1010,10 +1089,16 @@ class Component extends DCLogic {
           arpBassTrack:[{f:'BASS',ii:['Acoustic Bass','Electric Bass (Finger)','Electric Bass (Pick)','Slap Bass','Synth Bass']},{f:'KEYS',ii:['Electric Piano 1','Vibraphone']},{f:'LEADS',ii:['Synth Lead','Saw Wave']}]
         };
         const voice=s.openInstrMenu;
-        if(!voice||!LI[voice])return [];
-        const cur=s.instruments[voice];
+        const SP_LIST=[{f:'KEYS',ii:['Acoustic Piano','Electric Piano 1','Vibraphone']},{f:'STRINGS',ii:['Violin','Guitar (Nylon)']},{f:'WINDS',ii:['Flute','Oboe']},{f:'PADS',ii:['String Ensemble','Choir Aahs']},{f:'LEADS',ii:['Synth Lead','Saw Wave']},{f:'BASS',ii:['Acoustic Bass','Electric Bass (Finger)','Slap Bass','Synth Bass']}];
+        if(!voice)return [];
+        const isSP=voice.startsWith('sp_');
+        const spId=isSP?parseInt(voice.slice(3)):null;
+        const spObj=isSP?s.sessionPlayers.find(function(p){return p.id===spId;}):null;
+        if(isSP&&!spObj)return [];
+        if(!isSP&&!LI[voice])return [];
+        const cur=isSP?(spObj.instrument||'Electric Piano 1'):s.instruments[voice];
         const items=[];let first=true;
-        (LI[voice]||[]).forEach(function(g){
+        (isSP?SP_LIST:LI[voice]||[]).forEach(function(g){
           if(!first)items.push({isHeader:false,isItem:false,isDivider:true,style:{height:'1px',background:'rgba(255,255,255,.06)',margin:'4px 0'},label:''});
           first=false;
           const gfc=FC[g.f]||'#8a8f99';
@@ -1038,6 +1123,13 @@ class Component extends DCLogic {
       drumKitAcousticStyle:{padding:'3px 7px',borderRadius:'4px',fontSize:'9px',fontWeight:600,cursor:'pointer',letterSpacing:'.02em',fontFamily:'ui-monospace,Menlo,monospace',background:s.instruments.drumsKit==='Acoustic'?self._rgba(sel,0.16):'transparent',color:s.instruments.drumsKit==='Acoustic'?sel:'#6b7280',border:'1px solid '+(s.instruments.drumsKit==='Acoustic'?self._rgba(sel,0.4):'transparent')},
       drumKitElectronicStyle:{padding:'3px 7px',borderRadius:'4px',fontSize:'9px',fontWeight:600,cursor:'pointer',letterSpacing:'.02em',fontFamily:'ui-monospace,Menlo,monospace',background:s.instruments.drumsKit==='Electronic'?self._rgba(sel,0.16):'transparent',color:s.instruments.drumsKit==='Electronic'?sel:'#6b7280',border:'1px solid '+(s.instruments.drumsKit==='Electronic'?self._rgba(sel,0.4):'transparent')},
       drumKitBrushesStyle:{padding:'3px 7px',borderRadius:'4px',fontSize:'9px',fontWeight:600,cursor:'pointer',letterSpacing:'.02em',fontFamily:'ui-monospace,Menlo,monospace',background:s.instruments.drumsKit==='Brushes'?self._rgba(sel,0.16):'transparent',color:s.instruments.drumsKit==='Brushes'?sel:'#6b7280',border:'1px solid '+(s.instruments.drumsKit==='Brushes'?self._rgba(sel,0.4):'transparent')},
+      // session players
+      addSessionPlayer:function(){self.addSessionPlayer();},
+      addPlayerLabel:s.sessionPlayerGenerating?'AMT GENERATING PIANO…':'ADD PIANO PLAYER',
+      addPlayerBtnStyle:{display:'flex',alignItems:'center',gap:'6px',padding:'7px 12px',background:'#101319',border:'1px dashed rgba(255,255,255,.12)',borderRadius:'7px',cursor:s.sessionPlayerGenerating?'wait':'pointer',color:s.sessionPlayerGenerating?'#9b7fc8':'#5f646e',opacity:s.sessionPlayerGenerating?0.75:1,pointerEvents:s.sessionPlayerGenerating?'none':'auto',userSelect:'none',alignSelf:'flex-start',marginLeft:'1px'},
+      showSessionPlayerError:!!s.sessionPlayerError,
+      sessionPlayerError:s.sessionPlayerError||'',
+      sessionPlayerLanes:(function(){const btnBase={display:'flex',alignItems:'center',justifyContent:'center',width:'17px',height:'17px',borderRadius:'4px',cursor:'pointer',fontSize:'8px'};return s.sessionPlayers.map(function(sp,i){const v=sp.gain||1;const p=v/4*100;const range=sp.range||[48,84];const anySolo=['chord','bass','mel','ctr','drums','arpChord','arpBass'].some(function(k){return s.solo[k];})||s.sessionPlayers.some(function(q){return q.solo;});return {name:sp.name,dotStyle:{width:'9px',height:'9px',borderRadius:'3px',background:sp.color,boxShadow:'0 0 6px '+sp.color,flexShrink:0},toggleM:function(){self.toggleSessionMute(i);},toggleS:function(){self.toggleSessionSolo(i);},mStyle:Object.assign({},btnBase,{border:'1px solid '+(sp.mute?sel:'rgba(255,255,255,.12)'),background:sp.mute?sel:'transparent',color:sp.mute?'#0c0e12':'#7d828c'}),sStyle:Object.assign({},btnBase,{border:'1px solid '+(sp.solo?sel:'rgba(255,255,255,.12)'),background:sp.solo?sel:'transparent',color:sp.solo?'#0c0e12':'#7d828c'}),gainStart:(function(idx){return function(e){e.preventDefault();const rect=e.currentTarget.getBoundingClientRect();const upd=function(cx){self.setSessionGain(idx,_clamp((cx-rect.left)/rect.width*4,0,4));};upd(e.clientX);const move=function(ev){upd(ev.clientX);};const up=function(){window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);};}(i)),gainFill:{position:'absolute',left:0,height:'4px',width:p+'%',borderRadius:'3px',background:'rgba(255,255,255,.35)'},gainHandle:{position:'absolute',left:p+'%',top:'50%',transform:'translate(-50%,-50%)',width:'10px',height:'10px',borderRadius:'50%',background:'#e9eaee',boxShadow:'0 1px 4px rgba(0,0,0,.6)'},gainLabel:Math.round(v*100)+'%',areaStyle:{position:'relative',flex:1,overflow:'hidden',opacity:sp.mute?0.35:1},midiExport:function(){if(sp.notes&&sp.notes.length)_dl(_buildMidi(s.tempo,[{notes:sp.notes,channel:0}]),'Peitho-player-'+(i+1)+'.mid');},remove:(function(id){return function(){self.removeSessionPlayer(id);};}(sp.id)),toggleInstr:function(e){self.openInstrMenuAt(e,'sp_'+sp.id);},instrName:sp.instrument||'Electric Piano 1',instrBtnStyle:{display:'flex',alignItems:'center',gap:'5px',padding:'4px 8px',background:'#21262f',border:'1px solid rgba(255,255,255,.08)',borderRadius:'5px',cursor:'pointer',minWidth:0},rows:self.pianoRows(range,_clamp((self._rowPct(range)/100)*88*(s.vzoom||1)*0.5,8,15)),notes:self.noteStyles(sp.notes||[],range,sp.color)};});}()),
       // footer
       exportMidi:function(){self.exportMidi();},
       exportBtnStyle:{display:'flex',alignItems:'center',gap:'10px',padding:'13px 22px',borderRadius:'9px',cursor:'pointer',background:sel,color:'#fff',fontSize:'12px',fontWeight:700},

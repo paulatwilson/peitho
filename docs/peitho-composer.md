@@ -16,12 +16,14 @@ Implemented:
 - soundfont audition playback
 - track mute/solo and instrument selection
 - per-track and multi-track MIDI export
+- localStorage autosave/restore of music data (TokenMusicStream) and app state
+  (mute/solo/gain/instruments/UI) across page refresh
 
 Not implemented:
 
 - Pulse melody/counter/drum calls from Composer
-- persistence, projects, undo/redo
-- TokenMusicStream UI import/export
+- named projects, undo/redo
+- TokenMusicStream UI import/export (file-level, beyond localStorage autosave)
 - model-backed Session Players
 
 ## Active Files
@@ -243,7 +245,8 @@ Target Pulse melody architecture:
 - Melody must contain material and be locked before counter generation.
 - Melody and counter each have three independent seed/override slots.
 - Regenerating active slot replaces its seed and clears its override.
-- Locking protects workflow stage; it does not persist data across refresh.
+- Locking protects workflow stage only; it is independent of autosave, which
+  persists current notes regardless of lock state.
 
 ## Arpeggiator
 
@@ -307,13 +310,21 @@ interaction as required by browsers.
 2. Extract chord conversion/status helpers.
 3. Extract arpeggiator/player logic from `public/index.html`.
 4. Add browser workflow tests.
-5. Add undo/redo before persistence.
+5. Add undo/redo.
 
 ## TokenMusicStream
 
 TokenMusicStream is optional cross-project storage/transport. It is not Composer
 editing state and not engine output. Sole schema:
 [`token-music-stream.md`](./token-music-stream.md).
+
+Composer uses it as the autosave format: on every state change, `index.html`
+encodes current chords/melody/counter/drums/macros via
+`CE.encodeProjectStream()` and writes the result to `localStorage` (debounced).
+On load, `CE.decodeProjectStream()` restores them. App-only state (mute, solo,
+gain, instruments, UI layout, candidate seeds) is saved separately as plain
+JSON — it never passes through TokenMusicStream, which stays scoped to music
+data only.
 
 ## Verification
 
